@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/poa_projet_tank/static/css/main.e6c13ad2.css",
-    "main.js": "/poa_projet_tank/static/js/main.1da425c4.js",
-    "static/js/453.a7fe2efe.chunk.js": "/poa_projet_tank/static/js/453.a7fe2efe.chunk.js",
-    "index.html": "/poa_projet_tank/index.html",
-    "main.e6c13ad2.css.map": "/poa_projet_tank/static/css/main.e6c13ad2.css.map",
-    "main.1da425c4.js.map": "/poa_projet_tank/static/js/main.1da425c4.js.map",
-    "453.a7fe2efe.chunk.js.map": "/poa_projet_tank/static/js/453.a7fe2efe.chunk.js.map"
+    "main.css": "/POA-SMA-Tank-Project/static/css/main.e6c13ad2.css",
+    "main.js": "/POA-SMA-Tank-Project/static/js/main.f9a3b4f9.js",
+    "static/js/453.a7fe2efe.chunk.js": "/POA-SMA-Tank-Project/static/js/453.a7fe2efe.chunk.js",
+    "index.html": "/POA-SMA-Tank-Project/index.html",
+    "main.e6c13ad2.css.map": "/POA-SMA-Tank-Project/static/css/main.e6c13ad2.css.map",
+    "main.f9a3b4f9.js.map": "/POA-SMA-Tank-Project/static/js/main.f9a3b4f9.js.map",
+    "453.a7fe2efe.chunk.js.map": "/POA-SMA-Tank-Project/static/js/453.a7fe2efe.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.e6c13ad2.css",
-    "static/js/main.1da425c4.js"
+    "static/js/main.f9a3b4f9.js"
   ]
 }
