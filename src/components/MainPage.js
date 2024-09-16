@@ -1,40 +1,59 @@
-import React, { useState, useEffect } from 'react';
-import { Stage, Container, Graphics } from '@pixi/react';
+import React, { useEffect, useRef } from 'react';
+import * as PIXI from 'pixi.js';
 
 const MainPage = () => {
-    const [yPosition, setYPosition] = useState(0);
-    const [direction, setDirection] = useState(1);
-
-    // Mettre à jour la position du carré à chaque frame
+    const pixiContainerRef = useRef(null);
+    const WindowWidth = window.innerWidth;
+    const WindowHeight = window.innerHeight;
     useEffect(() => {
-        const animate = () => {
-            setYPosition(prevY => {
-                const newY = prevY + 5 * direction;
-                if (newY > 400 || newY < 0) {
-                    setDirection(-direction); // Inverser la direction si on atteint les bords
-                }
-                return newY;
-            });
+        // Création de l'application Pixi
+        const app = new PIXI.Application({ width: WindowWidth, height: WindowHeight, backgroundColor: 0x1099bb });
+        pixiContainerRef.current.appendChild(app.view);
+
+        // Création du carré rouge (de haut en bas)
+        const redSquare = new PIXI.Graphics();
+        redSquare.beginFill(0xff0000); // Rouge
+        redSquare.drawRect(0, 0, 50, 50); // Un carré de 50x50
+        redSquare.endFill();
+        redSquare.x = 375;
+        redSquare.y = 0;
+        app.stage.addChild(redSquare);
+
+        let redDirection = 1;
+
+        // Création du carré bleu (de gauche à droite)
+        const blueSquare = new PIXI.Graphics();
+        blueSquare.beginFill(0x0000ff); // Bleu
+        blueSquare.drawRect(0, 0, 50, 50); // Un carré de 50x50
+        blueSquare.endFill();
+        blueSquare.x = 0;
+        blueSquare.y = 275;
+        app.stage.addChild(blueSquare);
+
+        let blueDirection = 1;
+
+        // Animation du carré rouge (haut-bas)
+        app.ticker.add(() => {
+            redSquare.y += 5 * redDirection;
+            if (redSquare.y > 550 || redSquare.y < 0) {
+                redDirection *= -1;
+            }
+
+            // Animation du carré bleu (gauche-droite)
+            blueSquare.x += 5 * blueDirection;
+            if (blueSquare.x > 750 || blueSquare.x < 0) {
+                blueDirection *= -1;
+            }
+        });
+
+        // Nettoyage de l'application Pixi lors du démontage du composant
+        return () => {
+            app.destroy(true, true);
         };
-
-        const intervalId = setInterval(animate, 16); // 60 FPS
-
-        return () => clearInterval(intervalId); // Nettoyer l'intervalle quand le composant est démonté
-    }, [direction]);
-
-    const drawSquare = (g) => {
-        g.clear();
-        g.beginFill(0xff0000); // Couleur rouge pour le carré
-        g.drawRect(0, 0, 50, 50); // Dessine un carré de 50x50
-        g.endFill();
-    };
+    }, []);
 
     return (
-        <Stage width={800} height={600} options={{ backgroundColor: 0x1099bb }}>
-            <Container x={375} y={yPosition}>
-                <Graphics draw={drawSquare} />
-            </Container>
-        </Stage>
+        <div ref={pixiContainerRef}></div>
     );
 };
 
