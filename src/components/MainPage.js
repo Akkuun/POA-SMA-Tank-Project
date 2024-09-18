@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
+import {Tank} from './Tank';
 
 const MainPage = () => {
     const pixiContainerRef = useRef(null);
@@ -46,11 +47,30 @@ const MainPage = () => {
             }
         });
 
+        //creation de tanks
+        const brownTank = new Tank(0x827B60, { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight" });
+        brownTank.display();
+
+        const greenTank = new Tank(0x667c3e, { up: "z", left: "q", down: "s", right: "d" });
+        greenTank.display();
+
+        //pour avoir l'objet PIXI
+        const brownTankBody = brownTank.tankBody;
+        const greenTankBody = greenTank.tankBody;
+
+        app.stage.addChild(brownTankBody);
+        app.stage.addChild(greenTankBody);
+
+        app.ticker.add(() => {
+            brownTank.updatePosition();
+            greenTank.updatePosition();
+        });
+
         // Nettoyage de l'application Pixi lors du démontage du composant
         return () => {
             app.destroy(true, true);
         };
-    }, []);
+    }, [WindowHeight, WindowWidth]);
 
     return (
         <div ref={pixiContainerRef}></div>

@@ -4,6 +4,7 @@
   "homepage": "https://Akkuun.github.io/POA-SMA-Tank-Project",
   "private": true,
   "dependencies": {
+    "@pixi/graphics": "^7.4.2",
     "@pixi/react": "^7.1.2",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
