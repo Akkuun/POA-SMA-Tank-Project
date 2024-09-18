@@ -5,7 +5,7 @@ import {Tank} from './Tank';
 const MainPage = () => {
     const pixiContainerRef = useRef(null);
     const WindowWidth = window.innerWidth;
-    const WindowHeight = window.innerHeight;
+    const WindowHeight = window.innerHeight-3.51;
     useEffect(() => {
         // Création de l'application Pixi
         const app = new PIXI.Application({ width: WindowWidth, height: WindowHeight, backgroundColor: 0x1099bb });
@@ -48,15 +48,15 @@ const MainPage = () => {
         });
 
         //creation de tanks
-        const brownTank = new Tank(0x827B60, { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight" });
+        let brownTank = new Tank(0x827B60, { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight" });
         brownTank.display();
 
-        const greenTank = new Tank(0x667c3e, { up: "z", left: "q", down: "s", right: "d" });
+        let greenTank = new Tank(0x667c3e, { up: "z", left: "q", down: "s", right: "d" });
         greenTank.display();
 
         //pour avoir l'objet PIXI
-        const brownTankBody = brownTank.tankBody;
-        const greenTankBody = greenTank.tankBody;
+        let brownTankBody = brownTank.tankBody;
+        let greenTankBody = greenTank.tankBody;
 
         app.stage.addChild(brownTankBody);
         app.stage.addChild(greenTankBody);

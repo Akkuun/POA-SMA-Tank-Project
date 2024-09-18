@@ -8,7 +8,8 @@ export class Tank {
     _speed;
     _keys;
     _controls;
-    _tankBody
+    _tankBody;
+    _tete;
     constructor(couleur,controls) {
         this._spawnx=0;
         this._spawny=0;
@@ -19,6 +20,7 @@ export class Tank {
 
         this._controls=controls;
         this._tankBody = new PIXI.Graphics();
+        this._tete = new PIXI.Graphics();
 
         // Listeners pour les touches
         window.addEventListener("keydown", (e) => {
@@ -28,6 +30,11 @@ export class Tank {
         window.addEventListener("keyup", (e) => {
             this._keys[e.key] = false;
         });
+
+        // listener pour le curseur
+        /*window.addEventListener("mousemove", (e) => {
+            this.updateCannonPosition(e.clientX, e.clientY);
+        });*/
     }
 
 
@@ -110,18 +117,19 @@ export class Tank {
             this._tankBody.endFill();
         }
 
-        this._tankBody.beginFill(0x000000); // Tete contour
-        this._tankBody.drawCircle(25, 25, 18);
-        this._tankBody.endFill();
-        this._tankBody.beginFill(0x000000);// Mire contour
-        this._tankBody.drawRect(20, 10, 10, 50);
-        this._tankBody.endFill();
-        this._tankBody.beginFill(this._couleur); // Mire interieur
-        this._tankBody.drawRect(21, 11, 8, 48);
-        this._tankBody.endFill();
-        this._tankBody.beginFill(this._couleur); // Tete interieur
-        this._tankBody.drawCircle(25, 25, 16);
-        this._tankBody.endFill();
+        this._tete.beginFill(0x000000); // Tete contour
+        this._tete.drawCircle(25, 25, 18);
+        this._tete.endFill();
+        this._tete.beginFill(0x000000);// Mire contour
+        this._tete.drawRect(20, 10, 10, 50);
+        this._tete.endFill();
+        this._tete.beginFill(this._couleur); // Mire interieur
+        this._tete.drawRect(21, 11, 8, 48);
+        this._tete.endFill();
+        this._tete.beginFill(this._couleur); // Tete interieur
+        this._tete.drawCircle(25, 25, 16);
+        this._tete.endFill();
+        this._tankBody.addChild(this._tete);
 
         this._tankBody.x = this._spawnx;
         this._tankBody.y = this._spawny;
@@ -141,4 +149,16 @@ export class Tank {
             this._tankBody.x+= this._speed;
         }
     }
+
+    updateCannonPosition(mouseX, mouseY) {
+
+        let rect = this._tankBody.getBounds();
+        let centerX = rect.x + rect.width / 2;
+        let centerY = rect.y + rect.height / 2;
+
+        // Met à jour la rotation de la mire
+        this._tete.rotation = Math.atan2(mouseY - centerY, mouseX - centerX);
+    }
+
+
 }
