@@ -6,7 +6,7 @@ import {Stadium} from './Stadium';
 const MainPage = () => {
     const pixiContainerRef = useRef(null);
     const WindowWidth = window.innerWidth;
-    const WindowHeight = window.innerHeight-3.51;
+    const WindowHeight = window.innerHeight;
     useEffect(() => {
         // Création de l'application Pixi
         const app = new PIXI.Application({ width: WindowWidth, height: WindowHeight, backgroundColor: 0x1099bb });
