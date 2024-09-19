@@ -2,7 +2,8 @@ import * as PIXI from "@pixi/graphics";
 
 const WindowWidth = window.innerWidth;
 const WindowHeight = window.innerHeight;
-const scaleFactor = Math.min(WindowWidth, WindowHeight) / 550; // Ajustez le facteur selon vos besoins
+const scaleFactor = Math.min(WindowWidth, WindowHeight) / 550; //Main factor to scale the tank
+
 export class Tank {
     _coordinateSpawnY;
     _coordinateSpawnX;
@@ -119,22 +120,22 @@ export class Tank {
         const innerRectHeight = 48 * scaleFactor;
         const innerCircleRadius = 16 * scaleFactor;
 
-        // Tête contour
+        // head contour
         this._tankHead.beginFill(0x000000);
         this._tankHead.drawCircle(headCenter, headCenter, headRadius);
         this._tankHead.endFill();
 
-        // Mire contour
+        // External cannon
         this._tankHead.beginFill(0x000000);
         this._tankHead.drawRect(rectX, rectY, rectWidth, rectHeight);
         this._tankHead.endFill();
 
-        // Mire intérieur
+        // Internal cannon
         this._tankHead.beginFill(this._color);
         this._tankHead.drawRect(innerRectX, innerRectY, innerRectWidth, innerRectHeight);
         this._tankHead.endFill();
 
-        // Tête intérieur
+        // Internal head
         this._tankHead.beginFill(this._color);
         this._tankHead.drawCircle(headCenter, headCenter, innerCircleRadius);
         this._tankHead.endFill();
@@ -143,45 +144,45 @@ export class Tank {
     }
 
     displayTracks() {
-        // Dimensions des jambes (tracks) ajustées selon l'échelle
-        const trackWidth = 5 * scaleFactor; // Largeur des jambes
-        const trackHeight = 55 * scaleFactor; // Hauteur des jambes
-        const trackCornerRadius = 10 * scaleFactor; // Rayon des coins arrondis
-        const trackOffsetX = 48 * scaleFactor; // Décalage de la jambe droite
-        const trackOffsetY = -2 * scaleFactor; // Décalage vertical
-        const metalPlateWidth = 3 * scaleFactor; // Largeur des plaques de métal
-        const metalPlateHeight = 7 * scaleFactor; // Hauteur des plaques de métal
-        const metalPlateSpacing = 9 * scaleFactor; // Espacement entre les plaques de métal
 
-        // Jambes droit
+        const trackWidth = 5 * scaleFactor;
+        const trackHeight = 55 * scaleFactor;
+        const trackCornerRadius = 10 * scaleFactor;
+        const trackOffsetX = 48 * scaleFactor; // Horizontal offset
+        const trackOffsetY = -2 * scaleFactor; // Vertical offset
+        const metalPlateWidth = 3 * scaleFactor;
+        const metalPlateHeight = 7 * scaleFactor;
+        const metalPlateSpacing = 9 * scaleFactor;
+
+        // Right Track
         this._tankBody.beginFill(0x000000); // Contour
         this._tankBody.drawRoundedRect(trackOffsetX, trackOffsetY, trackWidth, trackHeight, trackCornerRadius);
         this._tankBody.endFill();
         for (let i = 0; i < 6; i++) {
-            this._tankBody.beginFill(0xC0c0c0); // Plaques de métal
-            this._tankBody.drawRect(trackOffsetX + 1 * scaleFactor, i * metalPlateSpacing, metalPlateWidth, metalPlateHeight);
+            this._tankBody.beginFill(0xC0c0c0); // Metal plates
+            this._tankBody.drawRect(trackOffsetX +  scaleFactor, i * metalPlateSpacing, metalPlateWidth, metalPlateHeight);
             this._tankBody.endFill();
         }
 
-        // Jambes gauche
+        // Left Track
         this._tankBody.beginFill(0x000000); // Contour
         this._tankBody.drawRoundedRect(-2 * scaleFactor, trackOffsetY, trackWidth, trackHeight, trackCornerRadius);
         this._tankBody.endFill();
         for (let i = 0; i < 6; i++) {
-            this._tankBody.beginFill(0xC0c0c0); // Plaques de métal
+            this._tankBody.beginFill(0xC0c0c0); // Metal plates
             this._tankBody.drawRect(-1 * scaleFactor, i * metalPlateSpacing, metalPlateWidth, metalPlateHeight);
             this._tankBody.endFill();
         }
     }
 
     displayBody() {
-        // Dimensions du corps du tank
-        const bodyWidth = 50 * scaleFactor;  // Largeur proportionnelle du corps
-        const bodyHeight = 50 * scaleFactor; // Hauteur proportionnelle du corps
-        const bodyX = 0;  // Position X du corps (centré ou ajusté si nécessaire)
-        const bodyY = 0;  // Position Y du corps (centré ou ajusté si nécessaire)
+        // Body dimensions
+        const bodyWidth = 50 * scaleFactor;
+        const bodyHeight = 50 * scaleFactor;
+        const bodyX = 0;  // X body position (centered or adjusted if necessary)
+        const bodyY = 0;  // Y body position (centered or adjusted if necessary)
 
-        // Dessiner le corps du tank
+        // Body draw
         this._tankBody.beginFill(this._color);
         this._tankBody.drawRect(bodyX, bodyY, bodyWidth, bodyHeight);
         this._tankBody.endFill();
