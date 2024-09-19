@@ -135,6 +135,11 @@ export class Tank {
         this._tankHead.drawCircle(headCenter, headCenter, innerCircleRadius);
         this._tankHead.endFill();
 
+        // Attach point for the head to the body to rotate
+        this._tankHead.pivot.set(headCenter, headCenter);
+        this._tankHead.x = this._tankBody.x + 25 * scaleFactor;
+        this._tankHead.y = this._tankBody.y + 25 * scaleFactor;
+
         this._tankBody.addChild(this._tankHead);
     }
 
@@ -199,13 +204,7 @@ export class Tank {
     }
 
     updateCannonPosition(mouseX, mouseY) {
-
-        let rect = this._tankHead.getBounds();
-        let centerX = this._tankHead.position._x;
-        let centerY = this._tankHead.position._y;
-
-        // Met à jour la rotation de la mire
-        this._tankHead.rotation = Math.atan2(mouseY - centerY, mouseX - centerX)-Math.PI/2;
+        this._tankHead.rotation = Math.atan2(mouseY - this._tankBody.y, mouseX - this._tankBody.x)- Math.PI / 2;
     }
 
 
