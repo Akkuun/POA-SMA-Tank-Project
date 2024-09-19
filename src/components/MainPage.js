@@ -29,14 +29,6 @@ const MainPage = () => {
             mouseY = event.global.y;
         });
 
-        // Création du carré rouge (de haut en bas)
-        const redSquare = new PIXI.Graphics();
-        redSquare.beginFill(0xff0000); // Rouge
-        redSquare.drawRect(0, 0, 50, 50); // Un carré de 50x50
-        redSquare.endFill();
-        redSquare.x = 375;
-        redSquare.y = 0;
-        app.stage.addChild(redSquare);
 
         // Creation des tanks
         const tanks = [];
