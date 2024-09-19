@@ -81,6 +81,7 @@ export class Tank {
         this._controls = value;
     }
 
+
     get speed() {
         return this._speed;
     }
@@ -95,6 +96,8 @@ export class Tank {
         this.displayBody();
         this.displayTracks();
         this.displayHead();
+
+
 
         this._tankBody.x = this._coordinateSpawnX;
         this._tankBody.y = this._coordinateSpawnY;
