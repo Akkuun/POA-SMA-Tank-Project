@@ -2,25 +2,25 @@ import * as PIXI from "@pixi/graphics";
 
 
 export class Tank {
-    _spawny;
-    _spawnx;
-    _couleur;
+    _coordinateSpawnY;
+    _coordinateSpawnX;
+    _color;
     _speed;
     _keys;
     _controls;
     _tankBody;
-    _tete;
-    constructor(couleur,controls) {
-        this._spawnx=0;
-        this._spawny=0;
-        this._couleur = couleur;
+    _tankHead;
+    constructor(color,controls) {
+        this._coordinateSpawnX=0;
+        this._coordinateSpawnY=0;
+        this._color = color;
 
         this._speed = 2;
         this._keys = {};
 
         this._controls=controls;
         this._tankBody = new PIXI.Graphics();
-        this._tete = new PIXI.Graphics();
+        this._tankHead = new PIXI.Graphics();
 
         // Listeners pour les touches
         window.addEventListener("keydown", (e) => {
@@ -39,29 +39,29 @@ export class Tank {
 
 
 
-    get couleur() {
-        return this._couleur;
+    get color() {
+        return this._color;
     }
 
-    set couleur(value) {
-        this._couleur = value;
+    set color(value) {
+        this._color = value;
     }
 
 
-    get spawny() {
-        return this._spawny;
+    get coordinateSpawnY() {
+        return this._coordinateSpawnY;
     }
 
-    set spawny(value) {
-        this._spawny = value;
+    set coordinateSpawnY(value) {
+        this._coordinateSpawnY = value;
     }
 
-    get spawnx() {
-        return this._spawnx;
+    get coordinateSpawnX() {
+        return this._coordinateSpawnX;
     }
 
-    set spawnx(value) {
-        this._spawnx = value;
+    set coordinateSpawnX(value) {
+        this._coordinateSpawnX = value;
     }
 
 
@@ -92,7 +92,7 @@ export class Tank {
     display(){
 
         // Corps
-        this._tankBody.beginFill(this._couleur);
+        this._tankBody.beginFill(this._color);
         this._tankBody.drawRect(0, 0, 50, 50);
         this._tankBody.endFill();
 
@@ -117,22 +117,22 @@ export class Tank {
             this._tankBody.endFill();
         }
 
-        this._tete.beginFill(0x000000); // Tete contour
-        this._tete.drawCircle(25, 25, 18);
-        this._tete.endFill();
-        this._tete.beginFill(0x000000);// Mire contour
-        this._tete.drawRect(20, 10, 10, 50);
-        this._tete.endFill();
-        this._tete.beginFill(this._couleur); // Mire interieur
-        this._tete.drawRect(21, 11, 8, 48);
-        this._tete.endFill();
-        this._tete.beginFill(this._couleur); // Tete interieur
-        this._tete.drawCircle(25, 25, 16);
-        this._tete.endFill();
-        this._tankBody.addChild(this._tete);
+        this._tankHead.beginFill(0x000000); // Tete contour
+        this._tankHead.drawCircle(25, 25, 18);
+        this._tankHead.endFill();
+        this._tankHead.beginFill(0x000000);// Mire contour
+        this._tankHead.drawRect(20, 10, 10, 50);
+        this._tankHead.endFill();
+        this._tankHead.beginFill(this._color); // Mire interieur
+        this._tankHead.drawRect(21, 11, 8, 48);
+        this._tankHead.endFill();
+        this._tankHead.beginFill(this._color); // Tete interieur
+        this._tankHead.drawCircle(25, 25, 16);
+        this._tankHead.endFill();
+        this._tankBody.addChild(this._tankHead);
 
-        this._tankBody.x = this._spawnx;
-        this._tankBody.y = this._spawny;
+        this._tankBody.x = this._coordinateSpawnX;
+        this._tankBody.y = this._coordinateSpawnY;
     }
 
     updatePosition() {
@@ -157,7 +157,7 @@ export class Tank {
         let centerY = rect.y + rect.height / 2;
 
         // Met à jour la rotation de la mire
-        this._tete.rotation = Math.atan2(mouseY - centerY, mouseX - centerX);
+        this._tankHead.rotation = Math.atan2(mouseY - centerY, mouseX - centerX);
     }
 
 
