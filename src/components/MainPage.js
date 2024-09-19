@@ -66,6 +66,19 @@ const MainPage = () => {
             greenTank.updatePosition();
         });
 
+        let mouseX;
+        let mouseY;
+
+        app.stage.on('mousemove', (event) => 
+        {
+            mouseX = event.global.x;
+            mouseY = event.global.y;
+        })
+
+        app.ticker.add(() => {
+            brownTank.updateCannonPosition(mouseX, mouseY);
+        })
+
         // Nettoyage de l'application Pixi lors du démontage du composant
         return () => {
             app.destroy(true, true);

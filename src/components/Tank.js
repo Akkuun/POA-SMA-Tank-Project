@@ -205,8 +205,8 @@ export class Tank {
     updateCannonPosition(mouseX, mouseY) {
 
         let rect = this._tankBody.getBounds();
-        let centerX = rect.x + rect.width / 2;
-        let centerY = rect.y + rect.height / 2;
+        let centerX = rect.x + rect.width;
+        let centerY = rect.y + rect.height;
 
         // Met à jour la rotation de la mire
         this._tankHead.rotation = Math.atan2(mouseY - centerY, mouseX - centerX);
