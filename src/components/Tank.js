@@ -33,11 +33,6 @@ export class Tank {
         window.addEventListener("keyup", (e) => {
             this._keys[e.key] = false;
         });
-
-        // listener pour le curseur
-        /*window.addEventListener("mousemove", (e) => {
-            this.updateCannonPosition(e.clientX, e.clientY);
-        });*/
     }
 
 
@@ -205,12 +200,12 @@ export class Tank {
 
     updateCannonPosition(mouseX, mouseY) {
 
-        let rect = this._tankBody.getBounds();
-        let centerX = rect.x + rect.width;
-        let centerY = rect.y + rect.height;
+        let rect = this._tankHead.getBounds();
+        let centerX = this._tankHead.position._x;
+        let centerY = this._tankHead.position._y;
 
         // Met à jour la rotation de la mire
-        this._tankHead.rotation = Math.atan2(mouseY - centerY, mouseX - centerX);
+        this._tankHead.rotation = Math.atan2(mouseY - centerY, mouseX - centerX)-Math.PI/2;
     }
 
 
