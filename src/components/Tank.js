@@ -204,7 +204,7 @@ export class Tank {
     }
 
     updateCannonPosition(mouseX, mouseY) {
-        this._tankHead.rotation = Math.atan2(mouseY - this._tankBody.y, mouseX - this._tankBody.x)- Math.PI / 2;
+        this._tankHead.rotation = Math.atan2(mouseY - this._tankBody.y - this._tankBody.height/2, mouseX - this._tankBody.x - this._tankBody.width/2)- Math.PI / 2;
     }
 
 
