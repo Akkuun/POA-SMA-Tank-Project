@@ -14,4 +14,12 @@ export class Stadium{
         this._bodyStadium.height = 100;
         this._bodyStadium.tint = 0xff0000;
     }
+
+    get bodyStadium() {
+        return this._bodyStadium;
+    }
+
+    set bodyStadium(value) {
+        this._bodyStadium = value;
+    }
 }

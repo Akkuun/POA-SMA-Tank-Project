@@ -12,6 +12,10 @@ const MainPage = () => {
         const app = new PIXI.Application({ width: WindowWidth, height: WindowHeight, backgroundColor: 0x1099bb });
         pixiContainerRef.current.appendChild(app.view);
 
+        let stadium = new Stadium(700,700);
+        stadium.display();
+        app.stage.addChild(stadium.bodyStadium);
+
         // Création du carré rouge (de haut en bas)
         const redSquare = new PIXI.Graphics();
         redSquare.beginFill(0xff0000); // Rouge
