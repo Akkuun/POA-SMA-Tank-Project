@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
 import {Tank} from './Tank';
+import {Stadium} from './Stadium';
 
 const MainPage = () => {
     const pixiContainerRef = useRef(null);
@@ -60,6 +61,8 @@ const MainPage = () => {
 
         app.stage.addChild(brownTankBody);
         app.stage.addChild(greenTankBody);
+
+
 
         app.ticker.add(() => {
             brownTank.updatePosition();
