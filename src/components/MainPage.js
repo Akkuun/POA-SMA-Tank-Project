@@ -11,6 +11,17 @@ const MainPage = () => {
         const app = new PIXI.Application({ width: WindowWidth, height: WindowHeight, backgroundColor: 0x1099bb });
         pixiContainerRef.current.appendChild(app.view);
 
+        // Variables pour la position de la souris
+        app.stage.eventMode = 'static';
+        app.stage.hitArea = app.screen;
+        let mouseX = 0;
+        let mouseY = 0;
+        app.stage.on('mousemove', (event) => 
+        {
+            mouseX = event.global.x;
+            mouseY = event.global.y;
+        });
+
         // Création du carré rouge (de haut en bas)
         const redSquare = new PIXI.Graphics();
         redSquare.beginFill(0xff0000); // Rouge
@@ -65,6 +76,11 @@ const MainPage = () => {
             brownTank.updatePosition();
             greenTank.updatePosition();
         });
+
+        app.ticker.add(() => {
+            brownTank.updateCannonPosition(mouseX, mouseY);
+            greenTank.updateCannonPosition(mouseX, mouseY);
+        })
 
         // Nettoyage de l'application Pixi lors du démontage du composant
         return () => {
