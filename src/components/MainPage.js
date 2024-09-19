@@ -12,65 +12,31 @@ const MainPage = () => {
         const app = new PIXI.Application({ width: WindowWidth, height: WindowHeight, backgroundColor: 0x1099bb });
         pixiContainerRef.current.appendChild(app.view);
 
-        let stadium = new Stadium(700,700);
-        stadium.display();
-        app.stage.addChild(stadium.bodyStadium);
+        // Creation du stade
+        const stadiumHeight = 700;
+        const stadiumWidth = 700;
+        const stadium = new Stadium(stadiumWidth, stadiumHeight);
+        app.stage.addChild(stadium._bodyStadium);
 
-        // Création du carré rouge (de haut en bas)
-        const redSquare = new PIXI.Graphics();
-        redSquare.beginFill(0xff0000); // Rouge
-        redSquare.drawRect(0, 0, 50, 50); // Un carré de 50x50
-        redSquare.endFill();
-        redSquare.x = 375;
-        redSquare.y = 0;
-        app.stage.addChild(redSquare);
+        // Creation des tanks
+        const brownTank = new Tank(0x827B60, { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight" }, stadiumWidth, stadiumHeight);
+        const greenTank = new Tank(0x667c3e, { up: "z", left: "q", down: "s", right: "d" }, stadiumWidth, stadiumHeight);
 
-        let redDirection = 1;
+        brownTank._tankBody.x=100;
+        brownTank._tankBody.y=100;
 
-        // Création du carré bleu (de gauche à droite)
-        const blueSquare = new PIXI.Graphics();
-        blueSquare.beginFill(0x0000ff); // Bleu
-        blueSquare.drawRect(0, 0, 50, 50); // Un carré de 50x50
-        blueSquare.endFill();
-        blueSquare.x = 0;
-        blueSquare.y = 275;
-        app.stage.addChild(blueSquare);
+        //faire apparaitre le tank vert dans le stadium
+        greenTank._coordinateSpawnX = stadiumWidth - greenTank._tankBody.width;
+        greenTank._coordinateSpawnY = stadiumHeight - greenTank._tankBody.height;
+        greenTank._tankBody.x = greenTank._coordinateSpawnX;
+        greenTank._tankBody.y = greenTank._coordinateSpawnY;
 
-        let blueDirection = 1;
-
-        // Animation du carré rouge (haut-bas)
-        app.ticker.add(() => {
-            redSquare.y += 5 * redDirection;
-            if (redSquare.y > 550 || redSquare.y < 0) {
-                redDirection *= -1;
-            }
-
-            // Animation du carré bleu (gauche-droite)
-            blueSquare.x += 5 * blueDirection;
-            if (blueSquare.x > 750 || blueSquare.x < 0) {
-                blueDirection *= -1;
-            }
-        });
-
-        //creation de tanks
-        let brownTank = new Tank(0x827B60, { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight" });
-        brownTank.display();
-
-        let greenTank = new Tank(0x667c3e, { up: "z", left: "q", down: "s", right: "d" });
-        greenTank.display();
-
-        //pour avoir l'objet PIXI
-        let brownTankBody = brownTank.tankBody;
-        let greenTankBody = greenTank.tankBody;
-
-        app.stage.addChild(brownTankBody);
-        app.stage.addChild(greenTankBody);
-
-
+        app.stage.addChild(brownTank._tankBody);
+        app.stage.addChild(greenTank._tankBody);
 
         app.ticker.add(() => {
-            brownTank.updatePosition();
-            greenTank.updatePosition();
+            brownTank.updatePosition(stadium);
+            greenTank.updatePosition(stadium);
         });
 
         // Nettoyage de l'application Pixi lors du démontage du composant

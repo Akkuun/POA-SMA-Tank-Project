@@ -13,7 +13,9 @@ export class Tank {
     _controls;
     _tankBody;
     _tankHead;
-    constructor(color,controls) {
+    _stadiumWidth;
+    _stadiumHeight;
+    constructor(color,controls, stadiumWidth, stadiumHeight) {
         this._coordinateSpawnX=0;
         this._coordinateSpawnY=0;
         this._color = color;
@@ -25,6 +27,9 @@ export class Tank {
         this._tankBody = new PIXI.Graphics();
         this._tankHead = new PIXI.Graphics();
 
+        this._stadiumWidth = stadiumWidth;
+        this._stadiumHeight = stadiumHeight;
+
         // Listeners pour les touches
         window.addEventListener("keydown", (e) => {
             this._keys[e.key] = true;
@@ -34,10 +39,12 @@ export class Tank {
             this._keys[e.key] = false;
         });
 
-        // listener pour le curseur
-        /*window.addEventListener("mousemove", (e) => {
-            this.updateCannonPosition(e.clientX, e.clientY);
-        });*/
+        this.displayBody();
+        this.displayTracks();
+        this.displayHead();
+
+        this._tankBody.x = this._coordinateSpawnX;
+        this._tankBody.y = this._coordinateSpawnY;
     }
 
 
@@ -93,18 +100,6 @@ export class Tank {
         this._speed = value;
     }
 
-    display(){
-
-
-        this.displayBody();
-        this.displayTracks();
-        this.displayHead();
-
-
-
-        this._tankBody.x = this._coordinateSpawnX;
-        this._tankBody.y = this._coordinateSpawnY;
-    }
 
     displayHead() {
 
@@ -188,7 +183,8 @@ export class Tank {
         this._tankBody.endFill();
     }
 
-    updatePosition() {
+    updatePosition(stadium) {
+
         if (this._keys[this._controls.up]) {
             this._tankBody.y -= this._speed;
         }
@@ -199,7 +195,28 @@ export class Tank {
             this._tankBody.y += this._speed;
         }
         if (this._keys[this._controls.right]) {
-            this._tankBody.x+= this._speed;
+            this._tankBody.x += this._speed;
+        }
+
+        let tankBounds = this._tankBody.getBounds();
+        let stadiumBounds = stadium._bodyStadium.getBounds();
+
+        if (!stadium.isTankInside(this)) { // Check if the tank is outside the stadium
+            //afficher un message dans la console
+            //console.log("Tank is outside the stadium");
+
+            if (tankBounds.x < stadiumBounds.x) {
+                this._tankBody.x += this._speed;
+            }
+            if(tankBounds.x + tankBounds.width > stadiumBounds.x + stadiumBounds.width) {
+                this._tankBody.x -= this._speed;
+            }
+            if (tankBounds.y < stadiumBounds.y) {
+                this._tankBody.y += this._speed;
+            }
+            if (tankBounds.y + tankBounds.height > stadiumBounds.y + stadiumBounds.height) {
+                this._tankBody.y -= this._speed;
+            }
         }
     }
 
