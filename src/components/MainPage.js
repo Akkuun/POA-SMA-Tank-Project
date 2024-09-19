@@ -17,6 +17,26 @@ const MainPage = () => {
         const stadiumWidth = 700;
         const stadium = new Stadium(stadiumWidth, stadiumHeight);
         app.stage.addChild(stadium._bodyStadium);
+        
+        // Variables pour la position de la souris
+        app.stage.eventMode = 'static';
+        app.stage.hitArea = app.screen;
+        let mouseX = 0;
+        let mouseY = 0;
+        app.stage.on('mousemove', (event) => 
+        {
+            mouseX = event.global.x;
+            mouseY = event.global.y;
+        });
+
+        // Création du carré rouge (de haut en bas)
+        const redSquare = new PIXI.Graphics();
+        redSquare.beginFill(0xff0000); // Rouge
+        redSquare.drawRect(0, 0, 50, 50); // Un carré de 50x50
+        redSquare.endFill();
+        redSquare.x = 375;
+        redSquare.y = 0;
+        app.stage.addChild(redSquare);
 
         // Creation des tanks
         const tanks = [];
@@ -48,6 +68,11 @@ const MainPage = () => {
                 }
             }
         });
+
+        app.ticker.add(() => {
+            brownTank.updateCannonPosition(mouseX, mouseY);
+            greenTank.updateCannonPosition(mouseX, mouseY);
+        })
 
         // Nettoyage de l'application Pixi lors du démontage du composant
         return () => {
