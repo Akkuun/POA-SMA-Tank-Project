@@ -100,6 +100,34 @@ export class Tank {
         this._speed = value;
     }
 
+    checkCollision(otherTank) {
+        const dx = this._tankBody.x - otherTank._tankBody.x;
+        const dy = this._tankBody.y - otherTank._tankBody.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        return distance < this._tankBody.width / 2 + otherTank._tankBody.width / 2;
+
+    }
+
+    resolveCollision(otherTank) {
+        const dx = this._tankBody.x - otherTank._tankBody.x;
+        const dy = this._tankBody.y - otherTank._tankBody.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance === 0) { return; }
+
+        const overlap = (this._tankBody.width / 2 + otherTank._tankBody.width / 2) - distance;
+        const normalX = dx / distance;
+        const normalY = dy / distance;
+
+        const force = overlap / 2;
+
+        this._tankBody.x += force * normalX;
+        this._tankBody.y += force * normalY;
+
+        otherTank._tankBody.x -= force * normalX;
+        otherTank._tankBody.y -= force * normalY;
+    }
 
     displayHead() {
 

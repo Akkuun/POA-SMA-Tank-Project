@@ -19,8 +19,12 @@ const MainPage = () => {
         app.stage.addChild(stadium._bodyStadium);
 
         // Creation des tanks
-        const brownTank = new Tank(0x827B60, { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight" }, stadiumWidth, stadiumHeight);
-        const greenTank = new Tank(0x667c3e, { up: "z", left: "q", down: "s", right: "d" }, stadiumWidth, stadiumHeight);
+        const tanks = [];
+        tanks[0] = new Tank(0x827B60, { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight" }, stadiumWidth, stadiumHeight);
+        tanks[1] = new Tank(0x667c3e, { up: "z", left: "q", down: "s", right: "d" }, stadiumWidth, stadiumHeight);
+
+        let brownTank = tanks[0];
+        let greenTank = tanks[1];
 
         brownTank._tankBody.x=100;
         brownTank._tankBody.y=100;
@@ -35,8 +39,14 @@ const MainPage = () => {
         app.stage.addChild(greenTank._tankBody);
 
         app.ticker.add(() => {
-            brownTank.updatePosition(stadium);
-            greenTank.updatePosition(stadium);
+            for (let tank of tanks) {
+                tank.updatePosition(stadium);
+                for (let otherTank of tanks) {
+                    if (tank !== otherTank && tank.checkCollision(otherTank)) {
+                        tank.resolveCollision(otherTank);
+                    }
+                }
+            }
         });
 
         // Nettoyage de l'application Pixi lors du démontage du composant
