@@ -91,11 +91,32 @@ export class Tank {
 
     display(){
 
-        // Corps
-        this._tankBody.beginFill(this._color);
-        this._tankBody.drawRect(0, 0, 50, 50);
-        this._tankBody.endFill();
 
+        this.displayBody();
+        this.displayTracks();
+        this.displayHead();
+
+        this._tankBody.x = this._coordinateSpawnX;
+        this._tankBody.y = this._coordinateSpawnY;
+    }
+
+    displayHead() {
+        this._tankHead.beginFill(0x000000); // Tete contour
+        this._tankHead.drawCircle(25, 25, 18);
+        this._tankHead.endFill();
+        this._tankHead.beginFill(0x000000);// Mire contour
+        this._tankHead.drawRect(20, 10, 10, 50);
+        this._tankHead.endFill();
+        this._tankHead.beginFill(this._color); // Mire interieur
+        this._tankHead.drawRect(21, 11, 8, 48);
+        this._tankHead.endFill();
+        this._tankHead.beginFill(this._color); // Tete interieur
+        this._tankHead.drawCircle(25, 25, 16);
+        this._tankHead.endFill();
+        this._tankBody.addChild(this._tankHead);
+    }
+
+    displayTracks() {
         // Jambes
         // droit
         this._tankBody.beginFill(0x000000); // Contour
@@ -116,23 +137,12 @@ export class Tank {
             this._tankBody.drawRect(-1, i * 9, 3, 7);
             this._tankBody.endFill();
         }
+    }
 
-        this._tankHead.beginFill(0x000000); // Tete contour
-        this._tankHead.drawCircle(25, 25, 18);
-        this._tankHead.endFill();
-        this._tankHead.beginFill(0x000000);// Mire contour
-        this._tankHead.drawRect(20, 10, 10, 50);
-        this._tankHead.endFill();
-        this._tankHead.beginFill(this._color); // Mire interieur
-        this._tankHead.drawRect(21, 11, 8, 48);
-        this._tankHead.endFill();
-        this._tankHead.beginFill(this._color); // Tete interieur
-        this._tankHead.drawCircle(25, 25, 16);
-        this._tankHead.endFill();
-        this._tankBody.addChild(this._tankHead);
-
-        this._tankBody.x = this._coordinateSpawnX;
-        this._tankBody.y = this._coordinateSpawnY;
+    displayBody() {
+        this._tankBody.beginFill(this._color);
+        this._tankBody.drawRect(0, 0, 50, 50);
+        this._tankBody.endFill();
     }
 
     updatePosition() {
