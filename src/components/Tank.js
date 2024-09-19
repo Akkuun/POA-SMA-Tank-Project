@@ -100,33 +100,50 @@ export class Tank {
         this._speed = value;
     }
 
+    getBoundsForCollision() {
+        return {
+            left : this._tankBody.x,
+            right : this._tankBody.x + this._tankBody.width,
+            top : this._tankBody.y,
+            bottom : this._tankBody.y + this._tankBody.height
+        }
+    }
+
     checkCollision(otherTank) {
-        const dx = this._tankBody.x - otherTank._tankBody.x;
-        const dy = this._tankBody.y - otherTank._tankBody.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-
-        return distance < this._tankBody.width / 2 + otherTank._tankBody.width / 2;
-
+        let bounds = this.getBoundsForCollision();
+        let otherBounds = otherTank.getBoundsForCollision();
+        return (
+            bounds.left < otherBounds.right &&
+            bounds.right > otherBounds.left &&
+            bounds.top < otherBounds.bottom &&
+            bounds.bottom > otherBounds.top
+        );
     }
 
     resolveCollision(otherTank) {
-        const dx = this._tankBody.x - otherTank._tankBody.x;
-        const dy = this._tankBody.y - otherTank._tankBody.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+        let bounds = this.getBoundsForCollision();
+        let otherBounds = otherTank.getBoundsForCollision();
 
-        if (distance === 0) { return; }
+        const overlapX = Math.min(bounds.right, otherBounds.right) - Math.max(bounds.left, otherBounds.left);
+        const overlapY = Math.min(bounds.bottom, otherBounds.bottom) - Math.max(bounds.top, otherBounds.top);
 
-        const overlap = (this._tankBody.width / 2 + otherTank._tankBody.width / 2) - distance;
-        const normalX = dx / distance;
-        const normalY = dy / distance;
-
-        const force = overlap / 2;
-
-        this._tankBody.x += force * normalX;
-        this._tankBody.y += force * normalY;
-
-        otherTank._tankBody.x -= force * normalX;
-        otherTank._tankBody.y -= force * normalY;
+        if (overlapX > overlapY) {
+            if (bounds.top < otherBounds.top) {
+                this._tankBody.y -= overlapY / 2;
+                otherTank._tankBody.y += overlapY / 2;
+            } else {
+                this._tankBody.y += overlapY / 2;
+                otherTank._tankBody.y -= overlapY / 2;
+            }
+        } else {
+            if (bounds.left < otherBounds.left) {
+                this._tankBody.x -= overlapX / 2;
+                otherTank._tankBody.x += overlapX / 2;
+            } else {
+                this._tankBody.x += overlapX / 2;
+                otherTank._tankBody.x -= overlapX / 2;
+            }
+        }
     }
 
     displayHead() {
