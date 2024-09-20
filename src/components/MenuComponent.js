@@ -1,12 +1,16 @@
+import '../styles/MenuComponent.css';
+import { useNavigate } from 'react-router-dom';
 const MenuComponent = () => {
+    const navigate = useNavigate(); // Initialiser useNavigate
+    function handleClickOption() {
+        navigate('/settings');
+    }
+
     return (
-        <div>
+        <div id="Menu">
             <h1>Menu</h1>
-            <ul>
-                <li>Home</li>
-                <li>About</li>
-                <li>Contact</li>
-            </ul>
+            <button>Start</button>
+            <button onClick={handleClickOption}>Options</button>
         </div>
     )
 }
