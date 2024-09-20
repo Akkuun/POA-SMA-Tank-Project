@@ -5,6 +5,7 @@ const MenuComponent = () => {
     function handleClickOption() {
         navigate('/settings');
     }
+    
 
     return (
         <div id="Menu">
