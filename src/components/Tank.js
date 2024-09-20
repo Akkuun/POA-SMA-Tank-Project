@@ -23,7 +23,7 @@ export class Tank {
         this._color = color;
 
         this._speed = 2;
-        this._rotationSpeed = 0.015;
+        this._rotationSpeed = 0.03;
         this._keys = {};
 
         this._controls=controls;
@@ -277,7 +277,7 @@ export class Tank {
         }
     }
 
-    update(mouseX, mouseY) {
+    updateRotations(mouseX, mouseY) {
         this.updateBodyRotation();
         this.updateCannonPosition(mouseX, mouseY);
     }
@@ -290,12 +290,14 @@ export class Tank {
         }
         this._targetRotation = Math.atan2(dY, dX) - Math.PI / 2;
         let delta = this._targetRotation - this._tankBody.rotation;
-        if (delta > Math.PI) {
+        // Keep the delta between -PI and PI
+        while (delta > Math.PI) {
             delta -= Math.PI * 2;
         }
-        if (delta < -Math.PI) {
+        while (delta < -Math.PI) {
             delta += Math.PI * 2;
         }
+        // Rotate the body
         if (Math.abs(delta) < this._rotationSpeed) {
             this._tankBody.rotation = this._targetRotation;
         } else {
