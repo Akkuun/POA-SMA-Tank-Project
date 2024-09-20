@@ -12,9 +12,9 @@ export class Tank {
     _keys;
     _controls;
     _tankBody;
-    _headRotationOffset;
-    _direction;
     _tankHead;
+    _rotationSpeed;
+    _targetRotation;
     _stadiumWidth;
     _stadiumHeight;
     constructor(color,controls, stadiumWidth, stadiumHeight) {
@@ -23,13 +23,12 @@ export class Tank {
         this._color = color;
 
         this._speed = 2;
+        this._rotationSpeed = 0.015;
         this._keys = {};
 
         this._controls=controls;
         this._tankBody = new PIXI.Graphics();
         this._tankHead = new PIXI.Graphics();
-        this._headRotationOffset = 0;
-        this._direction = 0;
 
         this._stadiumWidth = stadiumWidth;
         this._stadiumHeight = stadiumHeight;
@@ -289,12 +288,22 @@ export class Tank {
         if (dX === 0 && dY === 0) {
             return;
         }
-        this._direction = Math.atan2(dY, dX) - Math.PI / 2;
-        this._tankBody.rotation = this._direction;
-        this._headRotationOffset = this._direction;
+        this._targetRotation = Math.atan2(dY, dX) - Math.PI / 2;
+        let delta = this._targetRotation - this._tankBody.rotation;
+        if (delta > Math.PI) {
+            delta -= Math.PI * 2;
+        }
+        if (delta < -Math.PI) {
+            delta += Math.PI * 2;
+        }
+        if (Math.abs(delta) < this._rotationSpeed) {
+            this._tankBody.rotation = this._targetRotation;
+        } else {
+            this._tankBody.rotation += this._rotationSpeed * Math.sign(delta);
+        }
     }
 
     updateCannonPosition(mouseX, mouseY) {
-        this._tankHead.rotation = Math.atan2(mouseY - this._tankBody.y, mouseX - this._tankBody.x) - Math.PI / 2 - this._headRotationOffset;
+        this._tankHead.rotation = Math.atan2(mouseY - this._tankBody.y, mouseX - this._tankBody.x) - Math.PI / 2 - this._tankBody.rotation;
     }
 }
