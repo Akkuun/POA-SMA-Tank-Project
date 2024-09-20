@@ -13,7 +13,9 @@ export class Tank {
     _controls;
     _tankBody;
     _tankHead;
-    constructor(color,controls) {
+    _stadiumWidth;
+    _stadiumHeight;
+    constructor(color,controls, stadiumWidth, stadiumHeight) {
         this._coordinateSpawnX=0;
         this._coordinateSpawnY=0;
         this._color = color;
@@ -25,6 +27,9 @@ export class Tank {
         this._tankBody = new PIXI.Graphics();
         this._tankHead = new PIXI.Graphics();
 
+        this._stadiumWidth = stadiumWidth;
+        this._stadiumHeight = stadiumHeight;
+
         // Listeners pour les touches
         window.addEventListener("keydown", (e) => {
             this._keys[e.key] = true;
@@ -33,6 +38,13 @@ export class Tank {
         window.addEventListener("keyup", (e) => {
             this._keys[e.key] = false;
         });
+
+        this.displayBody();
+        this.displayTracks();
+        this.displayHead();
+
+        this._tankBody.x = this._coordinateSpawnX;
+        this._tankBody.y = this._coordinateSpawnY;
     }
 
 
@@ -88,17 +100,50 @@ export class Tank {
         this._speed = value;
     }
 
-    display(){
+    getBoundsForCollision() {
+        return {
+            left : this._tankBody.x,
+            right : this._tankBody.x + this._tankBody.width,
+            top : this._tankBody.y,
+            bottom : this._tankBody.y + this._tankBody.height
+        }
+    }
 
+    checkCollision(otherTank) {
+        let bounds = this.getBoundsForCollision();
+        let otherBounds = otherTank.getBoundsForCollision();
+        return (
+            bounds.left < otherBounds.right &&
+            bounds.right > otherBounds.left &&
+            bounds.top < otherBounds.bottom &&
+            bounds.bottom > otherBounds.top
+        );
+    }
 
-        this.displayBody();
-        this.displayTracks();
-        this.displayHead();
+    resolveCollision(otherTank) {
+        let bounds = this.getBoundsForCollision();
+        let otherBounds = otherTank.getBoundsForCollision();
 
+        const overlapX = Math.min(bounds.right, otherBounds.right) - Math.max(bounds.left, otherBounds.left);
+        const overlapY = Math.min(bounds.bottom, otherBounds.bottom) - Math.max(bounds.top, otherBounds.top);
 
-
-        this._tankBody.x = this._coordinateSpawnX;
-        this._tankBody.y = this._coordinateSpawnY;
+        if (overlapX > overlapY) {
+            if (bounds.top < otherBounds.top) {
+                this._tankBody.y -= overlapY / 2;
+                otherTank._tankBody.y += overlapY / 2;
+            } else {
+                this._tankBody.y += overlapY / 2;
+                otherTank._tankBody.y -= overlapY / 2;
+            }
+        } else {
+            if (bounds.left < otherBounds.left) {
+                this._tankBody.x -= overlapX / 2;
+                otherTank._tankBody.x += overlapX / 2;
+            } else {
+                this._tankBody.x += overlapX / 2;
+                otherTank._tankBody.x -= overlapX / 2;
+            }
+        }
     }
 
     displayHead() {
@@ -188,7 +233,8 @@ export class Tank {
         this._tankBody.endFill();
     }
 
-    updatePosition() {
+    updatePosition(stadium) {
+
         if (this._keys[this._controls.up]) {
             this._tankBody.y -= this._speed;
         }
@@ -199,7 +245,28 @@ export class Tank {
             this._tankBody.y += this._speed;
         }
         if (this._keys[this._controls.right]) {
-            this._tankBody.x+= this._speed;
+            this._tankBody.x += this._speed;
+        }
+
+        let tankBounds = this._tankBody.getBounds();
+        let stadiumBounds = stadium._bodyStadium.getBounds();
+
+        if (!stadium.isTankInside(this)) { // Check if the tank is outside the stadium
+            //afficher un message dans la console
+            //console.log("Tank is outside the stadium");
+
+            if (tankBounds.x < stadiumBounds.x) {
+                this._tankBody.x += this._speed;
+            }
+            if(tankBounds.x + tankBounds.width > stadiumBounds.x + stadiumBounds.width) {
+                this._tankBody.x -= this._speed;
+            }
+            if (tankBounds.y < stadiumBounds.y) {
+                this._tankBody.y += this._speed;
+            }
+            if (tankBounds.y + tankBounds.height > stadiumBounds.y + stadiumBounds.height) {
+                this._tankBody.y -= this._speed;
+            }
         }
     }
 
