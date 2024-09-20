@@ -52,6 +52,7 @@ const MainPage = () => {
 
         app.ticker.add(() => {
             for (let tank of tanks) {
+                tank.updateRotations(mouseX, mouseY);
                 tank.updatePosition(stadium);
                 for (let otherTank of tanks) {
                     if (tank !== otherTank && tank.checkCollision(otherTank)) {
@@ -60,11 +61,6 @@ const MainPage = () => {
                 }
             }
         });
-
-        app.ticker.add(() => {
-            brownTank.updateCannonPosition(mouseX, mouseY);
-            greenTank.updateCannonPosition(mouseX, mouseY);
-        })
 
         // Nettoyage de l'application Pixi lors du démontage du composant
         return () => {
