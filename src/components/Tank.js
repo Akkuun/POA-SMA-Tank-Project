@@ -13,6 +13,8 @@ export class Tank {
     _controls;
     _tankBody;
     _tankHead;
+    _rotationSpeed;
+    _targetRotation;
     _stadiumWidth;
     _stadiumHeight;
     constructor(color,controls, stadiumWidth, stadiumHeight) {
@@ -21,6 +23,7 @@ export class Tank {
         this._color = color;
 
         this._speed = 2;
+        this._rotationSpeed = 0.03;
         this._keys = {};
 
         this._controls=controls;
@@ -218,6 +221,7 @@ export class Tank {
             this._tankBody.drawRect(-1 * scaleFactor, i * metalPlateSpacing, metalPlateWidth, metalPlateHeight);
             this._tankBody.endFill();
         }
+
     }
 
     displayBody() {
@@ -231,6 +235,9 @@ export class Tank {
         this._tankBody.beginFill(this._color);
         this._tankBody.drawRect(bodyX, bodyY, bodyWidth, bodyHeight);
         this._tankBody.endFill();
+
+        // Pivot point for the body to rotate
+        this._tankBody.pivot.set(this._tankBody.width / 2, this._tankBody.height / 2);
     }
 
     updatePosition(stadium) {
@@ -270,9 +277,35 @@ export class Tank {
         }
     }
 
-    updateCannonPosition(mouseX, mouseY) {
-        this._tankHead.rotation = Math.atan2(mouseY - this._tankBody.y - this._tankBody.height/2, mouseX - this._tankBody.x - this._tankBody.width/2)- Math.PI / 2;
+    updateRotations(mouseX, mouseY) {
+        this.updateBodyRotation();
+        this.updateCannonPosition(mouseX, mouseY);
     }
 
+    updateBodyRotation() {
+        let dX = this._keys[this._controls.right] ? 1 : - this._keys[this._controls.left] ? -1 : 0;
+        let dY = this._keys[this._controls.down] ? 1 : - this._keys[this._controls.up] ? -1 : 0;
+        if (dX === 0 && dY === 0) {
+            return;
+        }
+        this._targetRotation = Math.atan2(dY, dX) - Math.PI / 2;
+        let delta = this._targetRotation - this._tankBody.rotation;
+        // Keep the delta between -PI and PI
+        while (delta > Math.PI) {
+            delta -= Math.PI * 2;
+        }
+        while (delta < -Math.PI) {
+            delta += Math.PI * 2;
+        }
+        // Rotate the body
+        if (Math.abs(delta) < this._rotationSpeed) {
+            this._tankBody.rotation = this._targetRotation;
+        } else {
+            this._tankBody.rotation += this._rotationSpeed * Math.sign(delta);
+        }
+    }
 
+    updateCannonPosition(mouseX, mouseY) {
+        this._tankHead.rotation = Math.atan2(mouseY - this._tankBody.y, mouseX - this._tankBody.x) - Math.PI / 2 - this._tankBody.rotation;
+    }
 }
