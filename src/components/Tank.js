@@ -12,6 +12,8 @@ export class Tank {
     _keys;
     _controls;
     _tankBody;
+    _headRotationOffset;
+    _direction;
     _tankHead;
     _stadiumWidth;
     _stadiumHeight;
@@ -26,6 +28,8 @@ export class Tank {
         this._controls=controls;
         this._tankBody = new PIXI.Graphics();
         this._tankHead = new PIXI.Graphics();
+        this._headRotationOffset = 0;
+        this._direction = 0;
 
         this._stadiumWidth = stadiumWidth;
         this._stadiumHeight = stadiumHeight;
@@ -218,6 +222,7 @@ export class Tank {
             this._tankBody.drawRect(-1 * scaleFactor, i * metalPlateSpacing, metalPlateWidth, metalPlateHeight);
             this._tankBody.endFill();
         }
+
     }
 
     displayBody() {
@@ -231,6 +236,9 @@ export class Tank {
         this._tankBody.beginFill(this._color);
         this._tankBody.drawRect(bodyX, bodyY, bodyWidth, bodyHeight);
         this._tankBody.endFill();
+
+        // Pivot point for the body to rotate
+        this._tankBody.pivot.set(this._tankBody.width / 2, this._tankBody.height / 2);
     }
 
     updatePosition(stadium) {
@@ -270,9 +278,23 @@ export class Tank {
         }
     }
 
-    updateCannonPosition(mouseX, mouseY) {
-        this._tankHead.rotation = Math.atan2(mouseY - this._tankBody.y - this._tankBody.height/2, mouseX - this._tankBody.x - this._tankBody.width/2)- Math.PI / 2;
+    update(mouseX, mouseY) {
+        this.updateBodyRotation();
+        this.updateCannonPosition(mouseX, mouseY);
     }
 
+    updateBodyRotation() {
+        let dX = this._keys[this._controls.right] ? 1 : - this._keys[this._controls.left] ? -1 : 0;
+        let dY = this._keys[this._controls.down] ? 1 : - this._keys[this._controls.up] ? -1 : 0;
+        if (dX === 0 && dY === 0) {
+            return;
+        }
+        this._direction = Math.atan2(dY, dX) - Math.PI / 2;
+        this._tankBody.rotation = this._direction;
+        this._headRotationOffset = this._direction;
+    }
 
+    updateCannonPosition(mouseX, mouseY) {
+        this._tankHead.rotation = Math.atan2(mouseY - this._tankBody.y, mouseX - this._tankBody.x) - Math.PI / 2 - this._headRotationOffset;
+    }
 }
