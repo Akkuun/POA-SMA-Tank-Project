@@ -1,7 +1,8 @@
-import MainPage from "./components/MainPage";
+
+import MenuComponent from "./components/MenuComponent";
 const App = () => {
   return(
-    <MainPage />
+      <MenuComponent />
   );
 };
 

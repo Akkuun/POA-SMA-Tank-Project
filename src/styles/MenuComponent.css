@@ -1,0 +1,7 @@
+#Menu{
+    align-items: center;
+    border: aqua 10px solid;
+    display: flex;
+    flex-direction: column;
+    padding-top: 10%;
+}
