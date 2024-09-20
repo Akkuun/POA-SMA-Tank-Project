@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
 import {Tank} from './Tank';
 import {Stadium} from './Stadium';
+import {Bullet} from './Bullet';
 
 const MainPage = () => {
     const pixiContainerRef = useRef(null);
@@ -65,6 +66,9 @@ const MainPage = () => {
             brownTank.updateCannonPosition(mouseX, mouseY);
             greenTank.updateCannonPosition(mouseX, mouseY);
         })
+
+        let bullettest = new Bullet();
+        bullettest.display(app);
 
         // Nettoyage de l'application Pixi lors du démontage du composant
         return () => {
