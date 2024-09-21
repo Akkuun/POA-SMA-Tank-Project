@@ -18,13 +18,13 @@ const MainPage = () => {
         const stadiumWidth = 700;
         const stadium = new Stadium(stadiumWidth, stadiumHeight);
         app.stage.addChild(stadium._bodyStadium);
-        
+
         // Variables pour la position de la souris
         app.stage.eventMode = 'static';
         app.stage.hitArea = app.screen;
         let mouseX = 0;
         let mouseY = 0;
-        app.stage.on('mousemove', (event) => 
+        app.stage.on('mousemove', (event) =>
         {
             mouseX = event.global.x;
             mouseY = event.global.y;
@@ -67,8 +67,18 @@ const MainPage = () => {
             greenTank.updateCannonPosition(mouseX, mouseY);
         })
 
-        let bullettest = new Bullet();
+        let bullettest = new Bullet(100,100);
         bullettest.display(app);
+
+        app.ticker.add(() => {
+            const cannonLength = 70;
+            const offsetX = greenTank._tankHead.width / 2 +12;
+            const offsetY = greenTank._tankHead.height / 2 -2;
+            const cannonTipX = greenTank._tankBody.x + offsetX + cannonLength * Math.sin(-greenTank._tankHead.rotation);
+            const cannonTipY = greenTank._tankBody.y + offsetY + cannonLength * Math.cos(greenTank._tankHead.rotation);
+            bullettest.setPosition(cannonTipX, cannonTipY);
+            bullettest.setDirection(greenTank._tankHead.rotation);
+        });
 
         // Nettoyage de l'application Pixi lors du démontage du composant
         return () => {
