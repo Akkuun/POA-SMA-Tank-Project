@@ -1,9 +1,25 @@
-
+import React, { useState } from 'react';
+import { Route, Routes } from 'react-router-dom';
 import MenuComponent from "./components/MenuComponent";
+import SettingsComponent from "./components/SettingsComponent";
+
 const App = () => {
-  return(
-      <MenuComponent />
-  );
+    // settings Array ==> 0: tankNumber, 1: isPlayerPlaying
+    const [settings, setSettings] = useState([0, false]); // Initialiser avec deux valeurs (nombre de tanks et booléen)
+
+    const updateSettings = (newSettings) => {
+        const updatedSettings = [...settings];
+        updatedSettings[0] = newSettings.tankNumber;      // Met à jour le nombre de tanks
+        updatedSettings[1] = newSettings.isPlayerPlaying;  // Met à jour si le joueur joue
+        setSettings(updatedSettings);
+    };
+
+    return (
+        <Routes>
+            <Route path="/" element={<MenuComponent settings={settings} />} />
+            <Route path="/settings" element={<SettingsComponent onSettingsChange={updateSettings} />} />
+        </Routes>
+    );
 };
 
 export default App;
