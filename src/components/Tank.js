@@ -97,25 +97,30 @@ export class Tank {
     getBulletPath() {
         const bulletPath = new PIXI.Graphics();
         bulletPath.lineStyle(2, 0xff0000);
-        bulletPath.moveTo(this._tankHead.x, this._tankHead.y);
 
-        let x = this._tankHead.x;
-        let y = this._tankHead.y;
-        let angle = this._tankHead.rotation + this._tankBody.rotation;
-        let step = 5;
-        let i = 0;
+        const bodyCenterX = this._tankBody.x;
+        const bodyCenterY = this._tankBody.y;
 
-        while (i < 1000) {
-            x += step * Math.cos(angle);
-            y += step * Math.sin(angle);
-            bulletPath.lineTo(x, y);
-            i++;
-            if (x < 0 || x > this._stadiumWidth || y < 0 || y > this._stadiumHeight) {
-                angle = Math.PI - angle;
-            }
-        }
+        const cannonOffset = 25 * scaleFactor;  // Distance entre le centre du tank et l'extrémité du canon
+        const cannonLength = 25 * scaleFactor;  // Longueur du canon
+
+        // Calcule la rotation globale avec un ajustement de +PI
+        const globalRotation = this._tankBody.rotation + this._tankHead.rotation + Math.PI/2;
+
+        const cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
+        const cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
+
+        bulletPath.moveTo(cannonX, cannonY);
+
+        const lineLength = 200;
+        const endX = cannonX + Math.cos(globalRotation) * lineLength;
+        const endY = cannonY + Math.sin(globalRotation) * lineLength;
+
+        bulletPath.lineTo(endX, endY);
+
         return bulletPath;
     }
+
 
     checkCollision(otherTank) {
         let bounds = this.getBoundsForCollision();
