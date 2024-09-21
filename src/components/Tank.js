@@ -17,6 +17,11 @@ export class Tank {
     _targetRotation;
     _stadiumWidth;
     _stadiumHeight;
+    _bulletPath;
+    _previousX;
+    _previousY;
+    _previousRotation;
+
     constructor(color,controls, stadiumWidth, stadiumHeight) {
         this._coordinateSpawnX=0;
         this._coordinateSpawnY=0;
@@ -32,6 +37,13 @@ export class Tank {
 
         this._stadiumWidth = stadiumWidth;
         this._stadiumHeight = stadiumHeight;
+
+        this._bulletPath = new PIXI.Graphics();
+        this._bulletPath.visible = false; // Masquez-le par défaut
+
+        this._previousX = 0;
+        this._previousY = 0;
+        this._previousRotation = 0;
 
         // Listeners pour les touches
         window.addEventListener("keydown", (e) => {
@@ -49,58 +61,22 @@ export class Tank {
         this._tankBody.x = this._coordinateSpawnX;
         this._tankBody.y = this._coordinateSpawnY;
     }
+    // do a specific action base on the tank's action
+    performAction(action){
 
 
-
-    get color() {
-        return this._color;
-    }
-
-    set color(value) {
-        this._color = value;
-    }
-
-
-    get coordinateSpawnY() {
-        return this._coordinateSpawnY;
-    }
-
-    set coordinateSpawnY(value) {
-        this._coordinateSpawnY = value;
-    }
-
-    get coordinateSpawnX() {
-        return this._coordinateSpawnX;
-    }
-
-    set coordinateSpawnX(value) {
-        this._coordinateSpawnX = value;
-    }
-
-
-    get tankBody() {
-        return this._tankBody;
-    }
-
-    set tankBody(value) {
-        this._tankBody = value;
-    }
-
-    get controls() {
-        return this._controls;
-    }
-
-    set controls(value) {
-        this._controls = value;
-    }
-
-
-    get speed() {
-        return this._speed;
-    }
-
-    set speed(value) {
-        this._speed = value;
+        // eslint-disable-next-line default-case
+        switch (action) {
+            case 'shoot': // if the tank need to shoot, we update the bullet path and make it visible
+                console.log("shoot");
+                this.updateBulletPath();
+                this._bulletPath.visible = true;
+                break;
+            case 'getBulletPath':
+                if (this._bulletPath.visible) return;
+                this.updateBulletPath();
+                break;
+        }
     }
 
     getBoundsForCollision() {
@@ -110,6 +86,35 @@ export class Tank {
             top : this._tankBody.y,
             bottom : this._tankBody.y + this._tankBody.height
         }
+    }
+        //put the bullet path in the tank attribute
+        updateBulletPath() {
+            this._bulletPath.clear();
+            const path = this.getBulletPath();
+            this._bulletPath.addChild(path);
+        }
+
+    getBulletPath() {
+        const bulletPath = new PIXI.Graphics();
+        bulletPath.lineStyle(2, 0xff0000);
+        bulletPath.moveTo(this._tankHead.x, this._tankHead.y);
+
+        let x = this._tankHead.x;
+        let y = this._tankHead.y;
+        let angle = this._tankHead.rotation + this._tankBody.rotation;
+        let step = 5;
+        let i = 0;
+
+        while (i < 1000) {
+            x += step * Math.cos(angle);
+            y += step * Math.sin(angle);
+            bulletPath.lineTo(x, y);
+            i++;
+            if (x < 0 || x > this._stadiumWidth || y < 0 || y > this._stadiumHeight) {
+                angle = Math.PI - angle;
+            }
+        }
+        return bulletPath;
     }
 
     checkCollision(otherTank) {
@@ -240,7 +245,13 @@ export class Tank {
         this._tankBody.pivot.set(this._tankBody.width / 2, this._tankBody.height / 2);
     }
 
+
+
     updatePosition(stadium) {
+        const hasMoved = this._previousX !== this._tankBody.x || this._previousY !== this._tankBody.y;
+        const hasRotated = this._previousRotation !== (this._tankHead.rotation + this._tankBody.rotation);
+
+
 
         if (this._keys[this._controls.up]) {
             this._tankBody.y -= this._speed;
@@ -274,6 +285,14 @@ export class Tank {
             if (tankBounds.y + tankBounds.height > stadiumBounds.y + stadiumBounds.height) {
                 this._tankBody.y -= this._speed;
             }
+        }
+        //if the tank posititons has changed, we update the bullet path to avoid too much computation
+        if (hasMoved || hasRotated) {
+            console.log("the tanks has moved and we update the bullet path");
+            this.performAction('getBulletPath');
+            this._previousX = this._tankBody.x;
+            this._previousY = this._tankBody.y;
+            this._previousRotation = this._tankHead.rotation + this._tankBody.rotation;
         }
     }
 

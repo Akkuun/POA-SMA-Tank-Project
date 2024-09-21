@@ -30,6 +30,8 @@ const MainPage = () => {
         });
 
 
+
+
         // Creation des tanks
         const tanks = [];
         tanks[0] = new Tank(0x827B60, { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight" }, stadiumWidth, stadiumHeight);
@@ -50,10 +52,24 @@ const MainPage = () => {
         app.stage.addChild(brownTank._tankBody);
         app.stage.addChild(greenTank._tankBody);
 
+        app.stage.on('click', () => {
+            // Supposons que vous tiriez avec le premier tank (brownTank)
+            brownTank.performAction('shoot');
+            app.stage.addChild(brownTank._bulletPath); // Assurez-vous que la trajectoire est visible
+        });
+
+
         app.ticker.add(() => {
             for (let tank of tanks) {
                 tank.updateRotations(mouseX, mouseY);
                 tank.updatePosition(stadium);
+
+                // if (tank.shouldShoot()) {  later for agent function decision
+                //     tank.performAction('shoot');
+                // }
+
+
+
                 for (let otherTank of tanks) {
                     if (tank !== otherTank && tank.checkCollision(otherTank)) {
                         tank.resolveCollision(otherTank);
