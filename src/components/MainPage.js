@@ -23,19 +23,17 @@ const MainPage = () => {
         app.stage.hitArea = app.screen;
         let mouseX = 0;
         let mouseY = 0;
-        app.stage.on('mousemove', (event) => 
+        app.stage.on('mousemove', (event) =>
         {
             mouseX = event.global.x;
             mouseY = event.global.y;
         });
 
 
-
-
         // Creation des tanks
         const tanks = [];
-        tanks[0] = new Tank(0x827B60, { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight" }, stadiumWidth, stadiumHeight);
-        tanks[1] = new Tank(0x667c3e, { up: "z", left: "q", down: "s", right: "d" }, stadiumWidth, stadiumHeight);
+        tanks[0] = new Tank(0x827B60, { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight", shoot:" "}, stadiumWidth, stadiumHeight, app);
+        tanks[1] = new Tank(0x667c3e, { up: "z", left: "q", down: "s", right: "d", shoot:"Shift" }, stadiumWidth, stadiumHeight, app);
 
         let brownTank = tanks[0];
         let greenTank = tanks[1];
@@ -63,19 +61,17 @@ const MainPage = () => {
             for (let tank of tanks) {
                 tank.updateRotations(mouseX, mouseY);
                 tank.updatePosition(stadium);
-
-                // if (tank.shouldShoot()) {  later for agent function decision
-                //     tank.performAction('shoot');
-                // }
-
-
-
                 for (let otherTank of tanks) {
                     if (tank !== otherTank && tank.checkCollision(otherTank)) {
                         tank.resolveCollision(otherTank);
                     }
                 }
             }
+        });
+
+        app.ticker.add(() => {
+            brownTank.updateCannonPosition(mouseX, mouseY);
+            greenTank.updateCannonPosition(mouseX, mouseY);
         });
 
         // Nettoyage de l'application Pixi lors du démontage du composant

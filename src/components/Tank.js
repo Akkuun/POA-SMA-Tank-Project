@@ -1,4 +1,5 @@
 import * as PIXI from "@pixi/graphics";
+import {Bullet} from "./Bullet";
 
 const WindowWidth = window.innerWidth;
 const WindowHeight = window.innerHeight;
@@ -23,6 +24,10 @@ export class Tank {
     _previousRotation;
 
     constructor(color,controls, stadiumWidth, stadiumHeight) {
+    _app;
+    constructor(color,controls, stadiumWidth, stadiumHeight, app) {
+        this._app=app;
+
         this._coordinateSpawnX=0;
         this._coordinateSpawnY=0;
         this._color = color;
@@ -226,7 +231,6 @@ export class Tank {
             this._tankBody.drawRect(-1 * scaleFactor, i * metalPlateSpacing, metalPlateWidth, metalPlateHeight);
             this._tankBody.endFill();
         }
-
     }
 
     displayBody() {
@@ -244,8 +248,6 @@ export class Tank {
         // Pivot point for the body to rotate
         this._tankBody.pivot.set(this._tankBody.width / 2, this._tankBody.height / 2);
     }
-
-
 
     updatePosition(stadium) {
         const hasMoved = this._previousX !== this._tankBody.x || this._previousY !== this._tankBody.y;
@@ -265,13 +267,21 @@ export class Tank {
         if (this._keys[this._controls.right]) {
             this._tankBody.x += this._speed;
         }
+        if(this._keys[this._controls.shoot]){
+            console.log("shoot tank "+this._color);
+            let bullet = new Bullet(this._app);
+            bullet.display();
+            bullet.shoot(this);
+            setTimeout(() => {
+                bullet.remove(); // Supprimez la balle après 5 secondes
+            }, 5000);
+
+        }
 
         let tankBounds = this._tankBody.getBounds();
         let stadiumBounds = stadium._bodyStadium.getBounds();
 
         if (!stadium.isTankInside(this)) { // Check if the tank is outside the stadium
-            //afficher un message dans la console
-            //console.log("Tank is outside the stadium");
 
             if (tankBounds.x < stadiumBounds.x) {
                 this._tankBody.x += this._speed;
