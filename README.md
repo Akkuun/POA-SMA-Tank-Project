@@ -4,6 +4,10 @@ Ensuite aller sur l'adresse : http://localhost:3000/
 
 Adresse du site de déploiement : https://Akkuun.github.io/POA-SMA-Tank-Project
 
+##
+````bash
+npm install react-router-dom
+````
 
 ## Kill serveur node
 Linux:
