@@ -72,9 +72,11 @@ export class Bullet {
     }
 
     shoot(Tank){
-        const cannonLength = 70;
-        const offsetX = Tank._tankHead.width / 2 +12;
-        const offsetY = Tank._tankHead.height / 2 -2;
+        const cannonLength = 50;
+        const offsetX = 0;
+        console.log(offsetX);
+        const offsetY = 0;
+        console.log(offsetY);
         const cannonTipX = Tank._tankBody.x + offsetX + cannonLength * Math.sin(-Tank._tankHead.rotation);
         const cannonTipY = Tank._tankBody.y + offsetY + cannonLength * Math.cos(Tank._tankHead.rotation);
         this.setPosition(cannonTipX, cannonTipY);
