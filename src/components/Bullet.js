@@ -3,12 +3,13 @@ import * as PIXI from 'pixi.js';
 export class Bullet {
     _bodyBullet;
     _rotationSpeed;
+    _app;
 
-    constructor() {
+    constructor(app) {
+        this._app = app;
         this._bodyBullet = new PIXI.Graphics();
         this._rotationSpeed = 0.05;
 
-        // Définir le style de la ligne et la couleur de remplissage
         const lineWidth = 2;
         const lineColor = 0x000000;
         const fillColor = 0xd8a952;
@@ -41,8 +42,8 @@ export class Bullet {
 
     }
 
-    display(app){
-        app.stage.addChild(this._bodyBullet);
+    display(){
+        this._app.stage.addChild(this._bodyBullet);
     }
 
     update() {
@@ -57,4 +58,27 @@ export class Bullet {
         this._bodyBullet.x = x;
         this._bodyBullet.y = y;
     }
+
+    getPosition(){
+        return {x: this._bodyBullet.x, y: this._bodyBullet.y};
+    }
+
+    getBounds(){
+        return this._bodyBullet.getBounds();
+    }
+
+    remove(){
+        this._app.stage.removeChild(this._bodyBullet);
+    }
+
+    shoot(Tank){
+        const cannonLength = 70;
+        const offsetX = Tank._tankHead.width / 2 +12;
+        const offsetY = Tank._tankHead.height / 2 -2;
+        const cannonTipX = Tank._tankBody.x + offsetX + cannonLength * Math.sin(-Tank._tankHead.rotation);
+        const cannonTipY = Tank._tankBody.y + offsetY + cannonLength * Math.cos(Tank._tankHead.rotation);
+        this.setPosition(cannonTipX, cannonTipY);
+        this.setDirection(Tank._tankHead.rotation);
+    }
+
 }

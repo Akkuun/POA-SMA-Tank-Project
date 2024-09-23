@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
 import {Tank} from './Tank';
 import {Stadium} from './Stadium';
-import {Bullet} from './Bullet';
 
 const MainPage = () => {
     const pixiContainerRef = useRef(null);
@@ -33,8 +32,8 @@ const MainPage = () => {
 
         // Creation des tanks
         const tanks = [];
-        tanks[0] = new Tank(0x827B60, { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight" }, stadiumWidth, stadiumHeight);
-        tanks[1] = new Tank(0x667c3e, { up: "z", left: "q", down: "s", right: "d" }, stadiumWidth, stadiumHeight);
+        tanks[0] = new Tank(0x827B60, { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight", shoot:" "}, stadiumWidth, stadiumHeight, app);
+        tanks[1] = new Tank(0x667c3e, { up: "z", left: "q", down: "s", right: "d", shoot:"Shift" }, stadiumWidth, stadiumHeight, app);
 
         let brownTank = tanks[0];
         let greenTank = tanks[1];
@@ -65,19 +64,6 @@ const MainPage = () => {
         app.ticker.add(() => {
             brownTank.updateCannonPosition(mouseX, mouseY);
             greenTank.updateCannonPosition(mouseX, mouseY);
-        })
-
-        let bullettest = new Bullet(100,100);
-        bullettest.display(app);
-
-        app.ticker.add(() => {
-            const cannonLength = 70;
-            const offsetX = greenTank._tankHead.width / 2 +12;
-            const offsetY = greenTank._tankHead.height / 2 -2;
-            const cannonTipX = greenTank._tankBody.x + offsetX + cannonLength * Math.sin(-greenTank._tankHead.rotation);
-            const cannonTipY = greenTank._tankBody.y + offsetY + cannonLength * Math.cos(greenTank._tankHead.rotation);
-            bullettest.setPosition(cannonTipX, cannonTipY);
-            bullettest.setDirection(greenTank._tankHead.rotation);
         });
 
         // Nettoyage de l'application Pixi lors du démontage du composant
