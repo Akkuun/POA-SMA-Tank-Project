@@ -22,10 +22,9 @@ export class Tank {
     _previousX;
     _previousY;
     _previousRotation;
-
-    constructor(color,controls, stadiumWidth, stadiumHeight) {
     _app;
-    constructor(color,controls, stadiumWidth, stadiumHeight, app) {
+
+    constructor(color,controls, stadiumWidth, stadiumHeight, app){
         this._app=app;
 
         this._coordinateSpawnX=0;
