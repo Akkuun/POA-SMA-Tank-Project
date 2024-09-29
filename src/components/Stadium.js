@@ -4,6 +4,7 @@ export class Stadium {
     _width;
     _height;
     _bodyStadium;
+    _walls = [];
 
     constructor(width, height) {
         this._width = width;
@@ -17,6 +18,13 @@ export class Stadium {
         const centerX = (window.innerWidth - this._width) / 2;
         const centerY = (window.innerHeight - this._height) / 2;
         this._bodyStadium.position.set(centerX, centerY);
+    }
+
+    addWall(x, y, width, height) {
+        const wall = new Wall(width, height);
+        wall._bodyWall.position.set(x, y);
+        this._bodyStadium.addChild(wall._bodyWall);
+        this._walls.push(wall);
     }
 
     testForAABB(object) {
@@ -46,4 +54,65 @@ export class Stadium {
     }
 
 
+}
+
+export class Wall {
+    _width;
+    _height;
+    _bodyWall;
+
+    constructor(width, height) {
+        this._width = width;
+        this._height = height;
+        this._bodyWall = new PIXI.Graphics();
+        this._bodyWall.beginFill(0x000000);
+        this._bodyWall.drawRect(0, 0, this._width, this._height);
+        this._bodyWall.endFill();
+
+        // Calculer la position centrale
+        const centerX = (window.innerWidth - this._width) / 2;
+        const centerY = (window.innerHeight - this._height) / 2;
+        this._bodyWall.position.set(centerX, centerY);
+    }
+
+    display(app) {
+        app.stage.addChild(this._bodyWall);
+    }
+
+    testForAABB(tank) {
+        const bounds = tank._tankBody.getBounds();
+        const wallBounds = this._bodyWall.getBounds();
+        return (
+            bounds.x < wallBounds.x + wallBounds.width &&
+            bounds.x + bounds.width > wallBounds.x &&
+            bounds.y < wallBounds.y + wallBounds.height &&
+            bounds.y + bounds.height > wallBounds.y
+        );
+    }
+
+    resolveCollision(tank) {
+        const bounds = tank._tankBody.getBounds();
+        const wallBounds = this._bodyWall.getBounds();
+
+        let dx = 0;
+        let dy = 0;
+
+        if (bounds.x < wallBounds.x) {
+            dx = wallBounds.x - (bounds.x + bounds.width);
+        } else if (bounds.x + bounds.width > wallBounds.x + wallBounds.width) {
+            dx = wallBounds.x + wallBounds.width - bounds.x;
+        }
+
+        if (bounds.y < wallBounds.y) {
+            dy = wallBounds.y - (bounds.y + bounds.height);
+        } else if (bounds.y + bounds.height > wallBounds.y + wallBounds.height) {
+            dy = wallBounds.y + wallBounds.height - bounds.y;
+        }
+
+        if (Math.abs(dx) < Math.abs(dy)) {
+            tank._tankBody.x += dx;
+        } else {
+            tank._tankBody.y += dy;
+        }
+    }
 }

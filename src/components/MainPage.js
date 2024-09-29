@@ -13,10 +13,13 @@ const MainPage = () => {
         pixiContainerRef.current.appendChild(app.view);
 
         // Creation du stade
-        const stadiumHeight = 700;
-        const stadiumWidth = 700;
+        const stadiumHeight = WindowHeight  * 0.9;
+        const stadiumWidth = WindowWidth * 0.9;
         const stadium = new Stadium(stadiumWidth, stadiumHeight);
         app.stage.addChild(stadium._bodyStadium);
+
+        // Ajout des murs
+        stadium.addWall(500, 500, 100, 100);
         
         // Variables pour la position de la souris
         app.stage.eventMode = 'static';
@@ -64,6 +67,11 @@ const MainPage = () => {
                 for (let otherTank of tanks) {
                     if (tank !== otherTank && tank.checkCollision(otherTank)) {
                         tank.resolveCollision(otherTank);
+                    }
+                }
+                for (let wall of stadium._walls) {
+                    if (wall.testForAABB(tank)) {
+                        wall.resolveCollision(tank);
                     }
                 }
             }
