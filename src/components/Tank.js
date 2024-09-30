@@ -109,37 +109,52 @@ export class Tank {
         const cannonLength = 25 * scaleFactor;  // Longueur du canon
 
         // Calcule la rotation globale avec un ajustement de +PI
-        const globalRotation = this._tankBody.rotation + this._tankHead.rotation + Math.PI / 2;
+        let globalRotation = this._tankBody.rotation + this._tankHead.rotation + Math.PI / 2;
 
-        const cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
-        const cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
+        let cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
+        let cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
 
         bulletPath.moveTo(cannonX, cannonY);
-        //calcul de la longueur de la ligne avant qu'elle ne touche le mur
-        let lineLength = 0;
-        let lineTouchedTheWall = false;
+
         const stadiumBounds = this._stadiumObject._bodyStadium.getBounds();
+        let lineLength = 0;
+        let maxBounces = 3; // Nombre maximum de rebonds
+        let bounces = 0;
 
+        while (bounces < maxBounces) {
+            lineLength = 10;
+            let collisionDetected = false;
 
-        while (!lineTouchedTheWall) {
-            lineLength += 10;
-            const endX = cannonX + Math.cos(globalRotation) * lineLength;
-            const endY = cannonY + Math.sin(globalRotation) * lineLength;
-            bulletPath.lineTo(endX, endY);
+            // Continue à tracer la ligne jusqu'à ce qu'on touche un mur
+            while (!collisionDetected) {
+                lineLength += 10;
+                let endX = cannonX + Math.cos(globalRotation) * lineLength;
+                let endY = cannonY + Math.sin(globalRotation) * lineLength;
+                bulletPath.lineTo(endX, endY);
 
-            if (endX <= stadiumBounds.x || endX >= stadiumBounds.x + stadiumBounds.width ||
-                endY <= stadiumBounds.y || endY >= stadiumBounds.y + stadiumBounds.height) {
-                lineTouchedTheWall = true;
+                // Détection de collision avec les bords du stade
+                if (endX <= stadiumBounds.x || endX >= stadiumBounds.x + stadiumBounds.width) {
+                    // Rebond sur un mur vertical (gauche ou droite)
+                    globalRotation = Math.PI - globalRotation; // Inversion sur l'axe X
+                    collisionDetected = true;
+                    cannonX = endX;
+                    cannonY = endY;
+                } else if (endY <= stadiumBounds.y || endY >= stadiumBounds.y + stadiumBounds.height) {
+                    // Rebond sur un mur horizontal (haut ou bas)
+                    globalRotation = -globalRotation; // Inversion sur l'axe Y
+                    collisionDetected = true;
+                    cannonX = endX;
+                    cannonY = endY;
+                }
             }
+
+            // Incrémenter le nombre de rebonds
+            bounces += 1;
         }
 
-        const endX = cannonX + Math.cos(globalRotation) * (lineLength);
-        const endY = cannonY + Math.sin(globalRotation) * (lineLength);
-
-        bulletPath.lineTo(endX, endY);
-        console.log(lineLength);
         return bulletPath;
     }
+
 
 
     checkCollision(otherTank) {
