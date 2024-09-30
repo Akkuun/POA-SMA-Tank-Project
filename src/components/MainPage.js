@@ -13,8 +13,8 @@ const MainPage = () => {
         pixiContainerRef.current.appendChild(app.view);
 
         // Creation du stade
-        const stadiumHeight = 700;
-        const stadiumWidth = 700;
+        const stadiumHeight = 400;
+        const stadiumWidth = 400;
         const stadium = new Stadium(stadiumWidth, stadiumHeight);
         app.stage.addChild(stadium._bodyStadium);
         
@@ -34,8 +34,8 @@ const MainPage = () => {
 
         // Creation des tanks
         const tanks = [];
-        tanks[0] = new Tank(0x827B60, { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight" }, stadiumWidth, stadiumHeight);
-        tanks[1] = new Tank(0x667c3e, { up: "z", left: "q", down: "s", right: "d" }, stadiumWidth, stadiumHeight);
+        tanks[0] = new Tank(0x827B60, { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight" }, stadiumWidth, stadiumHeight,stadium);
+        tanks[1] = new Tank(0x667c3e, { up: "z", left: "q", down: "s", right: "d" }, stadiumWidth, stadiumHeight,stadium);
 
         let brownTank = tanks[0];
         let greenTank = tanks[1];

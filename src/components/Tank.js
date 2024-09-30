@@ -21,22 +21,24 @@ export class Tank {
     _previousX;
     _previousY;
     _previousRotation;
+    _stadiumObject;
 
-    constructor(color,controls, stadiumWidth, stadiumHeight) {
-        this._coordinateSpawnX=0;
-        this._coordinateSpawnY=0;
+    constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject) {
+        this._coordinateSpawnX = 0;
+        this._coordinateSpawnY = 0;
         this._color = color;
 
         this._speed = 2;
         this._rotationSpeed = 0.03;
         this._keys = {};
 
-        this._controls=controls;
+        this._controls = controls;
         this._tankBody = new PIXI.Graphics();
         this._tankHead = new PIXI.Graphics();
 
         this._stadiumWidth = stadiumWidth;
         this._stadiumHeight = stadiumHeight;
+        this._stadiumObject = stadiumObject;
 
         this._bulletPath = new PIXI.Graphics();
         this._bulletPath.visible = false; // Masquez-le par défaut
@@ -61,8 +63,9 @@ export class Tank {
         this._tankBody.x = this._coordinateSpawnX;
         this._tankBody.y = this._coordinateSpawnY;
     }
+
     // do a specific action base on the tank's action
-    performAction(action){
+    performAction(action) {
 
 
         // eslint-disable-next-line default-case
@@ -81,18 +84,19 @@ export class Tank {
 
     getBoundsForCollision() {
         return {
-            left : this._tankBody.x,
-            right : this._tankBody.x + this._tankBody.width,
-            top : this._tankBody.y,
-            bottom : this._tankBody.y + this._tankBody.height
+            left: this._tankBody.x,
+            right: this._tankBody.x + this._tankBody.width,
+            top: this._tankBody.y,
+            bottom: this._tankBody.y + this._tankBody.height
         }
     }
-        //put the bullet path in the tank attribute
-        updateBulletPath() {
-            this._bulletPath.clear();
-            const path = this.getBulletPath();
-            this._bulletPath.addChild(path);
-        }
+
+    //put the bullet path in the tank attribute
+    updateBulletPath() {
+        this._bulletPath.clear();
+        const path = this.getBulletPath();
+        this._bulletPath.addChild(path);
+    }
 
     getBulletPath() {
         const bulletPath = new PIXI.Graphics();
@@ -105,19 +109,35 @@ export class Tank {
         const cannonLength = 25 * scaleFactor;  // Longueur du canon
 
         // Calcule la rotation globale avec un ajustement de +PI
-        const globalRotation = this._tankBody.rotation + this._tankHead.rotation + Math.PI/2;
+        const globalRotation = this._tankBody.rotation + this._tankHead.rotation + Math.PI / 2;
 
         const cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
         const cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
 
         bulletPath.moveTo(cannonX, cannonY);
+        //calcul de la longueur de la ligne avant qu'elle ne touche le mur
+        let lineLength = 0;
+        let lineTouchedTheWall = false;
+        const stadiumBounds = this._stadiumObject._bodyStadium.getBounds();
 
-        const lineLength = 200;
-        const endX = cannonX + Math.cos(globalRotation) * lineLength;
-        const endY = cannonY + Math.sin(globalRotation) * lineLength;
+
+        while (!lineTouchedTheWall) {
+            lineLength += 10;
+            const endX = cannonX + Math.cos(globalRotation) * lineLength;
+            const endY = cannonY + Math.sin(globalRotation) * lineLength;
+            bulletPath.lineTo(endX, endY);
+
+            if (endX <= stadiumBounds.x || endX >= stadiumBounds.x + stadiumBounds.width ||
+                endY <= stadiumBounds.y || endY >= stadiumBounds.y + stadiumBounds.height) {
+                lineTouchedTheWall = true;
+            }
+        }
+
+        const endX = cannonX + Math.cos(globalRotation) * (lineLength);
+        const endY = cannonY + Math.sin(globalRotation) * (lineLength);
 
         bulletPath.lineTo(endX, endY);
-
+        console.log(lineLength);
         return bulletPath;
     }
 
@@ -218,7 +238,7 @@ export class Tank {
         this._tankBody.endFill();
         for (let i = 0; i < 6; i++) {
             this._tankBody.beginFill(0xC0c0c0); // Metal plates
-            this._tankBody.drawRect(trackOffsetX +  scaleFactor, i * metalPlateSpacing, metalPlateWidth, metalPlateHeight);
+            this._tankBody.drawRect(trackOffsetX + scaleFactor, i * metalPlateSpacing, metalPlateWidth, metalPlateHeight);
             this._tankBody.endFill();
         }
 
@@ -251,11 +271,9 @@ export class Tank {
     }
 
 
-
     updatePosition(stadium) {
         const hasMoved = this._previousX !== this._tankBody.x || this._previousY !== this._tankBody.y;
         const hasRotated = this._previousRotation !== (this._tankHead.rotation + this._tankBody.rotation);
-
 
 
         if (this._keys[this._controls.up]) {
@@ -281,7 +299,7 @@ export class Tank {
             if (tankBounds.x < stadiumBounds.x) {
                 this._tankBody.x += this._speed;
             }
-            if(tankBounds.x + tankBounds.width > stadiumBounds.x + stadiumBounds.width) {
+            if (tankBounds.x + tankBounds.width > stadiumBounds.x + stadiumBounds.width) {
                 this._tankBody.x -= this._speed;
             }
             if (tankBounds.y < stadiumBounds.y) {
@@ -307,8 +325,8 @@ export class Tank {
     }
 
     updateBodyRotation() {
-        let dX = this._keys[this._controls.right] ? 1 : - this._keys[this._controls.left] ? -1 : 0;
-        let dY = this._keys[this._controls.down] ? 1 : - this._keys[this._controls.up] ? -1 : 0;
+        let dX = this._keys[this._controls.right] ? 1 : -this._keys[this._controls.left] ? -1 : 0;
+        let dY = this._keys[this._controls.down] ? 1 : -this._keys[this._controls.up] ? -1 : 0;
         if (dX === 0 && dY === 0) {
             return;
         }

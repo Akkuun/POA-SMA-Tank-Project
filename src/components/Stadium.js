@@ -45,5 +45,14 @@ export class Stadium {
         app.stage.addChild(this._bodyStadium);
     }
 
+    get StadiumBounds_x() {
+        return this._bodyStadium.getBounds().x;
+    }
+    get StadiumBounds_y() {
+        return this._bodyStadium.getBounds().y;
+    }
+
+
+
 
 }
