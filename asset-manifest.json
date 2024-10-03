@@ -1,15 +1,13 @@
 {
   "files": {
-    "main.css": "/POA-SMA-Tank-Project/static/css/main.e6c13ad2.css",
-    "main.js": "/POA-SMA-Tank-Project/static/js/main.f9a3b4f9.js",
-    "static/js/453.a7fe2efe.chunk.js": "/POA-SMA-Tank-Project/static/js/453.a7fe2efe.chunk.js",
+    "main.css": "/POA-SMA-Tank-Project/static/css/main.08326df7.css",
+    "main.js": "/POA-SMA-Tank-Project/static/js/main.2e505c63.js",
     "index.html": "/POA-SMA-Tank-Project/index.html",
-    "main.e6c13ad2.css.map": "/POA-SMA-Tank-Project/static/css/main.e6c13ad2.css.map",
-    "main.f9a3b4f9.js.map": "/POA-SMA-Tank-Project/static/js/main.f9a3b4f9.js.map",
-    "453.a7fe2efe.chunk.js.map": "/POA-SMA-Tank-Project/static/js/453.a7fe2efe.chunk.js.map"
+    "main.08326df7.css.map": "/POA-SMA-Tank-Project/static/css/main.08326df7.css.map",
+    "main.2e505c63.js.map": "/POA-SMA-Tank-Project/static/js/main.2e505c63.js.map"
   },
   "entrypoints": [
-    "static/css/main.e6c13ad2.css",
-    "static/js/main.f9a3b4f9.js"
+    "static/css/main.08326df7.css",
+    "static/js/main.2e505c63.js"
   ]
 }
