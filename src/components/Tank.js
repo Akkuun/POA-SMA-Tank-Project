@@ -15,6 +15,7 @@ export class Tank {
     _tankBody;
     _tankHead;
     _rotationSpeed;
+    _speedWhileRotating;
     _targetRotation;
     _stadiumWidth;
     _stadiumHeight;
@@ -34,7 +35,8 @@ export class Tank {
         this._color = color;
 
         this._speed = 2;
-        this._rotationSpeed = 0.03;
+        this._speedWhileRotating = this._speed * 0.7;
+        this._rotationSpeed = 0.02;
         this._keys = {};
 
         this._controls = controls;
@@ -291,22 +293,27 @@ export class Tank {
 
 
     updatePosition(stadium) {
+
+        let speed = this._targetRotation === this._tankBody.rotation ? this._speed : this._speedWhileRotating;
+
         const hasMoved = this._previousX !== this._tankBody.x || this._previousY !== this._tankBody.y;
         const hasRotated = this._previousRotation !== (this._tankHead.rotation + this._tankBody.rotation);
 
 
+
         if (this._keys[this._controls.up]) {
-            this._tankBody.y -= this._speed;
+            this._tankBody.y -= speed;
         }
         if (this._keys[this._controls.left]) {
-            this._tankBody.x -= this._speed;
+            this._tankBody.x -= speed;
         }
         if (this._keys[this._controls.down]) {
-            this._tankBody.y += this._speed;
+            this._tankBody.y += speed;
         }
         if (this._keys[this._controls.right]) {
-            this._tankBody.x += this._speed;
+            this._tankBody.x += speed;
         }
+
         if(this._keys[this._controls.shoot]){
             console.log("shoot tank "+this._color);
             let bullet = new Bullet(this._app);
@@ -317,6 +324,7 @@ export class Tank {
             }, 5000);
 
         }
+
 
         let tankBounds = this._tankBody.getBounds();
         let stadiumBounds = stadium._bodyStadium.getBounds();
