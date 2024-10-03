@@ -13,8 +13,8 @@ const MainPage = () => {
         pixiContainerRef.current.appendChild(app.view);
 
         // Creation du stade
-        const stadiumHeight = 700;
-        const stadiumWidth = 700;
+        const stadiumHeight = 400;
+        const stadiumWidth = 400;
         const stadium = new Stadium(stadiumWidth, stadiumHeight);
         app.stage.addChild(stadium._bodyStadium);
         
@@ -23,7 +23,7 @@ const MainPage = () => {
         app.stage.hitArea = app.screen;
         let mouseX = 0;
         let mouseY = 0;
-        app.stage.on('mousemove', (event) => 
+        app.stage.on('mousemove', (event) =>
         {
             mouseX = event.global.x;
             mouseY = event.global.y;
@@ -32,8 +32,10 @@ const MainPage = () => {
 
         // Creation des tanks
         const tanks = [];
-        tanks[0] = new Tank(0x827B60, { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight" }, stadiumWidth, stadiumHeight);
-        tanks[1] = new Tank(0x667c3e, { up: "z", left: "q", down: "s", right: "d" }, stadiumWidth, stadiumHeight);
+
+        tanks[0] = new Tank(0x827B60, { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight", shoot:" "}, stadiumWidth, stadiumHeight,stadium, app);
+        tanks[1] = new Tank(0x667c3e, { up: "z", left: "q", down: "s", right: "d", shoot:"Shift" }, stadiumWidth, stadiumHeight,stadium ,app);
+
 
         let brownTank = tanks[0];
         let greenTank = tanks[1];
@@ -50,6 +52,13 @@ const MainPage = () => {
         app.stage.addChild(brownTank._tankBody);
         app.stage.addChild(greenTank._tankBody);
 
+        app.stage.on('click', () => {
+            // Supposons que vous tiriez avec le premier tank (brownTank)
+            brownTank.performAction('shoot');
+            app.stage.addChild(brownTank._bulletPath); // Assurez-vous que la trajectoire est visible
+        });
+
+
         app.ticker.add(() => {
             for (let tank of tanks) {
                 tank.updateRotations(mouseX, mouseY);
@@ -60,6 +69,11 @@ const MainPage = () => {
                     }
                 }
             }
+        });
+
+        app.ticker.add(() => {
+            brownTank.updateCannonPosition(mouseX, mouseY);
+            greenTank.updateCannonPosition(mouseX, mouseY);
         });
 
         // Nettoyage de l'application Pixi lors du démontage du composant
