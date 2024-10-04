@@ -3,7 +3,7 @@ import {Bullet} from "./Bullet";
 
 const WindowWidth = window.innerWidth;
 const WindowHeight = window.innerHeight;
-const scaleFactor = Math.min(WindowWidth, WindowHeight) / 550; //Main factor to scale the tank
+const scaleFactor = Math.min(WindowWidth, WindowHeight) / 600; //Main factor to scale the tank
 
 export class Tank {
     _coordinateSpawnY;

@@ -1,8 +1,11 @@
 import * as PIXI from 'pixi.js';
+import { useEffect } from 'react';
 
 export class Stadium {
     _width;
     _height;
+    _tiles_x;
+    _tiles_y;
     _bodyStadium;
     _walls = [];
 
@@ -10,9 +13,14 @@ export class Stadium {
         this._width = width;
         this._height = height;
         this._bodyStadium = new PIXI.Graphics();
-        this._bodyStadium.beginFill(0x800080);
+        this._bodyStadium.beginFill(0xc0a36a);
         this._bodyStadium.drawRect(0, 0, this._width, this._height);
         this._bodyStadium.endFill();
+
+        // Calculer le nombre de tiles, en fonction du ratio de l'écran pour les garder carrées
+        let ratio = this._width / this._height;
+        this._tiles_x = Math.floor(Math.sqrt(ratio) * 14);
+        this._tiles_y = Math.floor(14 / Math.sqrt(ratio));
 
         // Calculer la position centrale
         const centerX = (window.innerWidth - this._width) / 2;
@@ -53,7 +61,23 @@ export class Stadium {
         app.stage.addChild(this._bodyStadium);
     }
 
-
+    generateStadiumFromFile(file) {
+        fetch(file)
+            .then(response => response.text())
+            .then(text => {
+                let lines = text.split('\n');
+                let lineslen = lines.length-1;
+                for (let i = 0; i < lineslen; i++) {
+                    let line = lines[i];
+                    for (let j = 0; j < line.length; j++) {
+                        if (line[j] === '1') {
+                            this.addWall(j * this._width / line.length, i * this._height / lineslen, this._width / line.length, this._height / lineslen);
+                        }
+                    }
+                }
+            }
+        );
+    }
 }
 
 export class Wall {
@@ -65,7 +89,7 @@ export class Wall {
         this._width = width;
         this._height = height;
         this._bodyWall = new PIXI.Graphics();
-        this._bodyWall.beginFill(0x000000);
+        this._bodyWall.beginFill(0x463928);
         this._bodyWall.drawRect(0, 0, this._width, this._height);
         this._bodyWall.endFill();
 

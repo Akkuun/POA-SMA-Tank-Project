@@ -9,7 +9,7 @@ const MainPage = () => {
     const WindowHeight = window.innerHeight;
     useEffect(() => {
         // Création de l'application Pixi
-        const app = new PIXI.Application({ width: WindowWidth, height: WindowHeight, backgroundColor: 0x1099bb });
+        const app = new PIXI.Application({ width: WindowWidth, height: WindowHeight, backgroundColor: 0x463928 });
         pixiContainerRef.current.appendChild(app.view);
 
         // Creation du stade
@@ -19,8 +19,9 @@ const MainPage = () => {
         app.stage.addChild(stadium._bodyStadium);
 
         // Ajout des murs
-        stadium.addWall(500, 500, 100, 100);
-        
+        stadium.generateStadiumFromFile('maps/test.txt');
+        //stadium.generateRandomStadium();
+
         // Variables pour la position de la souris
         app.stage.eventMode = 'static';
         app.stage.hitArea = app.screen;
