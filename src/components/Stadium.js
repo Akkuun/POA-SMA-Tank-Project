@@ -3,23 +3,18 @@ import * as PIXI from 'pixi.js';
 export class Stadium {
     _width;
     _height;
-    _tiles_x;
-    _tiles_y;
     _bodyStadium;
     _walls = [];
 
     constructor(width, height) {
         this._width = width;
         this._height = height;
+
         this._bodyStadium = new PIXI.Graphics();
         this._bodyStadium.beginFill(0xc0a36a);
+        this._bodyStadium.lineStyle(2, 0x30271a);
         this._bodyStadium.drawRect(0, 0, this._width, this._height);
         this._bodyStadium.endFill();
-
-        // Calculer le nombre de tiles, en fonction du ratio de l'écran pour les garder carrées
-        let ratio = this._width / this._height;
-        this._tiles_x = Math.floor(Math.sqrt(ratio) * 14);
-        this._tiles_y = Math.floor(14 / Math.sqrt(ratio));
 
         // Calculer la position centrale
         const centerX = (window.innerWidth - this._width) / 2;
@@ -56,6 +51,16 @@ export class Stadium {
         ); //alors le tank est bien dans le stade
     }
 
+    isPointInside(x, y) {
+        const bounds = this._bodyStadium.getBounds();
+        return (
+            x >= bounds.x &&
+            x <= bounds.x + bounds.width &&
+            y >= bounds.y &&
+            y <= bounds.y + bounds.height
+        );
+    }
+    
     display(app) {
         app.stage.addChild(this._bodyStadium);
     }
@@ -64,29 +69,38 @@ export class Stadium {
         fetch(file)
             .then(response => response.text())
             .then(text => {
-                let lines = text.split('\n');
-                let nbLigne = lines.length-1; // Ignorer la dernière ligne vide
-                for (let i = 0; i < nbLigne; i++) {
-                    let line = lines[i];
-                    let nbCol = line.length-1; // Ignorer le retour à la ligne à la fin de chaque ligne
-                    for (let j = 0; j < nbCol; j++) {
-                        if (line[j] === '1') {
-                            this.addWall(j * this._width / nbCol, i * this._height / nbLigne, this._width / nbCol, this._height / nbLigne);
+                let map = text.split('\n').map(line => line.slice(0, -1).split(''));
+                
+                let rows = map.length;
+                let cols = map[0].length;
+
+                for (let i = 0; i < rows; i++) {
+                    for (let j = 0; j < cols; j++) {
+                        if (map[i][j] === '1') {
+                            this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows);
                         }
                     }
                 }
             }
         );
     }
+
     get StadiumBounds_x() {
         return this._bodyStadium.getBounds().x;
     }
     get StadiumBounds_y() {
         return this._bodyStadium.getBounds().y;
     }
+
+    isPointInsideAWall(x, y) {
+        for (let wall of this._walls) {
+            if (wall.isInside(x, y)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
-
-
 
 
 export class Wall {
@@ -98,7 +112,9 @@ export class Wall {
         this._width = width;
         this._height = height;
         this._bodyWall = new PIXI.Graphics();
+
         this._bodyWall.beginFill(0x463928);
+        this._bodyWall.lineStyle(2, 0x30271a);
         this._bodyWall.drawRect(0, 0, this._width, this._height);
         this._bodyWall.endFill();
 
@@ -147,5 +163,15 @@ export class Wall {
         } else {
             tank._tankBody.y += dy;
         }
+    }
+
+    isInside (x, y) {
+        const bounds = this._bodyWall.getBounds();
+        return (
+            x >= bounds.x &&
+            x <= bounds.x + bounds.width &&
+            y >= bounds.y &&
+            y <= bounds.y + bounds.height
+        );
     }
 }

@@ -37,8 +37,16 @@ const MainPage = () => {
         // Creation des tanks
         const tanks = [];
 
-        tanks[0] = new Tank(0x827B60, { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight", shoot:" "}, stadiumWidth, stadiumHeight,stadium, app);
-        tanks[1] = new Tank(0x667c3e, { up: "z", left: "q", down: "s", right: "d", shoot:"Shift" }, stadiumWidth, stadiumHeight,stadium ,app);
+        tanks[0] = new Tank(0x827B60,
+            { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight", shoot:" "},
+            stadiumWidth, stadiumHeight, stadium, app,   
+            184, 144
+        );
+        tanks[1] = new Tank(0x667c3e,
+            { up: "z", left: "q", down: "s", right: "d", shoot:"Shift" },
+            stadiumWidth, stadiumHeight, stadium, app,
+            922, 660
+        );
 
 
         let brownTank = tanks[0];
