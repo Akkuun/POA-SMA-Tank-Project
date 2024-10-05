@@ -1,5 +1,4 @@
 import * as PIXI from 'pixi.js';
-import { useEffect } from 'react';
 
 export class Stadium {
     _width;
@@ -66,19 +65,29 @@ export class Stadium {
             .then(response => response.text())
             .then(text => {
                 let lines = text.split('\n');
-                let lineslen = lines.length-1;
-                for (let i = 0; i < lineslen; i++) {
+                let nbLigne = lines.length-1; // Ignorer la dernière ligne vide
+                for (let i = 0; i < nbLigne; i++) {
                     let line = lines[i];
-                    for (let j = 0; j < line.length; j++) {
+                    let nbCol = line.length-1; // Ignorer le retour à la ligne à la fin de chaque ligne
+                    for (let j = 0; j < nbCol; j++) {
                         if (line[j] === '1') {
-                            this.addWall(j * this._width / line.length, i * this._height / lineslen, this._width / line.length, this._height / lineslen);
+                            this.addWall(j * this._width / nbCol, i * this._height / nbLigne, this._width / nbCol, this._height / nbLigne);
                         }
                     }
                 }
             }
         );
     }
+    get StadiumBounds_x() {
+        return this._bodyStadium.getBounds().x;
+    }
+    get StadiumBounds_y() {
+        return this._bodyStadium.getBounds().y;
+    }
 }
+
+
+
 
 export class Wall {
     _width;
