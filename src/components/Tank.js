@@ -211,7 +211,7 @@ export class Tank {
         let cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
         let cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
 
-        let path = [{startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY}]; 
+        let path = [{startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation}]; 
 
         const stadiumBounds = this._stadiumObject._bodyStadium.getBounds();
         let lineLength = 0;
@@ -267,7 +267,7 @@ export class Tank {
             path[path.length - 1].endX = cannonX;
             path[path.length - 1].endY = cannonY;
             if (bounces < maxBounces) {
-                path.push({startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY});
+                path.push({startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation});
             }
         }
 

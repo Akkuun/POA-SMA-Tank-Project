@@ -107,7 +107,7 @@ export class Bullet {
         X += (remainingDistance / line[index]) * (this._path[index].endX - this._path[index].startX);
         Y += (remainingDistance / line[index]) * (this._path[index].endY - this._path[index].startY);
 
-        return ({x: X, y: Y});
+        return ({x: X, y: Y, rotation: this._path[index].rotation});
     }
 
 
@@ -131,6 +131,7 @@ export class Bullet {
             return;
         }
         this.setPosition(nextPosition.x, nextPosition.y);
+        this.setDirection(nextPosition.rotation - Math.PI / 2);
         this._distance += 5;
     }
 
