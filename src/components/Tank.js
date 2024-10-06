@@ -197,6 +197,83 @@ export class Tank {
         return bulletPath;
     }
 
+    // Pareil que getBulletPath mais retourne le début et la fin de chaque segment de la trajectoire au lieu d'afficher le chemin. Utilisé pour l'animation
+    getBulletPathCurve() {
+        const bodyCenterX = this._tankBody.x;
+        const bodyCenterY = this._tankBody.y;
+
+        const cannonOffset = 25 * scaleFactor;  // Distance entre le centre du tank et l'extrémité du canon
+        const cannonLength = 25 * scaleFactor;  // Longueur du canon
+
+        // Calcule la rotation globale avec un ajustement de +PI
+        let globalRotation = this._tankBody.rotation + this._tankHead.rotation + Math.PI / 2;
+
+        let cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
+        let cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
+
+        let path = [{startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY}]; 
+
+        const stadiumBounds = this._stadiumObject._bodyStadium.getBounds();
+        let lineLength = 0;
+        let maxBounces = 3; // Nombre maximum de rebonds
+        let bounces = 0;
+
+        while (bounces < maxBounces) {
+            lineLength = 0;
+            let collisionDetected = false;
+
+            // Continue à tracer la ligne jusqu'à ce qu'on touche un mur
+            while (!collisionDetected) {
+                lineLength += 0.5;
+                let endX = cannonX + Math.cos(globalRotation) * lineLength;
+                let endY = cannonY + Math.sin(globalRotation) * lineLength;
+
+                // Détection de collision avec les bords du stade
+                if (endX <= stadiumBounds.x || endX >= stadiumBounds.x + stadiumBounds.width) {
+                    // Rebond sur un mur vertical (gauche ou droite)
+                    globalRotation = Math.PI - globalRotation; // Inversion sur l'axe X
+                    collisionDetected = true;
+                    cannonX = endX;
+                    cannonY = endY;
+                } else if (endY <= stadiumBounds.y || endY >= stadiumBounds.y + stadiumBounds.height) {
+                    // Rebond sur un mur horizontal (haut ou bas)
+                    globalRotation = -globalRotation; // Inversion sur l'axe Y
+                    collisionDetected = true;
+                    cannonX = endX;
+                    cannonY = endY;
+                } else {
+                    for (let wall of this._stadiumObject._walls) {
+                        if (wall.isInside(endX, endY)) {
+                            // Tester la distance jusqu'à l'espace vide le plus proche pour chaque rebond possible
+                            let rotations = [Math.PI - globalRotation, -globalRotation];
+                            let distances = rotations.map(rotation => this.rayCastNearestEmptySpace(endX, endY, rotation));
+                            // Trouver la distance minimale, et donc la rotation correspondante
+                            let minDistance = Math.min(...distances);
+                            let minIndex = distances.indexOf(minDistance);
+                            globalRotation = rotations[minIndex];
+                            collisionDetected = true;
+                            cannonX = endX;
+                            cannonY = endY;
+                            break;
+                        }
+                    }
+
+                }
+            }
+            
+            // Incrémenter le nombre de rebonds
+            bounces += 1;
+            
+            path[path.length - 1].endX = cannonX;
+            path[path.length - 1].endY = cannonY;
+            if (bounces < maxBounces) {
+                path.push({startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY});
+            }
+        }
+
+        return path;
+    }
+
 
 
     checkCollision(otherTank) {

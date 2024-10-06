@@ -4,6 +4,8 @@ export class Bullet {
     _bodyBullet;
     _rotationSpeed;
     _app;
+    _path;
+    _distance = 0;
 
     constructor(app) {
         this._app = app;
@@ -71,6 +73,44 @@ export class Bullet {
         this._app.stage.removeChild(this._bodyBullet);
     }
 
+    getLineXYatDistanceFromStart( distance) {
+        // Stocker la longueur de chaque segment de la trajectoire
+        let line = [];
+        for (let i =0; i < this._path.length; i++){
+            line.push(Math.sqrt((
+                Math.pow(this._path[i].endX - this._path[i].startX, 2) + Math.pow(this._path[i].endY - this._path[i].startY, 2)
+            )));
+        } 
+
+        // Trouver l'index du segment de la trajectoire où se trouve la distance
+        let distanceTraveled = 0;
+        let index = 0;
+        let i = 0;
+        for (; i < line.length; i++) {
+            distanceTraveled += line[i];
+            if (distanceTraveled > distance) {
+                index = i;
+                break;
+            }
+        }
+        if (i === line.length) {
+            return null; // Chemin terminé
+        }
+
+        // Trouver les coordonnées x et y à la distance donnée en fonction de l'index du segment de la trajectoire
+        let X = this._path[index].startX;
+        let Y = this._path[index].startY;
+        let remainingDistance = distance;
+        for (let i = 0; i < index; i++) {
+            remainingDistance -= line[i];
+        }
+        X += (remainingDistance / line[index]) * (this._path[index].endX - this._path[index].startX);
+        Y += (remainingDistance / line[index]) * (this._path[index].endY - this._path[index].startY);
+
+        return ({x: X, y: Y});
+    }
+
+
     shoot(Tank){
         const cannonLength = 50;
         const offsetX = 0;
@@ -79,6 +119,25 @@ export class Bullet {
         const cannonTipY = Tank._tankBody.y + offsetY + cannonLength * Math.cos(Tank._tankHead.rotation + Tank._tankBody.rotation);
         this.setPosition(cannonTipX, cannonTipY);
         this.setDirection(Tank._tankHead.rotation+Tank._tankBody.rotation);
+
+        this._path = Tank.getBulletPathCurve();
+        this.animate(); 
     }
 
+    update() {
+        let nextPosition = this.getLineXYatDistanceFromStart(this._distance);
+        if (nextPosition === null) {
+            this.remove();
+            return;
+        }
+        this.setPosition(nextPosition.x, nextPosition.y);
+        this._distance += 5;
+    }
+
+    animate() {
+        this._app.ticker.add(() => {
+            this.update();
+        });
+    }
 }
+
