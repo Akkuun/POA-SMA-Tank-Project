@@ -3,14 +3,17 @@ import * as PIXI from 'pixi.js';
 export class Bullet {
     _bodyBullet;
     _rotationSpeed;
+    _speed;
     _app;
     _path;
     _distance = 0;
+    _tank;
 
     constructor(app) {
         this._app = app;
         this._bodyBullet = new PIXI.Graphics();
         this._rotationSpeed = 0.05;
+        this._speed = 3;
 
         const lineWidth = 2;
         const lineColor = 0x000000;
@@ -48,9 +51,11 @@ export class Bullet {
         this._app.stage.addChild(this._bodyBullet);
     }
 
+    /*
     update() {
         this._bodyBullet.rotation += this._rotationSpeed;
     }
+    */
 
     setDirection(rotation) {
         this._bodyBullet.rotation = rotation;
@@ -70,7 +75,12 @@ export class Bullet {
     }
 
     remove(){
+        this._app.ticker.remove(this.update);
         this._app.stage.removeChild(this._bodyBullet);
+        if (this._tank !== null) {
+            this._tank._bulletsCooldown--; // La balle a été tirée et n'est plus en jeu, le tank pourra en tirer une autre
+            this._tank = null;
+        }
     }
 
     getLineXYatDistanceFromStart( distance) {
@@ -121,18 +131,19 @@ export class Bullet {
         this.setDirection(Tank._tankHead.rotation+Tank._tankBody.rotation);
 
         this._path = Tank.getBulletPathCurve();
+        this._tank = Tank;
         this.animate(); 
     }
 
     update() {
         let nextPosition = this.getLineXYatDistanceFromStart(this._distance);
-        if (nextPosition === null) {
+        if (nextPosition === null) { // La balle a atteint la fin de la trajectoire
             this.remove();
             return;
         }
         this.setPosition(nextPosition.x, nextPosition.y);
         this.setDirection(nextPosition.rotation - Math.PI / 2);
-        this._distance += 5;
+        this._distance += this._speed;
     }
 
     animate() {

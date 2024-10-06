@@ -29,12 +29,17 @@ export class Tank {
     _previousRotation;
     _stadiumObject;
     _app;
-    constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX=0, spawnY=0) {
+    _shortCooldown = false; // Cooldown entre chaque tir
+    _maxBullets;
+    _bulletsCooldown = 0; // Nombre de balles tirées simultanément, toujours < maxBullets
+    constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX=0, spawnY=0, maxBullets=5) {
         this._coordinateSpawnX = spawnX;
         this._coordinateSpawnY = spawnY;
         this._app=app;
 
         this._color = color;
+
+        this._maxBullets = maxBullets;
 
         this._speed = 2;
         this._speedWhileRotating = this._speed * 0.7;
@@ -413,28 +418,37 @@ export class Tank {
 
 
 
-        if (this._keys[this._controls.up]) {
+        if (this._keys[this._controls.up] && !this._shortCooldown) {
             this._tankBody.y -= speed;
         }
-        if (this._keys[this._controls.left]) {
+        if (this._keys[this._controls.left] && !this._shortCooldown) {
             this._tankBody.x -= speed;
         }
-        if (this._keys[this._controls.down]) {
+        if (this._keys[this._controls.down] && !this._shortCooldown) {
             this._tankBody.y += speed;
         }
-        if (this._keys[this._controls.right]) {
+        if (this._keys[this._controls.right] && !this._shortCooldown) {
             this._tankBody.x += speed;
         }
 
         if(this._keys[this._controls.shoot]){
-            console.log("shoot tank "+this._color);
-            let bullet = new Bullet(this._app);
-            bullet.display();
-            bullet.shoot(this);
-            setTimeout(() => {
-                bullet.remove(); // Supprimez la balle après 5 secondes
-            }, 5000);
+            if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
+                console.log("shoot tank "+this._color);
+                let bullet = new Bullet(this._app);
+                bullet.display();
+                bullet.shoot(this);
 
+                // Cooldown entre chaque tir et +1 balle tirée actuellement
+                this._shortCooldown = true; 
+                this._bulletsCooldown++;
+                setTimeout(() => {
+                    this._shortCooldown = false;
+                }, 200);
+                
+                setTimeout(() => {
+                    bullet.remove(); // Supprimez la balle après 5 secondes
+                }, 5000);
+            }
         }
 
 
