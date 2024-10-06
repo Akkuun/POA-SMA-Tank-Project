@@ -38,12 +38,12 @@ const MainPage = () => {
         const tanks = [];
 
         tanks[0] = new Tank(0x827B60,
-            { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight", shoot:" "},
+            { up: "z", left: "q", down: "s", right: "d", shoot:" "},
             stadiumWidth, stadiumHeight, stadium, app,   
             184, 144
         );
         tanks[1] = new Tank(0x667c3e,
-            { up: "z", left: "q", down: "s", right: "d", shoot:"Shift" },
+            { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight", shoot:"Shift"},
             stadiumWidth, stadiumHeight, stadium, app,
             922, 660
         );
