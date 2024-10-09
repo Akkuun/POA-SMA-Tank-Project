@@ -3,12 +3,17 @@ import * as PIXI from 'pixi.js';
 export class Bullet {
     _bodyBullet;
     _rotationSpeed;
+    _speed;
     _app;
+    _path;
+    _distance = 0;
+    _tank;
 
     constructor(app) {
         this._app = app;
         this._bodyBullet = new PIXI.Graphics();
         this._rotationSpeed = 0.05;
+        this._speed = 3;
 
         const lineWidth = 2;
         const lineColor = 0x000000;
@@ -46,9 +51,11 @@ export class Bullet {
         this._app.stage.addChild(this._bodyBullet);
     }
 
+    /*
     update() {
         this._bodyBullet.rotation += this._rotationSpeed;
     }
+    */
 
     setDirection(rotation) {
         this._bodyBullet.rotation = rotation;
@@ -68,8 +75,51 @@ export class Bullet {
     }
 
     remove(){
+        this._app.ticker.remove(this.update);
         this._app.stage.removeChild(this._bodyBullet);
+        if (this._tank !== null) {
+            this._tank._bulletsCooldown--; // La balle a été tirée et n'est plus en jeu, le tank pourra en tirer une autre
+            this._tank = null;
+        }
     }
+
+    getLineXYatDistanceFromStart( distance) {
+        // Stocker la longueur de chaque segment de la trajectoire
+        let line = [];
+        for (let i =0; i < this._path.length; i++){
+            line.push(Math.sqrt((
+                Math.pow(this._path[i].endX - this._path[i].startX, 2) + Math.pow(this._path[i].endY - this._path[i].startY, 2)
+            )));
+        } 
+
+        // Trouver l'index du segment de la trajectoire où se trouve la distance
+        let distanceTraveled = 0;
+        let index = 0;
+        let i = 0;
+        for (; i < line.length; i++) {
+            distanceTraveled += line[i];
+            if (distanceTraveled > distance) {
+                index = i;
+                break;
+            }
+        }
+        if (i === line.length) {
+            return null; // Chemin terminé
+        }
+
+        // Trouver les coordonnées x et y à la distance donnée en fonction de l'index du segment de la trajectoire
+        let X = this._path[index].startX;
+        let Y = this._path[index].startY;
+        let remainingDistance = distance;
+        for (let i = 0; i < index; i++) {
+            remainingDistance -= line[i];
+        }
+        X += (remainingDistance / line[index]) * (this._path[index].endX - this._path[index].startX);
+        Y += (remainingDistance / line[index]) * (this._path[index].endY - this._path[index].startY);
+
+        return ({x: X, y: Y, rotation: this._path[index].rotation});
+    }
+
 
     shoot(Tank){
         const cannonLength = 50;
@@ -79,6 +129,27 @@ export class Bullet {
         const cannonTipY = Tank._tankBody.y + offsetY + cannonLength * Math.cos(Tank._tankHead.rotation + Tank._tankBody.rotation);
         this.setPosition(cannonTipX, cannonTipY);
         this.setDirection(Tank._tankHead.rotation+Tank._tankBody.rotation);
+
+        this._path = Tank.getBulletPathCurve();
+        this._tank = Tank;
+        this.animate(); 
     }
 
+    update() {
+        let nextPosition = this.getLineXYatDistanceFromStart(this._distance);
+        if (nextPosition === null) { // La balle a atteint la fin de la trajectoire
+            this.remove();
+            return;
+        }
+        this.setPosition(nextPosition.x, nextPosition.y);
+        this.setDirection(nextPosition.rotation - Math.PI / 2);
+        this._distance += this._speed;
+    }
+
+    animate() {
+        this._app.ticker.add(() => {
+            this.update();
+        });
+    }
 }
+
