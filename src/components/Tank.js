@@ -3,7 +3,11 @@ import {Bullet} from "./Bullet";
 
 const WindowWidth = window.innerWidth;
 const WindowHeight = window.innerHeight;
-const scaleFactor = Math.min(WindowWidth, WindowHeight) / 550; //Main factor to scale the tank
+const scaleFactor = Math.min(WindowWidth, WindowHeight) / 700; //Main factor to scale the tank
+
+function distance(x1, y1, x2, y2) {
+    return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+}
 
 export class Tank {
     _coordinateSpawnY;
@@ -25,14 +29,17 @@ export class Tank {
     _previousRotation;
     _stadiumObject;
     _app;
-    constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject,app) {
-        this._coordinateSpawnX = 0;
-        this._coordinateSpawnY = 0;
+    _shortCooldown = false; // Cooldown entre chaque tir
+    _maxBullets;
+    _bulletsCooldown = 0; // Nombre de balles tirées simultanément, toujours < maxBullets
+    constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX=0, spawnY=0, maxBullets=5) {
+        this._coordinateSpawnX = spawnX;
+        this._coordinateSpawnY = spawnY;
         this._app=app;
 
-        this._coordinateSpawnX=0;
-        this._coordinateSpawnY=0;
         this._color = color;
+
+        this._maxBullets = maxBullets;
 
         this._speed = 2;
         this._speedWhileRotating = this._speed * 0.7;
@@ -98,6 +105,22 @@ export class Tank {
         }
     }
 
+    rayCastNearestEmptySpace(startX, startY, angle) { // Retourne la distance jusqu'à l'espace hors mur le plus proche
+        let x = startX;
+        let y = startY;
+        let step = 1;
+        while (this._stadiumObject.isPointInside(x, y) && this._stadiumObject.isPointInsideAWall(x, y)) {
+            x = startX + Math.cos(angle) * step;
+            y = startY + Math.sin(angle) * step;
+            step++;
+        }
+        if (this._stadiumObject.isPointInside(x, y)) {
+            return distance(startX, startY, x, y);
+        } else {
+            return Infinity;
+        }
+    }
+
     //put the bullet path in the tank attribute
     updateBulletPath() {
         this._bulletPath.clear();
@@ -129,12 +152,12 @@ export class Tank {
         let bounces = 0;
 
         while (bounces < maxBounces) {
-            lineLength = 10;
+            lineLength = 0;
             let collisionDetected = false;
 
             // Continue à tracer la ligne jusqu'à ce qu'on touche un mur
             while (!collisionDetected) {
-                lineLength += 10;
+                lineLength += 0.5;
                 let endX = cannonX + Math.cos(globalRotation) * lineLength;
                 let endY = cannonY + Math.sin(globalRotation) * lineLength;
                 bulletPath.lineTo(endX, endY);
@@ -152,6 +175,23 @@ export class Tank {
                     collisionDetected = true;
                     cannonX = endX;
                     cannonY = endY;
+                } else {
+                    for (let wall of this._stadiumObject._walls) {
+                        if (wall.isInside(endX, endY)) {
+                            // Tester la distance jusqu'à l'espace vide le plus proche pour chaque rebond possible
+                            let rotations = [Math.PI - globalRotation, -globalRotation]; 
+                            let distances = rotations.map(rotation => this.rayCastNearestEmptySpace(endX, endY, rotation));
+                            // Trouver la distance minimale, et donc la rotation correspondante
+                            let minDistance = Math.min(...distances);
+                            let minIndex = distances.indexOf(minDistance);
+                            globalRotation = rotations[minIndex];
+                            collisionDetected = true;
+                            cannonX = endX;
+                            cannonY = endY;
+                            break;
+                        }
+                    }
+
                 }
             }
 
@@ -160,6 +200,83 @@ export class Tank {
         }
 
         return bulletPath;
+    }
+
+    // Pareil que getBulletPath mais retourne le début et la fin de chaque segment de la trajectoire au lieu d'afficher le chemin. Utilisé pour l'animation
+    getBulletPathCurve() {
+        const bodyCenterX = this._tankBody.x;
+        const bodyCenterY = this._tankBody.y;
+
+        const cannonOffset = 25 * scaleFactor;  // Distance entre le centre du tank et l'extrémité du canon
+        const cannonLength = 25 * scaleFactor;  // Longueur du canon
+
+        // Calcule la rotation globale avec un ajustement de +PI
+        let globalRotation = this._tankBody.rotation + this._tankHead.rotation + Math.PI / 2;
+
+        let cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
+        let cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
+
+        let path = [{startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation}]; 
+
+        const stadiumBounds = this._stadiumObject._bodyStadium.getBounds();
+        let lineLength = 0;
+        let maxBounces = 3; // Nombre maximum de rebonds
+        let bounces = 0;
+
+        while (bounces < maxBounces) {
+            lineLength = 0;
+            let collisionDetected = false;
+
+            // Continue à tracer la ligne jusqu'à ce qu'on touche un mur
+            while (!collisionDetected) {
+                lineLength += 0.5;
+                let endX = cannonX + Math.cos(globalRotation) * lineLength;
+                let endY = cannonY + Math.sin(globalRotation) * lineLength;
+
+                // Détection de collision avec les bords du stade
+                if (endX <= stadiumBounds.x || endX >= stadiumBounds.x + stadiumBounds.width) {
+                    // Rebond sur un mur vertical (gauche ou droite)
+                    globalRotation = Math.PI - globalRotation; // Inversion sur l'axe X
+                    collisionDetected = true;
+                    cannonX = endX;
+                    cannonY = endY;
+                } else if (endY <= stadiumBounds.y || endY >= stadiumBounds.y + stadiumBounds.height) {
+                    // Rebond sur un mur horizontal (haut ou bas)
+                    globalRotation = -globalRotation; // Inversion sur l'axe Y
+                    collisionDetected = true;
+                    cannonX = endX;
+                    cannonY = endY;
+                } else {
+                    for (let wall of this._stadiumObject._walls) {
+                        if (wall.isInside(endX, endY)) {
+                            // Tester la distance jusqu'à l'espace vide le plus proche pour chaque rebond possible
+                            let rotations = [Math.PI - globalRotation, -globalRotation];
+                            let distances = rotations.map(rotation => this.rayCastNearestEmptySpace(endX, endY, rotation));
+                            // Trouver la distance minimale, et donc la rotation correspondante
+                            let minDistance = Math.min(...distances);
+                            let minIndex = distances.indexOf(minDistance);
+                            globalRotation = rotations[minIndex];
+                            collisionDetected = true;
+                            cannonX = endX;
+                            cannonY = endY;
+                            break;
+                        }
+                    }
+
+                }
+            }
+            
+            // Incrémenter le nombre de rebonds
+            bounces += 1;
+            
+            path[path.length - 1].endX = cannonX;
+            path[path.length - 1].endY = cannonY;
+            if (bounces < maxBounces) {
+                path.push({startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation});
+            }
+        }
+
+        return path;
     }
 
 
@@ -301,28 +418,37 @@ export class Tank {
 
 
 
-        if (this._keys[this._controls.up]) {
+        if (this._keys[this._controls.up] && !this._shortCooldown) {
             this._tankBody.y -= speed;
         }
-        if (this._keys[this._controls.left]) {
+        if (this._keys[this._controls.left] && !this._shortCooldown) {
             this._tankBody.x -= speed;
         }
-        if (this._keys[this._controls.down]) {
+        if (this._keys[this._controls.down] && !this._shortCooldown) {
             this._tankBody.y += speed;
         }
-        if (this._keys[this._controls.right]) {
+        if (this._keys[this._controls.right] && !this._shortCooldown) {
             this._tankBody.x += speed;
         }
 
         if(this._keys[this._controls.shoot]){
-            console.log("shoot tank "+this._color);
-            let bullet = new Bullet(this._app);
-            bullet.display();
-            bullet.shoot(this);
-            setTimeout(() => {
-                bullet.remove(); // Supprimez la balle après 5 secondes
-            }, 5000);
+            if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
+                console.log("shoot tank "+this._color);
+                let bullet = new Bullet(this._app);
+                bullet.display();
+                bullet.shoot(this);
 
+                // Cooldown entre chaque tir et +1 balle tirée actuellement
+                this._shortCooldown = true; 
+                this._bulletsCooldown++;
+                setTimeout(() => {
+                    this._shortCooldown = false;
+                }, 200);
+                
+                setTimeout(() => {
+                    bullet.remove(); // Supprimez la balle après 5 secondes
+                }, 5000);
+            }
         }
 
 
@@ -345,7 +471,8 @@ export class Tank {
             }
         }
         //if the tank posititons has changed, we update the bullet path to avoid too much computation
-        if (hasMoved || hasRotated) {
+        if ((hasMoved || hasRotated) && stadium.isTankInside(this) && (this._keys[this._controls.up] || this._keys[this._controls.down] || this._keys[this._controls.left] || this._keys[this._controls.right])) {
+            // temporary fix to avoid multiple bullet path at the beginning, true fix is using spawn position to not move the tank at the beginning
             console.log("the tanks has moved and we update the bullet path");
             this.performAction('getBulletPath');
             this._previousX = this._tankBody.x;
@@ -386,3 +513,4 @@ export class Tank {
         this._tankHead.rotation = Math.atan2(mouseY - this._tankBody.y, mouseX - this._tankBody.x) - Math.PI / 2 - this._tankBody.rotation;
     }
 }
+

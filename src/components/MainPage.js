@@ -9,15 +9,19 @@ const MainPage = () => {
     const WindowHeight = window.innerHeight;
     useEffect(() => {
         // Création de l'application Pixi
-        const app = new PIXI.Application({ width: WindowWidth, height: WindowHeight, backgroundColor: 0x1099bb });
+        const app = new PIXI.Application({ width: WindowWidth, height: WindowHeight, backgroundColor: 0x463928 });
         pixiContainerRef.current.appendChild(app.view);
 
         // Creation du stade
-        const stadiumHeight = 400;
-        const stadiumWidth = 400;
+        const stadiumHeight = WindowHeight  * 0.8;
+        const stadiumWidth = WindowWidth * 0.8;
         const stadium = new Stadium(stadiumWidth, stadiumHeight);
         app.stage.addChild(stadium._bodyStadium);
-        
+
+        // Ajout des murs
+        stadium.generateStadiumFromFile('maps/test.txt');
+        //stadium.generateRandomStadium();
+
         // Variables pour la position de la souris
         app.stage.eventMode = 'static';
         app.stage.hitArea = app.screen;
@@ -33,8 +37,16 @@ const MainPage = () => {
         // Creation des tanks
         const tanks = [];
 
-        tanks[0] = new Tank(0x827B60, { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight", shoot:" "}, stadiumWidth, stadiumHeight,stadium, app);
-        tanks[1] = new Tank(0x667c3e, { up: "z", left: "q", down: "s", right: "d", shoot:"Shift" }, stadiumWidth, stadiumHeight,stadium ,app);
+        tanks[0] = new Tank(0x827B60,
+            { up: "z", left: "q", down: "s", right: "d", shoot:" "},
+            stadiumWidth, stadiumHeight, stadium, app,   
+            184, 144
+        );
+        tanks[1] = new Tank(0x667c3e,
+            { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight", shoot:"Shift"},
+            stadiumWidth, stadiumHeight, stadium, app,
+            922, 660
+        );
 
 
         let brownTank = tanks[0];
@@ -66,6 +78,11 @@ const MainPage = () => {
                 for (let otherTank of tanks) {
                     if (tank !== otherTank && tank.checkCollision(otherTank)) {
                         tank.resolveCollision(otherTank);
+                    }
+                }
+                for (let wall of stadium._walls) {
+                    if (wall.testForAABB(tank)) {
+                        wall.resolveCollision(tank);
                     }
                 }
             }
