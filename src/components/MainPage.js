@@ -45,7 +45,7 @@ const MainPage = () => {
         tanks[1] = new Tank(0x667c3e,
             { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight", shoot:"Shift"},
             stadiumWidth, stadiumHeight, stadium, app,
-            700, 1000
+            700, 800
         );
 
 
