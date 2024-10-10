@@ -37,7 +37,11 @@ export class Stadium {
 
     destructWall(wallg){
         this._walls.splice(this._walls.indexOf(wallg), 1)
-        this._app.stage.removeChild(wallg);
+        this._app.stage.removeChild(wallg._bodyWall);
+        wallg._bodyWall.x = -5000;
+        wallg._bodyWall.y = -5000;
+
+
     }
 
 
