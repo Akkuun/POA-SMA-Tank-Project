@@ -67,7 +67,9 @@ export class Bullet {
     }
 
     getPosition(){
-        return {x: this._bodyBullet.x, y: this._bodyBullet.y};
+        return {x: this._bodyBullet.x
+            , y: this._bodyBullet.y
+        };
     }
 
     getBounds(){

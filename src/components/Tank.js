@@ -96,6 +96,10 @@ export class Tank {
         }
     }
 
+    remove() {
+        this._app.stage.removeChild(this);
+    }
+
     getBoundsForCollision() {
         return {
             left: this._tankBody.x,
@@ -435,6 +439,7 @@ export class Tank {
             if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
                 console.log("shoot tank "+this._color);
                 let bullet = new Bullet(this._app);
+                this._stadiumObject.addBullet(bullet);
                 bullet.display();
                 bullet.shoot(this);
 
@@ -444,10 +449,6 @@ export class Tank {
                 setTimeout(() => {
                     this._shortCooldown = false;
                 }, 200);
-                
-                setTimeout(() => {
-                    bullet.remove(); // Supprimez la balle après 5 secondes
-                }, 5000);
             }
         }
 
@@ -511,6 +512,16 @@ export class Tank {
 
     updateCannonPosition(mouseX, mouseY) {
         this._tankHead.rotation = Math.atan2(mouseY - this._tankBody.y, mouseX - this._tankBody.x) - Math.PI / 2 - this._tankBody.rotation;
+    }
+
+    isInside (x, y) {
+        const bounds = this._tankBody.getBounds();
+        return (
+            x >= bounds.x &&
+            x <= bounds.x + bounds.width &&
+            y >= bounds.y &&
+            y <= bounds.y + bounds.height
+        );
     }
 }
 

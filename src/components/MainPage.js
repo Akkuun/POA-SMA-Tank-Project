@@ -52,8 +52,6 @@ const MainPage = () => {
         let brownTank = tanks[0];
         let greenTank = tanks[1];
 
-        brownTank._tankBody.x=100;
-        brownTank._tankBody.y=100;
 
         //faire apparaitre le tank vert dans le stadium
         greenTank._coordinateSpawnX = stadiumWidth - greenTank._tankBody.width;
@@ -72,7 +70,8 @@ const MainPage = () => {
 
 
         app.ticker.add(() => {
-            for (let tank of tanks) {
+            for (let i = 0; i < tanks.length; i++) {
+                let tank = tanks[i];
                 tank.updateRotations(mouseX, mouseY);
                 tank.updatePosition(stadium);
                 for (let otherTank of tanks) {
@@ -83,6 +82,13 @@ const MainPage = () => {
                 for (let wall of stadium._walls) {
                     if (wall.testForAABB(tank)) {
                         wall.resolveCollision(tank);
+                    }
+                }
+
+                for (let bullet of stadium._bullets) {
+                    if (bullet._distance > tank._tankBody.width && tank.isInside(bullet._bodyBullet.x, bullet._bodyBullet.y)) {
+                        console.log("touche");
+                        continue;
                     }
                 }
             }
