@@ -1,12 +1,17 @@
 import * as PIXI from 'pixi.js';
+import {useState} from "react";
+
 
 export class Stadium {
     _width;
     _height;
     _bodyStadium;
     _walls = [];
+    _tankSpawnPositions = [];
 
-    constructor(width, height) {
+
+    constructor(width, height, setTankSpawnPositions) {
+
         this._width = width;
         this._height = height;
 
@@ -20,7 +25,9 @@ export class Stadium {
         const centerX = (window.innerWidth - this._width) / 2;
         const centerY = (window.innerHeight - this._height) / 2;
         this._bodyStadium.position.set(centerX, centerY);
+        this.setTankSpawnPositions = setTankSpawnPositions;
     }
+
 
     addWall(x, y, width, height) {
         const wall = new Wall(width, height);
@@ -28,6 +35,9 @@ export class Stadium {
         this._bodyStadium.addChild(wall._bodyWall);
         this._walls.push(wall);
     }
+
+
+
 
     testForAABB(object) {
         const bounds = object.getBounds();
@@ -60,10 +70,12 @@ export class Stadium {
             y <= bounds.y + bounds.height
         );
     }
-    
+
     display(app) {
         app.stage.addChild(this._bodyStadium);
     }
+
+
 
     generateStadiumFromFile(file) {
         fetch(file)
@@ -71,31 +83,42 @@ export class Stadium {
             .then(text => {
 
 
+                    let map = text.split('\n').map(line => line.slice(0, -1).split(''));
 
-                let map = text.split('\n').map(line => line.slice(0, -1).split(''));
-                
-                let rows = map.length;
-                let cols = map[0].length;
+                    let rows = map.length;
+                    let cols = map[0].length;
 
-                for (let i = 0; i < rows; i++) {
-                    for (let j = 0; j < cols; j++) {
-                        // on va récupérer dans le fichier texte les cases de spawn ( spécifié par un S\0-9\ après un chiffre qui représente la case où le tank X spawn)
+                    for (let i = 0; i < rows; i++) {
+                        for (let j = 0; j < cols; j++) {
+
+                           // console.log(map[i][j]);
+
+                            // in text file, 1 is a wall, 0 is an empty space, TX is a tank's spawn position for the X's tank
+                            if (map[i][j] === 'T') {
+                                let TankNumber = map[i][j + 1];
+                                this._tankSpawnPositions[TankNumber] = {x: j * this._width / cols, y: i * this._height / rows};
+                                console.log("pour tank " + TankNumber + " : " + this._tankSpawnPositions[TankNumber].x + " " + this._tankSpawnPositions[TankNumber].y);
+                                //update the top level state
+                               // console.log(this._tankSpawnPositions[TankNumber]);
+                                this.setTankSpawnPositions([...this._tankSpawnPositions]);
+
+                            }
 
 
-
-                        console.log(map[i][j]);
-                        if (map[i][j] === '1') {
-                            this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows);
+                            if (map[i][j] === '1') { // Wall Case
+                                this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows);
+                            }
                         }
                     }
                 }
-            }
-        );
+            )
+        ;
     }
 
     get StadiumBounds_x() {
         return this._bodyStadium.getBounds().x;
     }
+
     get StadiumBounds_y() {
         return this._bodyStadium.getBounds().y;
     }
@@ -173,7 +196,7 @@ export class Wall {
         }
     }
 
-    isInside (x, y) {
+    isInside(x, y) {
         const bounds = this._bodyWall.getBounds();
         return (
             x >= bounds.x &&
