@@ -40,26 +40,19 @@ const MainPage = () => {
         tanks[0] = new Tank(0x827B60,
             { up: "z", left: "q", down: "s", right: "d", shoot:" "},
             stadiumWidth, stadiumHeight, stadium, app,   
-            184, 144
+            100, 300
         );
         tanks[1] = new Tank(0x667c3e,
             { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight", shoot:"Shift"},
             stadiumWidth, stadiumHeight, stadium, app,
-            922, 660
+            700, 1000
         );
 
 
         let brownTank = tanks[0];
         let greenTank = tanks[1];
 
-        brownTank._tankBody.x=100;
-        brownTank._tankBody.y=100;
 
-        //faire apparaitre le tank vert dans le stadium
-        greenTank._coordinateSpawnX = stadiumWidth - greenTank._tankBody.width;
-        greenTank._coordinateSpawnY = stadiumHeight - greenTank._tankBody.height;
-        greenTank._tankBody.x = greenTank._coordinateSpawnX;
-        greenTank._tankBody.y = greenTank._coordinateSpawnY;
 
         app.stage.addChild(brownTank._tankBody);
         app.stage.addChild(greenTank._tankBody);

@@ -69,6 +69,9 @@ export class Stadium {
         fetch(file)
             .then(response => response.text())
             .then(text => {
+
+
+
                 let map = text.split('\n').map(line => line.slice(0, -1).split(''));
                 
                 let rows = map.length;
@@ -76,6 +79,11 @@ export class Stadium {
 
                 for (let i = 0; i < rows; i++) {
                     for (let j = 0; j < cols; j++) {
+                        // on va récupérer dans le fichier texte les cases de spawn ( spécifié par un S\0-9\ après un chiffre qui représente la case où le tank X spawn)
+
+
+
+                        console.log(map[i][j]);
                         if (map[i][j] === '1') {
                             this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows);
                         }

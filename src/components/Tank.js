@@ -32,7 +32,7 @@ export class Tank {
     _shortCooldown = false; // Cooldown entre chaque tir
     _maxBullets;
     _bulletsCooldown = 0; // Nombre de balles tirées simultanément, toujours < maxBullets
-    constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX=0, spawnY=0, maxBullets=5) {
+    constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX, spawnY, maxBullets=5) {
         this._coordinateSpawnX = spawnX;
         this._coordinateSpawnY = spawnY;
         this._app=app;
