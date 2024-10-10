@@ -35,13 +35,18 @@ export class Stadium {
         return this._walls;
     }
 
-    destructWall(wallg){
-        this._walls.splice(this._walls.indexOf(wallg), 1)
+    destructWall(wallg) {
+        // Supprimer le mur de la liste des murs
+        const wallIndex = this._walls.indexOf(wallg);
+        if (wallIndex > -1) {
+            this._walls.splice(wallIndex, 1);
+        }
+
+        // Retirer le mur de la scène PIXI
         this._app.stage.removeChild(wallg._bodyWall);
-        wallg._bodyWall.x = -5000;
-        wallg._bodyWall.y = -5000;
 
-
+        // Détruire l'objet graphique du mur pour libérer les ressources
+        wallg._bodyWall.destroy({ children: true, texture: true, baseTexture: true });
     }
 
 
