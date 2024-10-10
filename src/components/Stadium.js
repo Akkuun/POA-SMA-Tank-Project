@@ -36,15 +36,8 @@ export class Stadium {
     }
 
     destructWall(wallg){
-        for (let wall of this._walls) {
-            console.log("esf");
-            if(wallg.getBodyWall() === wall.getBodyWall()){
-                console.log("czczczczczczczzccz");
-                this._walls.splice(this._walls.indexOf(this), 1)
-                this._app.stage.removeChild(wall);
-                break;
-            }
-        }
+        this._walls.splice(this._walls.indexOf(wallg), 1)
+        this._app.stage.removeChild(wallg);
     }
 
 
