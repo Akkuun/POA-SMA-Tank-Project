@@ -24,7 +24,6 @@ export class Stadium {
     }
 
     addBullet(bullet) {
-        console.log("eeee");
         this._bullets.push(bullet);
     }
 

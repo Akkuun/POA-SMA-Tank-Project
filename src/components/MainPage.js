@@ -70,7 +70,6 @@ const MainPage = () => {
 
 
         app.ticker.add(() => {
-            console.log(stadium._bullets);
             for (let i = 0; i < tanks.length; i++) {
                 let tank = tanks[i];
                 if (!tank._destroyed) {
@@ -89,7 +88,7 @@ const MainPage = () => {
 
                     for (let bullet of stadium._bullets) {
                         if (bullet._distance > tank._tankBody.width && tank.isInside(bullet._bodyBullet.x, bullet._bodyBullet.y)) {
-                            console.log("touche");
+                            console.log("touché : ", tank);
                             continue;
                         }
                     }
