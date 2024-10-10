@@ -474,7 +474,7 @@ export class Tank {
         if ((hasMoved || hasRotated) && stadium.isTankInside(this) && (this._keys[this._controls.up] || this._keys[this._controls.down] || this._keys[this._controls.left] || this._keys[this._controls.right])) {
             // temporary fix to avoid multiple bullet path at the beginning, true fix is using spawn position to not move the tank at the beginning
             console.log("the tanks has moved and we update the bullet path");
-            this.performAction('getBulletPath');
+           // this.performAction('getBulletPath');
             this._previousX = this._tankBody.x;
             this._previousY = this._tankBody.y;
             this._previousRotation = this._tankHead.rotation + this._tankBody.rotation;
