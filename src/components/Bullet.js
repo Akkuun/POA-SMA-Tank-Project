@@ -9,6 +9,7 @@ export class Bullet {
     _distance = 0;
     _tank;
     _stadium;
+    _ticker;
 
     constructor(app, stadium) {
         this._app = app;
@@ -81,7 +82,8 @@ export class Bullet {
     }
 
     remove(){
-        this._app.ticker.remove(this.update);
+       // this._app.ticker.remove(this.update);
+       this._ticker.destroy();
         this._app.stage.removeChild(this._bodyBullet);
         if (this._tank !== null) {
             this._stadium._bullets.splice(this._stadium._bullets.indexOf(this), 1);
@@ -139,7 +141,11 @@ export class Bullet {
 
         this._path = Tank.getBulletPathCurve();
         this._tank = Tank;
-        this.animate(); 
+        this._ticker = new PIXI.Ticker();
+        this._ticker.add(() => {
+            this.update();
+        });
+        this._ticker.start();
     }
 
     update() {
@@ -165,11 +171,11 @@ export class Bullet {
         }
         return false;
     }
-
+/*
     animate() {
         this._app.ticker.add(() => {
             this.update();
         });
-    }
+    }*/
 }
 
