@@ -135,7 +135,7 @@ export class Tank {
         const bodyCenterX = this._tankBody.x;
         const bodyCenterY = this._tankBody.y;
 
-        const cannonOffset = 25 * scaleFactor;  // Distance entre le centre du tank et l'extrémité du canon
+        //const cannonOffset = 25 * scaleFactor;  // Distance entre le centre du tank et l'extrémité du canon
         const cannonLength = 25 * scaleFactor;  // Longueur du canon
 
         // Calcule la rotation globale avec un ajustement de +PI
@@ -208,11 +208,11 @@ export class Tank {
     }
 
     // Pareil que getBulletPath mais retourne le début et la fin de chaque segment de la trajectoire au lieu d'afficher le chemin. Utilisé pour l'animation
-    getBulletPathCurve(stadium) {
+    getBulletPathCurve() {
         const bodyCenterX = this._tankBody.x;
         const bodyCenterY = this._tankBody.y;
 
-        const cannonOffset = 25 * scaleFactor;  // Distance entre le centre du tank et l'extrémité du canon
+        //const cannonOffset = 25 * scaleFactor;  // Distance entre le centre du tank et l'extrémité du canon
         const cannonLength = 25 * scaleFactor;  // Longueur du canon
 
         // Calcule la rotation globale avec un ajustement de +PI
