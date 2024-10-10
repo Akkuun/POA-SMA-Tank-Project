@@ -6,6 +6,7 @@ export class Stadium {
     _bodyStadium;
     _walls = [];
     _bullets = [];
+    _tanks = [];
 
     constructor(width, height) {
         this._width = width;
@@ -25,6 +26,10 @@ export class Stadium {
 
     addBullet(bullet) {
         this._bullets.push(bullet);
+    }
+
+    addTank(tank) {
+        this._tanks.push(tank);
     }
 
     addWall(x, y, width, height) {

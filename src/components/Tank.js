@@ -10,6 +10,7 @@ function distance(x1, y1, x2, y2) {
 }
 
 export class Tank {
+    _destroyed = false;
     _coordinateSpawnY;
     _coordinateSpawnX;
     _color;
@@ -102,7 +103,7 @@ export class Tank {
     }
 
     remove() {
-        this._app.stage.removeChild(this);
+        this._stadiumObject._tanks.splice(this._stadiumObject._tanks.indexOf(this), 1);
     }
 
     getBoundsForCollision() {
@@ -132,7 +133,9 @@ export class Tank {
 
     //put the bullet path in the tank attribute
     updateBulletPath() {
-        this._bulletPath.clear();
+        while(this._bulletPath.children[0]) {
+            this._bulletPath.removeChild(this._bulletPath.children[0])
+        } 
         const path = this.getBulletPath();
         this._bulletPath.addChild(path);
     }
