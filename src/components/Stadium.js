@@ -1,4 +1,6 @@
 import * as PIXI from 'pixi.js';
+import {useState} from "react";
+
 
 export class Stadium {
     _width;
@@ -7,8 +9,11 @@ export class Stadium {
     _walls = [];
     _bullets = [];
     _tanks = [];
+    _tankSpawnPositions = [];
+
 
     constructor(width, height) {
+
         this._width = width;
         this._height = height;
 
@@ -38,6 +43,9 @@ export class Stadium {
         this._bodyStadium.addChild(wall._bodyWall);
         this._walls.push(wall);
     }
+
+
+
 
     testForAABB(object) {
         const bounds = object.getBounds();
@@ -70,34 +78,37 @@ export class Stadium {
             y <= bounds.y + bounds.height
         );
     }
-    
+
     display(app) {
         app.stage.addChild(this._bodyStadium);
     }
 
+
+
     generateStadiumFromFile(file) {
-        fetch(file)
+        return fetch(file)
             .then(response => response.text())
             .then(text => {
                 let map = text.split('\n').map(line => line.slice(0, -1).split(''));
-                
                 let rows = map.length;
                 let cols = map[0].length;
 
                 for (let i = 0; i < rows; i++) {
                     for (let j = 0; j < cols; j++) {
-                        if (map[i][j] === '1') {
+
+
+                        if (map[i][j] === '1') { // case Wall
                             this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows);
                         }
                     }
                 }
-            }
-        );
+            });
     }
 
     get StadiumBounds_x() {
         return this._bodyStadium.getBounds().x;
     }
+
     get StadiumBounds_y() {
         return this._bodyStadium.getBounds().y;
     }
@@ -175,7 +186,7 @@ export class Wall {
         }
     }
 
-    isInside (x, y) {
+    isInside(x, y) {
         const bounds = this._bodyWall.getBounds();
         return (
             x >= bounds.x &&

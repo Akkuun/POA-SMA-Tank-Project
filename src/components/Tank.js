@@ -33,7 +33,7 @@ export class Tank {
     _shortCooldown = false; // Cooldown entre chaque tir
     _maxBullets;
     _bulletsCooldown = 0; // Nombre de balles tirées simultanément, toujours < maxBullets
-    constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX=0, spawnY=0, maxBullets=5) {
+    constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX, spawnY, maxBullets=5) {
         this._coordinateSpawnX = spawnX;
         this._coordinateSpawnY = spawnY;
         this._app=app;
@@ -138,6 +138,9 @@ export class Tank {
         } 
         const path = this.getBulletPath();
         this._bulletPath.addChild(path);
+        setTimeout(() => {
+            this._bulletPath.removeChild(this._bulletPath);
+        }, 1000);
     }
 
     getBulletPath() {
@@ -483,7 +486,7 @@ export class Tank {
         if ((hasMoved || hasRotated) && stadium.isTankInside(this) && (this._keys[this._controls.up] || this._keys[this._controls.down] || this._keys[this._controls.left] || this._keys[this._controls.right])) {
             // temporary fix to avoid multiple bullet path at the beginning, true fix is using spawn position to not move the tank at the beginning
             console.log("the tanks has moved and we update the bullet path");
-            this.performAction('getBulletPath');
+           // this.performAction('getBulletPath');   uncomment to see the bullet path line
             this._previousX = this._tankBody.x;
             this._previousY = this._tankBody.y;
             this._previousRotation = this._tankHead.rotation + this._tankBody.rotation;
