@@ -178,6 +178,9 @@ export class Tank {
                 } else {
                     for (let wall of this._stadiumObject._walls) {
                         if (wall.isInside(endX, endY)) {
+                            if(wall.getDestruct()){
+                                return bulletPath;
+                            }
                             // Tester la distance jusqu'à l'espace vide le plus proche pour chaque rebond possible
                             let rotations = [Math.PI - globalRotation, -globalRotation]; 
                             let distances = rotations.map(rotation => this.rayCastNearestEmptySpace(endX, endY, rotation));
@@ -185,6 +188,8 @@ export class Tank {
                             let minDistance = Math.min(...distances);
                             let minIndex = distances.indexOf(minDistance);
                             globalRotation = rotations[minIndex];
+                            
+
                             collisionDetected = true;
                             cannonX = endX;
                             cannonY = endY;
@@ -203,7 +208,7 @@ export class Tank {
     }
 
     // Pareil que getBulletPath mais retourne le début et la fin de chaque segment de la trajectoire au lieu d'afficher le chemin. Utilisé pour l'animation
-    getBulletPathCurve() {
+    getBulletPathCurve(stadium) {
         const bodyCenterX = this._tankBody.x;
         const bodyCenterY = this._tankBody.y;
 
@@ -249,6 +254,16 @@ export class Tank {
                 } else {
                     for (let wall of this._stadiumObject._walls) {
                         if (wall.isInside(endX, endY)) {
+                            if(wall.getDestruct()){
+                                this._stadiumObject.destructWall(wall);
+                                path[path.length - 1].endX = endX;
+                                path[path.length - 1].endY = endY;
+                                if (bounces < maxBounces) {
+                                    path.push({startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation});
+                                }
+                                return path;
+
+                            }
                             // Tester la distance jusqu'à l'espace vide le plus proche pour chaque rebond possible
                             let rotations = [Math.PI - globalRotation, -globalRotation];
                             let distances = rotations.map(rotation => this.rayCastNearestEmptySpace(endX, endY, rotation));

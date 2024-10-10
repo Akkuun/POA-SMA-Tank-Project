@@ -15,7 +15,7 @@ const MainPage = () => {
         // Creation du stade
         const stadiumHeight = WindowHeight  * 0.8;
         const stadiumWidth = WindowWidth * 0.8;
-        const stadium = new Stadium(stadiumWidth, stadiumHeight);
+        const stadium = new Stadium(stadiumWidth, stadiumHeight,app);
         app.stage.addChild(stadium._bodyStadium);
 
         // Ajout des murs
@@ -42,11 +42,12 @@ const MainPage = () => {
             stadiumWidth, stadiumHeight, stadium, app,   
             184, 144
         );
-        tanks[1] = new Tank(0x667c3e,
+        tanks[1] = new Tank(0xFFC0CB,
             { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight", shoot:"Shift"},
             stadiumWidth, stadiumHeight, stadium, app,
             922, 660
         );
+
 
 
         let brownTank = tanks[0];
