@@ -70,33 +70,31 @@ const MainPage = () => {
 
 
         app.ticker.add(() => {
+            console.log(stadium._bullets);
             for (let i = 0; i < tanks.length; i++) {
                 let tank = tanks[i];
-                tank.updateRotations(mouseX, mouseY);
-                tank.updatePosition(stadium);
-                for (let otherTank of tanks) {
-                    if (tank !== otherTank && tank.checkCollision(otherTank)) {
-                        tank.resolveCollision(otherTank);
+                if (!tank._destroyed) {
+                    tank.updateRotations(mouseX, mouseY);
+                    tank.updatePosition(stadium);
+                    for (let otherTank of tanks) {
+                        if (tank !== otherTank && tank.checkCollision(otherTank)) {
+                            tank.resolveCollision(otherTank);
+                        }
                     }
-                }
-                for (let wall of stadium._walls) {
-                    if (wall.testForAABB(tank)) {
-                        wall.resolveCollision(tank);
+                    for (let wall of stadium._walls) {
+                        if (wall.testForAABB(tank)) {
+                            wall.resolveCollision(tank);
+                        }
                     }
-                }
 
-                for (let bullet of stadium._bullets) {
-                    if (bullet._distance > tank._tankBody.width && tank.isInside(bullet._bodyBullet.x, bullet._bodyBullet.y)) {
-                        console.log("touche");
-                        continue;
+                    for (let bullet of stadium._bullets) {
+                        if (bullet._distance > tank._tankBody.width && tank.isInside(bullet._bodyBullet.x, bullet._bodyBullet.y)) {
+                            console.log("touche");
+                            continue;
+                        }
                     }
                 }
             }
-        });
-
-        app.ticker.add(() => {
-            brownTank.updateCannonPosition(mouseX, mouseY);
-            greenTank.updateCannonPosition(mouseX, mouseY);
         });
 
         // Nettoyage de l'application Pixi lors du démontage du composant

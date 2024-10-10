@@ -80,6 +80,11 @@ export class Tank {
 
     // do a specific action base on the tank's action
     performAction(action) {
+        this._bodyStadium = new PIXI.Graphics();
+        this._bodyStadium.beginFill(0xc0a36a);
+        this._bodyStadium.lineStyle(2, 0x30271a);
+        this._bodyStadium.drawRect(0, 0, this._width, this._height);
+        this._bodyStadium.endFill();
 
 
         // eslint-disable-next-line default-case
@@ -438,8 +443,8 @@ export class Tank {
         if(this._keys[this._controls.shoot]){
             if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
                 console.log("shoot tank "+this._color);
-                let bullet = new Bullet(this._app);
-                this._stadiumObject.addBullet(bullet);
+                let bullet = new Bullet(this._app, this._stadiumObject);
+            
                 bullet.display();
                 bullet.shoot(this);
 
