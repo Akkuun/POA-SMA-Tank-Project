@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import * as PIXI from 'pixi.js';
-import { Tank } from './Tank';
-import { Stadium } from './Stadium';
+import {Tank} from './Tank';
+import {Stadium} from './Stadium';
 
 const MainPage = () => {
     const pixiContainerRef = useRef(null);
@@ -24,7 +24,7 @@ const MainPage = () => {
                     for (let j = 0; j < cols; j++) {
                         if (map[i][j] === 'T') {
                             let tankNumber = map[i][j + 1] - 1;
-                            positions[tankNumber] = { x: j * WindowWidth / cols, y: i * WindowHeight / rows };
+                            positions[tankNumber] = {x: j * WindowWidth / cols, y: i * WindowHeight / rows};
                         }
                     }
                 }
@@ -39,7 +39,7 @@ const MainPage = () => {
     useEffect(() => {
         if (tankSpawnPositions.length === 0) return; // wait for tankSpawnPositions to be set
 
-        const app = new PIXI.Application({ width: WindowWidth, height: WindowHeight, backgroundColor: 0x463928 });
+        const app = new PIXI.Application({width: WindowWidth, height: WindowHeight, backgroundColor: 0x463928});
         pixiContainerRef.current.appendChild(app.view);
 
         const stadiumHeight = WindowHeight * 0.8;
@@ -66,7 +66,7 @@ const MainPage = () => {
             // Tank object creation
             if (tankSpawnPosition) {
                 const tank = new Tank(tanksColor[i],
-                    { up: "z", left: "q", down: "s", right: "d", shoot: " " },
+                    {up: "z", left: "q", down: "s", right: "d", shoot: " "},
                     stadiumWidth, stadiumHeight, stadium, app,
                     tankSpawnPosition.x, tankSpawnPosition.y
                 );
@@ -75,17 +75,19 @@ const MainPage = () => {
             }
         }
 
-        app.stage.on('click', () => {
-            if (tanks[0]) {
-                tanks[0].performAction('shoot');
-                app.stage.addChild(tanks[0]._bulletPath);
-            }
-        });
+
+        // app.stage.on('click', () => {
+        //
+        //     console.log('shoot');
+        //     tanks[0].performAction('shoot');
+        //     app.stage.addChild(tanks[0]._bulletPath);
+        //
+        // });
 
         // Mise à jour des tanks
         app.ticker.add(() => {
             for (let tank of tanks) {
-                if (!tank) continue; // Vérifiez que le tank est bien défini
+
                 tank.updateRotations(mouseX, mouseY);
                 tank.updatePosition(stadium);
 
@@ -93,20 +95,13 @@ const MainPage = () => {
                     if (tank !== otherTank && tank.checkCollision(otherTank)) {
                         tank.resolveCollision(otherTank);
                     }
+                    tank.updateCannonPosition(mouseX, mouseY);
+
                 }
                 for (let wall of stadium._walls) {
                     if (wall.testForAABB(tank)) {
                         wall.resolveCollision(tank);
                     }
-                }
-            }
-        });
-
-        // Mise à jour de la position des canons
-        app.ticker.add(() => {
-            for (let tank of tanks) {
-                if (tank) {
-                    tank.updateCannonPosition(mouseX, mouseY);
                 }
             }
         });

@@ -444,10 +444,7 @@ export class Tank {
                 setTimeout(() => {
                     this._shortCooldown = false;
                 }, 200);
-                
-                setTimeout(() => {
-                    bullet.remove(); // Supprimez la balle après 5 secondes
-                }, 5000);
+
             }
         }
 
