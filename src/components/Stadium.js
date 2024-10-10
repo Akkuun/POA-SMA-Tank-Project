@@ -86,17 +86,9 @@ export class Stadium {
 
                 for (let i = 0; i < rows; i++) {
                     for (let j = 0; j < cols; j++) {
-                        if (map[i][j] === 'T') {
-                            let tankNumber = map[i][j + 1] - 1;
-                            this._tankSpawnPositions[tankNumber] = {
-                                x: j * this._width / cols,
-                                y: i * this._height / rows
-                            };
-                            // Met à jour les positions de spawn via setTankSpawnPositions
 
-                        }
 
-                        if (map[i][j] === '1') {
+                        if (map[i][j] === '1') { // case Wall
                             this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows);
                         }
                     }

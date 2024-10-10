@@ -37,7 +37,7 @@ const MainPage = () => {
     }, []);
 
     useEffect(() => {
-        if (tankSpawnPositions.length === 0) return; // Attendre que les positions soient définies
+        if (tankSpawnPositions.length === 0) return; // wait for tankSpawnPositions to be set
 
         const app = new PIXI.Application({ width: WindowWidth, height: WindowHeight, backgroundColor: 0x463928 });
         pixiContainerRef.current.appendChild(app.view);
@@ -47,9 +47,9 @@ const MainPage = () => {
         const stadium = new Stadium(stadiumWidth, stadiumHeight);
         app.stage.addChild(stadium._bodyStadium);
 
-        stadium.generateStadiumFromFile('maps/testSpawn.txt');
+        stadium.generateStadiumFromFile('maps/testSpawn.txt'); // Stadium Wall generation from file
 
-        // Variables pour la position de la souris
+        // Mouse positions
         let mouseX = 0;
         let mouseY = 0;
         app.stage.on('mousemove', (event) => {
@@ -57,21 +57,21 @@ const MainPage = () => {
             mouseY = event.global.y;
         });
 
-        const tanksColor = [0x827B60, 0x667c3e];
+        const tanksColor = [0x00FF00, 0xFF0000, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF]; // tank's color available
         const tanks = [];
 
-        // Création des tanks
+        //tanks generation
         for (let i = 0; i < tankSpawnPositions.length; i++) {
             let tankSpawnPosition = tankSpawnPositions[i];
-
-            if (tankSpawnPosition) { // Vérifiez que la position est définie
+            // Tank object creation
+            if (tankSpawnPosition) {
                 const tank = new Tank(tanksColor[i],
                     { up: "z", left: "q", down: "s", right: "d", shoot: " " },
                     stadiumWidth, stadiumHeight, stadium, app,
                     tankSpawnPosition.x, tankSpawnPosition.y
                 );
                 tanks.push(tank);
-                app.stage.addChild(tank._tankBody); // Ajout des tanks au stage
+                app.stage.addChild(tank._tankBody); // tanks added to the stage
             }
         }
 
