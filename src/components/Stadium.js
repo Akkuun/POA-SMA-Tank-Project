@@ -5,6 +5,8 @@ export class Stadium {
     _height;
     _bodyStadium;
     _walls = [];
+    _bullets = [];
+    _tanks = [];
 
     constructor(width, height) {
         this._width = width;
@@ -20,6 +22,14 @@ export class Stadium {
         const centerX = (window.innerWidth - this._width) / 2;
         const centerY = (window.innerHeight - this._height) / 2;
         this._bodyStadium.position.set(centerX, centerY);
+    }
+
+    addBullet(bullet) {
+        this._bullets.push(bullet);
+    }
+
+    addTank(tank) {
+        this._tanks.push(tank);
     }
 
     addWall(x, y, width, height) {

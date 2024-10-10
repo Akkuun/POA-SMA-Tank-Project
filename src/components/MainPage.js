@@ -37,23 +37,23 @@ const MainPage = () => {
         // Creation des tanks
         const tanks = [];
 
-        tanks[0] = new Tank(0x827B60,
+        stadium.addTank(new Tank(0x827B60,
             { up: "z", left: "q", down: "s", right: "d", shoot:" "},
             stadiumWidth, stadiumHeight, stadium, app,   
             184, 144
-        );
-        tanks[1] = new Tank(0x667c3e,
+        ));
+        stadium.addTank(new Tank(0x667c3e,
             { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight", shoot:"Shift"},
             stadiumWidth, stadiumHeight, stadium, app,
             922, 660
-        );
+        ));
 
 
-        let brownTank = tanks[0];
-        let greenTank = tanks[1];
+        let brownTank = stadium._tanks[0];
+        let greenTank = stadium._tanks[1];
 
-        brownTank._tankBody.x=100;
-        brownTank._tankBody.y=100;
+
+        console.log("tanks : ", stadium._tanks);
 
         //faire apparaitre le tank vert dans le stadium
         greenTank._coordinateSpawnX = stadiumWidth - greenTank._tankBody.width;
@@ -68,29 +68,43 @@ const MainPage = () => {
             // Supposons que vous tiriez avec le premier tank (brownTank)
             brownTank.performAction('shoot');
             app.stage.addChild(brownTank._bulletPath); // Assurez-vous que la trajectoire est visible
+            setTimeout(() => {
+                app.stage.removeChild(brownTank._bulletPath);
+            }, 1000);
         });
 
 
         app.ticker.add(() => {
-            for (let tank of tanks) {
-                tank.updateRotations(mouseX, mouseY);
-                tank.updatePosition(stadium);
-                for (let otherTank of tanks) {
-                    if (tank !== otherTank && tank.checkCollision(otherTank)) {
-                        tank.resolveCollision(otherTank);
+            for (let i = 0; i < stadium._tanks.length; i++) {
+                let tank = stadium._tanks[i];
+                if (!tank._destroyed) {
+                    tank.updateRotations(mouseX, mouseY);
+                    tank.updatePosition(stadium);
+                    for (let otherTank of stadium._tanks) {
+                        if (tank !== otherTank && tank.checkCollision(otherTank)) {
+                            tank.resolveCollision(otherTank);
+                        }
                     }
-                }
-                for (let wall of stadium._walls) {
-                    if (wall.testForAABB(tank)) {
-                        wall.resolveCollision(tank);
+                    for (let wall of stadium._walls) {
+                        if (wall.testForAABB(tank)) {
+                            wall.resolveCollision(tank);
+                        }
+                    }
+
+                    for (let bullet of stadium._bullets) {
+                        if (bullet._distance > tank._tankBody.width && tank.isInside(bullet._bodyBullet.x, bullet._bodyBullet.y)) {
+                            console.log("touché : tank ", i);
+                            tank.remove();
+                            tank._destroyed = true;
+                            tank._tankBody.x = -1000000;
+                            tank._tankBody.y = -1000000;
+                            app.stage.removeChild(tank);
+                            console.log(stadium._tanks);
+                            continue;
+                        }
                     }
                 }
             }
-        });
-
-        app.ticker.add(() => {
-            brownTank.updateCannonPosition(mouseX, mouseY);
-            greenTank.updateCannonPosition(mouseX, mouseY);
         });
 
         // Nettoyage de l'application Pixi lors du démontage du composant
