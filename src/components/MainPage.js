@@ -1,103 +1,125 @@
-import React, { useEffect, useRef } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import * as PIXI from 'pixi.js';
 import {Tank} from './Tank';
 import {Stadium} from './Stadium';
 
 const MainPage = () => {
     const pixiContainerRef = useRef(null);
+    const [tankSpawnPositions, setTankSpawnPositions] = useState([]);
     const WindowWidth = window.innerWidth;
     const WindowHeight = window.innerHeight;
+
+    // Fonction pour obtenir les positions de spawn
+    function getSpawnPositions() {
+        let filePath = 'maps/testSpawn.txt';
+        let positions = [];
+
+        fetch(filePath).then(response => response.text())
+            .then(text => {
+                let map = text.split('\n').map(line => line.slice(0, -1).split(''));
+                let rows = map.length;
+                let cols = map[0].length;
+
+                for (let i = 0; i < rows; i++) {
+                    for (let j = 0; j < cols; j++) {
+                        if (map[i][j].charCodeAt(0) >= 'A'.charCodeAt(0) && map[i][j].charCodeAt(0) <= 'Z'.charCodeAt(0)) {
+
+                            let tankNumber = map[i][j].charCodeAt(0) - 'A'.charCodeAt(0) + 1;
+                            positions[tankNumber] = {x: j * WindowWidth / cols, y: i * WindowHeight / rows};
+                        }
+                    }
+                }
+                setTankSpawnPositions(positions);
+            });
+    }
+
     useEffect(() => {
-        // Création de l'application Pixi
-        const app = new PIXI.Application({ width: WindowWidth, height: WindowHeight, backgroundColor: 0x463928 });
+        getSpawnPositions();
+    }, []);
+
+    useEffect(() => {
+        if (tankSpawnPositions.length === 0) return; // wait for tankSpawnPositions to be set
+        
+        const app = new PIXI.Application({width: WindowWidth, height: WindowHeight, backgroundColor: 0x463928});
+        app.stage.interactive = true;
+app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height);
         pixiContainerRef.current.appendChild(app.view);
 
-        // Creation du stade
-        const stadiumHeight = WindowHeight  * 0.8;
+        const stadiumHeight = WindowHeight * 0.8;
         const stadiumWidth = WindowWidth * 0.8;
         const stadium = new Stadium(stadiumWidth, stadiumHeight);
         app.stage.addChild(stadium._bodyStadium);
+        
+        stadium.generateStadiumFromFile('maps/testSpawn.txt'); // Stadium Wall generation from file
 
-        // Ajout des murs
-        stadium.generateStadiumFromFile('maps/test.txt');
-        //stadium.generateRandomStadium();
-
-        // Variables pour la position de la souris
-        app.stage.eventMode = 'static';
-        app.stage.hitArea = app.screen;
+        // Mouse positions
         let mouseX = 0;
         let mouseY = 0;
-        app.stage.on('mousemove', (event) =>
-        {
-            mouseX = event.global.x;
-            mouseY = event.global.y;
+        app.stage.on('mousemove', (event) => {
+            mouseX = event.data.global.x;
+            mouseY = event.data.global.y;
+            console.log(mouseX,mouseY);
         });
 
+        const tanksColor = [0x00FF00, 0xFF0000, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF]; // tank's color available
 
-        // Creation des tanks
-        const tanks = [];
+        //tanks generation
+        for (let i = 0; i < tankSpawnPositions.length; i++) {
+            let tankSpawnPosition = tankSpawnPositions[i];
+            // Tank object creation
+            if (tankSpawnPosition) {
+                const tank = new Tank(tanksColor[i],
+                    {up: "z", left: "q", down: "s", right: "d", shoot: " "},
+                    stadiumWidth, stadiumHeight, stadium, app,
+                    tankSpawnPosition.x, tankSpawnPosition.y
+                );
+                stadium.addTank(tank);
+                app.stage.addChild(tank._tankBody); // tanks added to the stage
+            }
+        }
 
-        tanks[0] = new Tank(0x827B60,
-            { up: "z", left: "q", down: "s", right: "d", shoot:" "},
-            stadiumWidth, stadiumHeight, stadium, app,   
-            184, 144
-        );
-        tanks[1] = new Tank(0x667c3e,
-            { up: "ArrowUp", left: "ArrowLeft", down: "ArrowDown", right: "ArrowRight", shoot:"Shift"},
-            stadiumWidth, stadiumHeight, stadium, app,
-            922, 660
-        );
 
-
-        let brownTank = tanks[0];
-        let greenTank = tanks[1];
-
-        brownTank._tankBody.x=100;
-        brownTank._tankBody.y=100;
-
-        //faire apparaitre le tank vert dans le stadium
-        greenTank._coordinateSpawnX = stadiumWidth - greenTank._tankBody.width;
-        greenTank._coordinateSpawnY = stadiumHeight - greenTank._tankBody.height;
-        greenTank._tankBody.x = greenTank._coordinateSpawnX;
-        greenTank._tankBody.y = greenTank._coordinateSpawnY;
-
-        app.stage.addChild(brownTank._tankBody);
-        app.stage.addChild(greenTank._tankBody);
 
         app.stage.on('click', () => {
             // Supposons que vous tiriez avec le premier tank (brownTank)
-            brownTank.performAction('shoot');
-            app.stage.addChild(brownTank._bulletPath); // Assurez-vous que la trajectoire est visible
+            stadium._tanks[0].performAction('shoot');
         });
-
-
+        // Mise à jour des tanks
         app.ticker.add(() => {
-            for (let tank of tanks) {
+            for (let tank of stadium._tanks) {
+                if (tank._destroyed) continue;
                 tank.updateRotations(mouseX, mouseY);
                 tank.updatePosition(stadium);
-                for (let otherTank of tanks) {
+
+                for (let otherTank of stadium._tanks) {
                     if (tank !== otherTank && tank.checkCollision(otherTank)) {
                         tank.resolveCollision(otherTank);
                     }
+
                 }
                 for (let wall of stadium._walls) {
                     if (wall.testForAABB(tank)) {
                         wall.resolveCollision(tank);
                     }
                 }
+                for (let bullet of stadium._bullets) {
+                    if (bullet._distance > tank._tankBody.width && tank.isInside(bullet._bodyBullet.x, bullet._bodyBullet.y)) {
+                        tank.remove();
+                        tank._destroyed = true;
+                        tank._tankBody.x = -1000000;
+                        tank._tankBody.y = -1000000;
+                        app.stage.removeChild(tank);
+                        continue;
+                    }
+                }
             }
-        });
-
-        app.ticker.add(() => {
-            brownTank.updateCannonPosition(mouseX, mouseY);
-            greenTank.updateCannonPosition(mouseX, mouseY);
         });
 
         // Nettoyage de l'application Pixi lors du démontage du composant
         return () => {
             app.destroy(true, true);
         };
-    }, [WindowHeight, WindowWidth]);
+    }, [tankSpawnPositions, WindowHeight, WindowWidth]);
 
     return (
         <div ref={pixiContainerRef}></div>

@@ -8,9 +8,13 @@ export class Bullet {
     _path;
     _distance = 0;
     _tank;
+    _stadium;
+    _ticker;
 
-    constructor(app) {
+    constructor(app, stadium) {
         this._app = app;
+        this._stadium = stadium;
+        
         this._bodyBullet = new PIXI.Graphics();
         this._rotationSpeed = 0.05;
         this._speed = 3;
@@ -45,6 +49,7 @@ export class Bullet {
 
         this._bodyBullet.pivot.set(startX + rectWidth / 2, startY - (rectHeight + startY) / 2);//centre de rotation
 
+        this._stadium.addBullet(this);
     }
 
     display(){
@@ -67,7 +72,9 @@ export class Bullet {
     }
 
     getPosition(){
-        return {x: this._bodyBullet.x, y: this._bodyBullet.y};
+        return {x: this._bodyBullet.x
+            , y: this._bodyBullet.y
+        };
     }
 
     getBounds(){
@@ -75,9 +82,10 @@ export class Bullet {
     }
 
     remove(){
-        this._app.ticker.remove(this.update);
+        this._ticker.destroy();
         this._app.stage.removeChild(this._bodyBullet);
         if (this._tank !== null) {
+            this._stadium._bullets.splice(this._stadium._bullets.indexOf(this), 1);
             this._tank._bulletsCooldown--; // La balle a été tirée et n'est plus en jeu, le tank pourra en tirer une autre
             this._tank = null;
         }
@@ -132,10 +140,15 @@ export class Bullet {
 
         this._path = Tank.getBulletPathCurve();
         this._tank = Tank;
-        this.animate(); 
+        this._ticker = new PIXI.Ticker();
+        this._ticker.add(() => {
+            this.update();
+        });
+        this._ticker.start();
     }
 
     update() {
+        if (this._tank === null) return;
         let nextPosition = this.getLineXYatDistanceFromStart(this._distance);
         if (nextPosition === null) { // La balle a atteint la fin de la trajectoire
             this.remove();
@@ -146,10 +159,16 @@ export class Bullet {
         this._distance += this._speed;
     }
 
-    animate() {
-        this._app.ticker.add(() => {
-            this.update();
-        });
+    willIntersect(tank) {
+        // Renvoie la direction par laquelle la balle va toucher le tank si elle va le toucher, ainsi que la distance, false sinon
+        let d = this._distance;
+        let current = this.getLineXYatDistanceFromStart(d);
+        while (current != null) {
+            if (tank.isInside(current.x, current.y)) return {"rotation": current.rotation, "distance" : d-this._distance}; 
+            d+=5;
+            current = this.getLineXYatDistanceFromStart(d);
+        }
+        return false;
     }
 }
 
