@@ -253,13 +253,23 @@ export class Tank {
                     cannonY = endY;
                 } else {
                     for (let wall of this._stadiumObject._walls) {
-                        if (wall.isInside(endX, endY)) {
+                        if (wall.isInside(endX, endY) && !wall._destructed) {
                             if(wall.getDestruct()){
-                                this._stadiumObject.destructWall(wall);
                                 path[path.length - 1].endX = endX;
                                 path[path.length - 1].endY = endY;
                                 if (bounces < maxBounces) {
-                                    path.push({startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation});
+                                    wall._destructed = true;
+                                    path.push({
+                                        startX: cannonX,
+                                        startY: cannonY,
+                                        endX: cannonX,
+                                        endY: cannonY,
+                                        rotation: globalRotation,
+                                        destructWallAtSegment: true,
+                                        destructWall: () => {
+                                            this._stadiumObject.destructWall(wall);
+                                        }
+                                    });
                                 }
                                 return path;
 
@@ -287,7 +297,7 @@ export class Tank {
             path[path.length - 1].endX = cannonX;
             path[path.length - 1].endY = cannonY;
             if (bounces < maxBounces) {
-                path.push({startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation});
+                path.push({startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation, shouldDestructWall: false, destructWall: () => {}});
             }
         }
 
