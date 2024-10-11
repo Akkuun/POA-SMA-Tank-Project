@@ -1,7 +1,9 @@
 import '../styles/MenuComponent.css';
 import { useNavigate } from 'react-router-dom';
 import { TypeAnimation } from 'react-type-animation';
-import BackgroundImage from '../assets/Background.jpg';
+//import BackgroundImage from '../assets/Background.jpg'; // Si vous avez une image de fond
+
+import TankImage from '../assets/tank'; // Importer l'image du tank
 
 const MenuComponent = ({ settings }) => {
     const navigate = useNavigate();
@@ -17,7 +19,7 @@ const MenuComponent = ({ settings }) => {
     return (
         <div id="Menu">
             <div id="LeftPane">
-                {/* Ajouter une image de fond ou une animation ici */}
+                <img src={TankImage} alt="Tank" id="TankSprite" /> {/* Image animée */}
             </div>
             <div id="Bloc">
                 <TypeAnimation
@@ -30,7 +32,6 @@ const MenuComponent = ({ settings }) => {
                 <button onClick={handleClickStart}>Start</button>
                 <button onClick={handleClickOption}>Options</button>
 
-                {/* Utilisation de TypeAnimation pour les settings avec styles identiques aux boutons */}
                 <TypeAnimation
                     sequence={[
                         'Tank Number: ' + settings[0],
