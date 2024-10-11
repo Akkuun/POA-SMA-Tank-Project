@@ -3,12 +3,14 @@ import * as PIXI from 'pixi.js';
 import {Tank} from './Tank';
 import {Stadium} from './Stadium';
 import {Action} from './Tank';
+import {stadiumHeight, stadiumWidth, ScaleFactor, ScaledWidth, ScaledHeight} from './ScaleFactor';
+
+const WindowWidth = window.innerWidth;
+const WindowHeight = window.innerHeight;
 
 const MainPage = () => {
     const pixiContainerRef = useRef(null);
     const [tankSpawnPositions, setTankSpawnPositions] = useState([]);
-    const WindowWidth = window.innerWidth;
-    const WindowHeight = window.innerHeight;
 
     // Fonction pour obtenir les positions de spawn
     function getSpawnPositions() {
@@ -26,7 +28,7 @@ const MainPage = () => {
                         if (map[i][j].charCodeAt(0) >= 'A'.charCodeAt(0) && map[i][j].charCodeAt(0) <= 'Z'.charCodeAt(0)) {
 
                             let tankNumber = map[i][j].charCodeAt(0) - 'A'.charCodeAt(0) + 1;
-                            positions[tankNumber] = {x: j * WindowWidth / cols, y: i * WindowHeight / rows};
+                            positions[tankNumber] = {x: j * ScaledWidth / cols, y: i * ScaledHeight / rows};
                         }
                     }
                 }
@@ -46,8 +48,9 @@ const MainPage = () => {
 app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height);
         pixiContainerRef.current.appendChild(app.view);
 
-        const stadiumHeight = WindowHeight * 0.8;
-        const stadiumWidth = WindowWidth * 0.8;
+        
+        console.log(WindowWidth, " ", WindowHeight," ",WindowWidth/WindowHeight);
+
         const stadium = new Stadium(stadiumWidth, stadiumHeight,app);
         app.stage.addChild(stadium._bodyStadium);
 

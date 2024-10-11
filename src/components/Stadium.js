@@ -1,7 +1,6 @@
 import * as PIXI from 'pixi.js';
 import {useState} from "react";
 
-
 export class Stadium {
     _width;
     _height;

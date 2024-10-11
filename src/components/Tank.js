@@ -1,9 +1,11 @@
 import * as PIXI from "@pixi/graphics";
 import {Bullet} from "./Bullet";
+import { ScaleFactor } from "./ScaleFactor";
 
 const WindowWidth = window.innerWidth;
 const WindowHeight = window.innerHeight;
-const scaleFactor = Math.min(WindowWidth, WindowHeight) / 700; //Main factor to scale the tank
+//const scaleFactor = Math.min(WindowWidth, WindowHeight) / 700; //Main factor to scale the tank
+const scaleFactor = ScaleFactor;
 
 function distance(x1, y1, x2, y2) {
     return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
@@ -466,7 +468,6 @@ export class Tank {
     
             if(this._keys[this._controls.shoot]){
                 if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
-                    console.log("shoot tank "+this._color);
                     let bullet = new Bullet(this._app, this._stadiumObject);
     
                     bullet.display();
@@ -500,9 +501,7 @@ export class Tank {
                 this._tankBody.x += speed;
                 break;
             case Action.Shoot:
-                console.log("salut", this._shortCooldown, " ", this._bulletsCooldown," ", this._maxBullets);
                 if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
-                    console.log("shoot tank "+this._color);
                     let bullet = new Bullet(this._app, this._stadiumObject);
     
                     bullet.display();
@@ -556,7 +555,7 @@ export class Tank {
         //if the tank posititons has changed, we update the bullet path to avoid too much computation
         if ((hasMoved || hasRotated) && stadium.isTankInside(this) && (this._keys[this._controls.up] || this._keys[this._controls.down] || this._keys[this._controls.left] || this._keys[this._controls.right])) {
             // temporary fix to avoid multiple bullet path at the beginning, true fix is using spawn position to not move the tank at the beginning
-            console.log("the tanks has moved and we update the bullet path");
+            //console.log("the tanks has moved and we update the bullet path");
            // this.performAction('getBulletPath');   uncomment to see the bullet path line
             this._previousX = this._tankBody.x;
             this._previousY = this._tankBody.y;
