@@ -131,11 +131,13 @@ export class Wall {
     _height;
     _bodyWall;
     _destruct;
+    _destructed;
 
     constructor(width, height, canDestruct) {
         this._width = width;
         this._height = height;
         this._destruct = canDestruct;
+        this._destructed = false;
         this._bodyWall = new PIXI.Graphics();
 
         
