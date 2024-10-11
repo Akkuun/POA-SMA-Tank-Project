@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/POA-SMA-Tank-Project/static/css/main.08326df7.css",
-    "main.js": "/POA-SMA-Tank-Project/static/js/main.97113840.js",
+    "main.js": "/POA-SMA-Tank-Project/static/js/main.8929387a.js",
     "index.html": "/POA-SMA-Tank-Project/index.html",
     "main.08326df7.css.map": "/POA-SMA-Tank-Project/static/css/main.08326df7.css.map",
-    "main.97113840.js.map": "/POA-SMA-Tank-Project/static/js/main.97113840.js.map"
+    "main.8929387a.js.map": "/POA-SMA-Tank-Project/static/js/main.8929387a.js.map"
   },
   "entrypoints": [
     "static/css/main.08326df7.css",
-    "static/js/main.97113840.js"
+    "static/js/main.8929387a.js"
   ]
 }
