@@ -11,11 +11,12 @@ export class Stadium {
     _tanks = [];
     _tankSpawnPositions = [];
 
+    _app;
 
-    constructor(width, height) {
-
+    constructor(width, height, app) {
         this._width = width;
         this._height = height;
+        this._app = app;
 
         this._bodyStadium = new PIXI.Graphics();
         this._bodyStadium.beginFill(0xc0a36a);
@@ -37,14 +38,30 @@ export class Stadium {
         this._tanks.push(tank);
     }
 
-    addWall(x, y, width, height) {
-        const wall = new Wall(width, height);
+    addWall(x, y, width, height, canDestruct) {
+        const wall = new Wall(width, height, canDestruct);
         wall._bodyWall.position.set(x, y);
         this._bodyStadium.addChild(wall._bodyWall);
         this._walls.push(wall);
     }
 
+    getWall(){
+        return this._walls;
+    }
 
+    destructWall(wallg) {
+        // Supprimer le mur de la liste des murs
+        const wallIndex = this._walls.indexOf(wallg);
+        if (wallIndex > -1) {
+            this._walls.splice(wallIndex, 1);
+        }
+
+        // Retirer le mur de la scène PIXI
+        this._app.stage.removeChild(wallg._bodyWall);
+
+        // Détruire l'objet graphique du mur pour libérer les ressources
+        wallg._bodyWall.destroy({ children: true, texture: true, baseTexture: true });
+    }
 
 
     testForAABB(object) {
@@ -78,27 +95,26 @@ export class Stadium {
             y <= bounds.y + bounds.height
         );
     }
-
+    
     display(app) {
         app.stage.addChild(this._bodyStadium);
     }
-
-
 
     generateStadiumFromFile(file) {
         return fetch(file)
             .then(response => response.text())
             .then(text => {
                 let map = text.split('\n').map(line => line.slice(0, -1).split(''));
+                
                 let rows = map.length;
                 let cols = map[0].length;
 
                 for (let i = 0; i < rows; i++) {
                     for (let j = 0; j < cols; j++) {
-
-
-                        if (map[i][j] === '1') { // case Wall
-                            this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows);
+                        if (map[i][j] === '1') {
+                            this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows, false);
+                        }else if(map[i][j] === '2'){
+                            this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows, true);
                         }
                     }
                 }
@@ -108,7 +124,6 @@ export class Stadium {
     get StadiumBounds_x() {
         return this._bodyStadium.getBounds().x;
     }
-
     get StadiumBounds_y() {
         return this._bodyStadium.getBounds().y;
     }
@@ -128,13 +143,22 @@ export class Wall {
     _width;
     _height;
     _bodyWall;
+    _destruct;
+    _destructed;
 
-    constructor(width, height) {
+    constructor(width, height, canDestruct) {
         this._width = width;
         this._height = height;
+        this._destruct = canDestruct;
+        this._destructed = false;
         this._bodyWall = new PIXI.Graphics();
 
-        this._bodyWall.beginFill(0x463928);
+
+        if(canDestruct){
+            this._bodyWall.beginFill(0xff8000);
+        }else{
+            this._bodyWall.beginFill(0x463928);
+        }
         this._bodyWall.lineStyle(2, 0x30271a);
         this._bodyWall.drawRect(0, 0, this._width, this._height);
         this._bodyWall.endFill();
@@ -186,7 +210,15 @@ export class Wall {
         }
     }
 
-    isInside(x, y) {
+    getBodyWall(){
+        return this._bodyWall;
+    }
+
+    getDestruct(){
+        return this._destruct;
+    }
+
+    isInside (x, y) {
         const bounds = this._bodyWall.getBounds();
         return (
             x >= bounds.x &&

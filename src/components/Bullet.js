@@ -112,6 +112,10 @@ export class Bullet {
             }
         }
         if (i === line.length) {
+            if (this._path[i-1].destructWallAtSegment) {
+                this._path[i-1].destructWallAtSegment = false;
+                this._path[i-1].destructWall();
+            }
             return null; // Chemin terminé
         }
 

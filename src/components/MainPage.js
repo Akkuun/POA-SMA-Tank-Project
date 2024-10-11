@@ -39,7 +39,7 @@ const MainPage = () => {
 
     useEffect(() => {
         if (tankSpawnPositions.length === 0) return; // wait for tankSpawnPositions to be set
-        
+
         const app = new PIXI.Application({width: WindowWidth, height: WindowHeight, backgroundColor: 0x463928});
         app.stage.interactive = true;
 app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height);
@@ -47,9 +47,9 @@ app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height
 
         const stadiumHeight = WindowHeight * 0.8;
         const stadiumWidth = WindowWidth * 0.8;
-        const stadium = new Stadium(stadiumWidth, stadiumHeight);
+        const stadium = new Stadium(stadiumWidth, stadiumHeight,app);
         app.stage.addChild(stadium._bodyStadium);
-        
+
         stadium.generateStadiumFromFile('maps/testSpawn.txt'); // Stadium Wall generation from file
 
         // Mouse positions

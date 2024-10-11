@@ -81,11 +81,11 @@ export class Tank {
 
     // do a specific action base on the tank's action
     performAction(action) {
-        this._bodyStadium = new PIXI.Graphics();
-        this._bodyStadium.beginFill(0xc0a36a);
-        this._bodyStadium.lineStyle(2, 0x30271a);
-        this._bodyStadium.drawRect(0, 0, this._width, this._height);
-        this._bodyStadium.endFill();
+        // this._bodyStadium = new PIXI.Graphics();
+        // this._bodyStadium.beginFill(0xc0a36a);
+        // this._bodyStadium.lineStyle(2, 0x30271a);
+        // this._bodyStadium.drawRect(0, 0, this._width, this._height);
+        // this._bodyStadium.endFill();
 
 
         // eslint-disable-next-line default-case
@@ -135,7 +135,7 @@ export class Tank {
     updateBulletPath() {
         while(this._bulletPath.children[0]) {
             this._bulletPath.removeChild(this._bulletPath.children[0])
-        } 
+        }
         const path = this.getBulletPath();
         this._bulletPath.addChild(path);
         setTimeout(() => {
@@ -150,7 +150,7 @@ export class Tank {
         const bodyCenterX = this._tankBody.x;
         const bodyCenterY = this._tankBody.y;
 
-        const cannonOffset = 25 * scaleFactor;  // Distance entre le centre du tank et l'extrémité du canon
+        //const cannonOffset = 25 * scaleFactor;  // Distance entre le centre du tank et l'extrémité du canon
         const cannonLength = 25 * scaleFactor;  // Longueur du canon
 
         // Calcule la rotation globale avec un ajustement de +PI
@@ -193,6 +193,9 @@ export class Tank {
                 } else {
                     for (let wall of this._stadiumObject._walls) {
                         if (wall.isInside(endX, endY)) {
+                            if(wall.getDestruct()){
+                                return bulletPath;
+                            }
                             // Tester la distance jusqu'à l'espace vide le plus proche pour chaque rebond possible
                             let rotations = [Math.PI - globalRotation, -globalRotation]; 
                             let distances = rotations.map(rotation => this.rayCastNearestEmptySpace(endX, endY, rotation));
@@ -222,7 +225,7 @@ export class Tank {
         const bodyCenterX = this._tankBody.x;
         const bodyCenterY = this._tankBody.y;
 
-        const cannonOffset = 25 * scaleFactor;  // Distance entre le centre du tank et l'extrémité du canon
+        //const cannonOffset = 25 * scaleFactor;  // Distance entre le centre du tank et l'extrémité du canon
         const cannonLength = 25 * scaleFactor;  // Longueur du canon
 
         // Calcule la rotation globale avec un ajustement de +PI
@@ -263,7 +266,27 @@ export class Tank {
                     cannonY = endY;
                 } else {
                     for (let wall of this._stadiumObject._walls) {
-                        if (wall.isInside(endX, endY)) {
+                        if (wall.isInside(endX, endY) && !wall._destructed) {
+                            if(wall.getDestruct()){
+                                path[path.length - 1].endX = endX;
+                                path[path.length - 1].endY = endY;
+                                if (bounces < maxBounces) {
+                                    wall._destructed = true;
+                                    path.push({
+                                        startX: cannonX,
+                                        startY: cannonY,
+                                        endX: cannonX,
+                                        endY: cannonY,
+                                        rotation: globalRotation,
+                                        destructWallAtSegment: true,
+                                        destructWall: () => {
+                                            this._stadiumObject.destructWall(wall);
+                                        }
+                                    });
+                                }
+                                return path;
+
+                            }
                             // Tester la distance jusqu'à l'espace vide le plus proche pour chaque rebond possible
                             let rotations = [Math.PI - globalRotation, -globalRotation];
                             let distances = rotations.map(rotation => this.rayCastNearestEmptySpace(endX, endY, rotation));
@@ -287,7 +310,7 @@ export class Tank {
             path[path.length - 1].endX = cannonX;
             path[path.length - 1].endY = cannonY;
             if (bounces < maxBounces) {
-                path.push({startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation});
+                path.push({startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation, shouldDestructWall: false, destructWall: () => {}});
             }
         }
 
@@ -450,7 +473,7 @@ export class Tank {
             if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
                 console.log("shoot tank "+this._color);
                 let bullet = new Bullet(this._app, this._stadiumObject);
-            
+
                 bullet.display();
                 bullet.shoot(this);
 
@@ -460,6 +483,8 @@ export class Tank {
                 setTimeout(() => {
                     this._shortCooldown = false;
                 }, 200);
+                
+
             }
         }
 
