@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import * as PIXI from 'pixi.js';
 import {Tank} from './Tank';
 import {Stadium} from './Stadium';
+import {Action} from './Tank';
 
 const MainPage = () => {
     const pixiContainerRef = useRef(null);
@@ -58,7 +59,7 @@ app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height
         app.stage.on('mousemove', (event) => {
             mouseX = event.data.global.x;
             mouseY = event.data.global.y;
-            console.log(mouseX,mouseY);
+           // console.log(mouseX,mouseY);
         });
 
         const tanksColor = [0x00FF00, 0xFF0000, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF]; // tank's color available
@@ -71,25 +72,24 @@ app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height
                 const tank = new Tank(tanksColor[i],
                     {up: "z", left: "q", down: "s", right: "d", shoot: " "},
                     stadiumWidth, stadiumHeight, stadium, app,
-                    tankSpawnPosition.x, tankSpawnPosition.y
+                    tankSpawnPosition.x, tankSpawnPosition.y,
+                    5 ,false
                 );
                 stadium.addTank(tank);
                 app.stage.addChild(tank._tankBody); // tanks added to the stage
             }
         }
 
-
-
-        app.stage.on('click', () => {
-            // Supposons que vous tiriez avec le premier tank (brownTank)
-            stadium._tanks[0].performAction('shoot');
-        });
         // Mise à jour des tanks
         app.ticker.add(() => {
             for (let tank of stadium._tanks) {
                 if (tank._destroyed) continue;
-                tank.updateRotations(mouseX, mouseY);
-                tank.updatePosition(stadium);
+                if(tank._player) {
+                    tank.updateRotations(mouseX, mouseY);
+                    tank.updatePosition(stadium);
+                } else {
+                    tank.performActionIA(Action.Shoot, 500, 500);
+                }
 
                 for (let otherTank of stadium._tanks) {
                     if (tank !== otherTank && tank.checkCollision(otherTank)) {
