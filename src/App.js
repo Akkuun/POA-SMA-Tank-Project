@@ -17,9 +17,8 @@ const App = () => {
 
     return (
         <Routes>
-            <Route path="/" element={<MenuComponent settings={settings} />} />
-            <Route path="/settings" element={<SettingsComponent onSettingsChange={updateSettings} />} />
-            <Route  path="/game" element={<MainPage settings={settings} />} />
+            <Route path="/" element={<MenuComponent settings={settings}/>} />
+            <Route  path="/game" element={<MainPage settings={settings}  />} />
         </Routes>
     );
 };

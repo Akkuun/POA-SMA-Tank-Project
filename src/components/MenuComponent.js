@@ -1,18 +1,31 @@
 import '../styles/MenuComponent.css';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { TypeAnimation } from 'react-type-animation';
-// Importer la vidéo depuis le dossier assets
-import TankVideo from '../assets/Tank.mp4'; // Chemin de la vidéo
+import TankVideo from '../assets/Tank.mp4';
+import {useNavigate} from "react-router-dom"; // Chemin de la vidéo
 
 const MenuComponent = ({ settings }) => {
+    const [showSettings, setShowSettings] = useState(false); // Suivi de l'état des options
+    const [tankNumber, setTankNumber] = useState(settings[0]);
+    const [isPlayerPlaying, setIsPlayerPlaying] = useState(settings[1]);
+
+    const onSettingsChange = (newSettings) => {
+        const updatedSettings = [...settings];
+        updatedSettings[0] = newSettings.tankNumber;
+        updatedSettings[1] = newSettings.isPlayerPlaying;
+        setTankNumber(newSettings.tankNumber);
+        setIsPlayerPlaying(newSettings.isPlayerPlaying);
+    }
+
     const navigate = useNavigate();
 
     const handleClickOption = () => {
-        navigate('/settings');
+        setShowSettings(!showSettings); // Basculer l'affichage des paramètres
     };
 
-    const handleClickStart = () => {
-        navigate('/game');
+    const handleSave = () => {
+        onSettingsChange({ tankNumber: Number(tankNumber), isPlayerPlaying : isPlayerPlaying });
+        setShowSettings(false); // Fermer le bloc après la sauvegarde
     };
 
     return (
@@ -31,25 +44,54 @@ const MenuComponent = ({ settings }) => {
                     repeat={Infinity}
                     className="animated-title"
                 />
-                <button onClick={handleClickStart}>Start</button>
+                <button onClick={() => navigate('/game')}>Start</button>
                 <button onClick={handleClickOption}>Options</button>
 
-                <TypeAnimation
-                    sequence={[
-                        'Tank Number: ' + settings[0],
-                        5000,
-                        '',
-                        5000,
-                        'Is Player Playing: ' + (settings[1] ? 'Yes' : 'No'),
-                    ]}
-                    wrapper="div"
-                    cursor={true}
-                    repeat={Infinity}
-                    className="settings-info"
-                />
+                {/* Bloc de settings qui s'affiche quand on clique sur Options */}
+                {showSettings && (
+                    <div id="SettingsPanel">
+                        <form>
+                            <div className="form-group">
+                                <label htmlFor="tankNumber" className="form-label">Tank Number : </label>
+                                <input
+                                    type="number"
+                                    id="tankNumber"
+                                    className="form-input"
+                                    value={tankNumber}
+                                    onChange={(e) => setTankNumber(e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="isPlayerPlaying" className="form-label">Is Player Playing : </label>
+                                <input
+                                    type="checkbox"
+                                    id="isPlayerPlaying"
+                                    className="form-checkbox"
+                                    checked={isPlayerPlaying}
+                                    onChange={(e) => setIsPlayerPlaying(e.target.checked)}
+                                />
+                            </div>
+                            <button type="button" onClick={handleSave} className="form-button">Save</button>
+                        </form>
+
+                    </div>
+
+                )}
+                <div id="Option">
+                    <p>Tank Number : {tankNumber}</p>
+                    {isPlayerPlaying ? (
+                        <p>Player is playing</p>
+                    ) : (
+                        <p>Player is not playing</p>
+                    )}
+                </div>
+
             </div>
-        </div>
-    );
+
+
+</div>
+)
+    ;
 };
 
 export default MenuComponent;
