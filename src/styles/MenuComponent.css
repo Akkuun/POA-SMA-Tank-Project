@@ -115,3 +115,7 @@ input {
     text-align: center;
 }
 
+input[type="checkbox"]{
+    text-align: center;
+    scale: 1.5;
+}

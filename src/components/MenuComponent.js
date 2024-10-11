@@ -75,11 +75,11 @@ const MenuComponent = ({ settings, setSettings }) => {
                     </div>
                 )}
                 <div id="Option">
-                    <p>Tank Number : {tankNumber}</p>
+                    <p>    Tank Number : {tankNumber}</p>
                     {isPlayerPlaying ? (
-                        <p>Player is playing</p>
+                        <p>   Player is playing</p>
                     ) : (
-                        <p>Player is not playing</p>
+                        <p>   Player is not playing</p>
                     )}
                 </div>
             </div>
