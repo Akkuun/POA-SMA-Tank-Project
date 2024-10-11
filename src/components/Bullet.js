@@ -10,6 +10,7 @@ export class Bullet {
     _tank;
     _stadium;
     _ticker;
+    _destroyed;
 
     constructor(app, stadium) {
         this._app = app;
@@ -17,7 +18,9 @@ export class Bullet {
         
         this._bodyBullet = new PIXI.Graphics();
         this._rotationSpeed = 0.05;
-        this._speed = 3;
+        this._speed = 4;
+
+        this._destroyed = false;
 
         const lineWidth = 2;
         const lineColor = 0x000000;
@@ -82,7 +85,8 @@ export class Bullet {
     }
 
     remove(){
-        this._ticker.destroy();
+        this._destroyed = true;
+        this._ticker.destroy(true);
         this._app.stage.removeChild(this._bodyBullet);
         if (this._tank !== null) {
             this._stadium._bullets.splice(this._stadium._bullets.indexOf(this), 1);
@@ -173,6 +177,42 @@ export class Bullet {
             current = this.getLineXYatDistanceFromStart(d);
         }
         return false;
+    }
+
+    getBoundsScaled(p) {
+        let newBounds = {
+            x:this.getBounds().x,
+            y:this.getBounds().y,
+            width:this.getBounds().width*p,
+            height:this.getBounds().height*p
+        };
+        newBounds.x = newBounds.x+(this.getBounds().width-this.getBounds().width*p)/2;
+        newBounds.y = newBounds.y+(this.getBounds().width-this.getBounds().width*p)/2;
+        return newBounds;
+    }
+
+    getBoundsForCollisions() {
+        return this.getBoundsScaled(0.6);
+    }
+
+    isInside (x, y) {
+        const bounds = this.getBoundsForCollisions();
+        return (
+            x >= bounds.x &&
+            x <= bounds.x + bounds.width &&
+            y >= bounds.y &&
+            y <= bounds.y + bounds.height
+        );
+    }
+
+    collidesWith(bullet) {
+        let bounds = bullet.getBoundsForCollisions();
+        return (
+            this.isInside(bounds.x, bounds.y) ||
+            this.isInside(bounds.x + bounds.width, bounds.y) ||
+            this.isInside(bounds.x, bounds.y + bounds.height) ||
+            this.isInside(bounds.x + bounds.width, bounds.y + bounds.height)
+        );
     }
 }
 

@@ -103,12 +103,21 @@ app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height
                     }
                 }
                 for (let bullet of stadium._bullets) {
-                    if (bullet._distance > tank._tankBody.width && tank.isInside(bullet._bodyBullet.x, bullet._bodyBullet.y)) {
+                    if(bullet._destroyed) continue;
+                    for (let otherBullet of stadium._bullets) {
+                        if(otherBullet._destroyed || bullet === otherBullet) continue;
+                        if (bullet.collidesWith(otherBullet)) {
+                            otherBullet.remove();
+                            bullet.remove();
+                        }
+                    }
+                    if (!bullet._destroyed && bullet._distance > tank._tankBody.width && tank.isInside(bullet._bodyBullet.x, bullet._bodyBullet.y)) {
                         tank.remove();
                         tank._destroyed = true;
                         tank._tankBody.x = -1000000;
                         tank._tankBody.y = -1000000;
                         app.stage.removeChild(tank);
+                        bullet.remove();
                         continue;
                     }
                 }

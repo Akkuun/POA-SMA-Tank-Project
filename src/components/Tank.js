@@ -482,7 +482,7 @@ export class Tank {
                 this._bulletsCooldown++;
                 setTimeout(() => {
                     this._shortCooldown = false;
-                }, 200);
+                }, 350);
                 
 
             }
