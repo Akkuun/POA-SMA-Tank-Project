@@ -9,6 +9,14 @@ function distance(x1, y1, x2, y2) {
     return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
 }
 
+export const Action = {
+    Up: 'Up',
+    Down: 'Down',
+    Left: 'Left',
+    Right: 'Right',
+    Shoot: 'Shoot'
+};
+
 export class Tank {
     _destroyed = false;
     _coordinateSpawnY;
@@ -33,9 +41,12 @@ export class Tank {
     _shortCooldown = false; // Cooldown entre chaque tir
     _maxBullets;
     _bulletsCooldown = 0; // Nombre de balles tirées simultanément, toujours < maxBullets
-    constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX, spawnY, maxBullets=5) {
+    _player;
+    constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX, spawnY, maxBullets=5, player) {
         this._coordinateSpawnX = spawnX;
         this._coordinateSpawnY = spawnY;
+
+        this._player = player;
         this._app=app;
 
         this._color = color;
@@ -62,14 +73,16 @@ export class Tank {
         this._previousY = 0;
         this._previousRotation = 0;
 
-        // Listeners pour les touches
-        window.addEventListener("keydown", (e) => {
-            this._keys[e.key] = true;
-        });
-
-        window.addEventListener("keyup", (e) => {
-            this._keys[e.key] = false;
-        });
+        if(this._player) {
+            // Listeners pour les touches
+            window.addEventListener("keydown", (e) => {
+                this._keys[e.key] = true;
+            });
+    
+            window.addEventListener("keyup", (e) => {
+                this._keys[e.key] = false;
+            });
+        }
 
         this.displayBody();
         this.displayTracks();
@@ -80,26 +93,16 @@ export class Tank {
     }
 
     // do a specific action base on the tank's action
-    performAction(action) {
+    performActionIA(action, mouseX, mouseY) {
         // this._bodyStadium = new PIXI.Graphics();
         // this._bodyStadium.beginFill(0xc0a36a);
         // this._bodyStadium.lineStyle(2, 0x30271a);
         // this._bodyStadium.drawRect(0, 0, this._width, this._height);
         // this._bodyStadium.endFill();
-
-
-        // eslint-disable-next-line default-case
-        switch (action) {
-            case 'shoot': // if the tank need to shoot, we update the bullet path and make it visible
-                console.log("shoot");
-                this.updateBulletPath();
-                this._bulletPath.visible = true;
-                break;
-            case 'getBulletPath':
-                if (this._bulletPath.visible) return;
-                this.updateBulletPath();
-                break;
+        if(mouseX && mouseY) {
+            this.updateCannonPosition(mouseX, mouseY);
         }
+        this.updatePosition(this._stadiumObject, action);
     }
 
     remove() {
@@ -446,48 +449,90 @@ export class Tank {
         this._tankBody.pivot.set(this._tankBody.width / 2, this._tankBody.height / 2);
     }
 
+    updatePositionPlayer(stadium, speed) {
+        if (this._player) {
+            if (this._keys[this._controls.up] && !this._shortCooldown) {
+                this._tankBody.y -= speed;
+            }
+            if (this._keys[this._controls.left] && !this._shortCooldown) {
+                this._tankBody.x -= speed;
+            }
+            if (this._keys[this._controls.down] && !this._shortCooldown) {
+                this._tankBody.y += speed;
+            }
+            if (this._keys[this._controls.right] && !this._shortCooldown) {
+                this._tankBody.x += speed;
+            }
+    
+            if(this._keys[this._controls.shoot]){
+                if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
+                    console.log("shoot tank "+this._color);
+                    let bullet = new Bullet(this._app, this._stadiumObject);
+    
+                    bullet.display();
+                    bullet.shoot(this);
+    
+                    // Cooldown entre chaque tir et +1 balle tirée actuellement
+                    this._shortCooldown = true; 
+                    this._bulletsCooldown++;
+                    setTimeout(() => {
+                        this._shortCooldown = false;
+                    }, 200);
+                    
+    
+                }
+            }
+        }
+    }
 
-    updatePosition(stadium) {
+    updatePositionIA(stadium, action, speed) {
+        switch(action) {
+            case Action.Up:
+                this._tankBody.y -= speed;
+                break;
+            case Action.Left:
+                this._tankBody.x -= speed;
+                break;
+            case Action.Down:
+                this._tankBody.y += speed;
+                break;
+            case Action.Right:
+                this._tankBody.x += speed;
+                break;
+            case Action.Shoot:
+                console.log("salut", this._shortCooldown, " ", this._bulletsCooldown," ", this._maxBullets);
+                if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
+                    console.log("shoot tank "+this._color);
+                    let bullet = new Bullet(this._app, this._stadiumObject);
+    
+                    bullet.display();
+                    bullet.shoot(this);
+    
+                    // Cooldown entre chaque tir et +1 balle tirée actuellement
+                    this._shortCooldown = true; 
+                    this._bulletsCooldown++;
+                    setTimeout(() => {
+                        this._shortCooldown = false;
+                    }, 200);
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    updatePosition(stadium, action = null) {
 
         let speed = this._targetRotation === this._tankBody.rotation ? this._speed : this._speedWhileRotating;
 
         const hasMoved = this._previousX !== this._tankBody.x || this._previousY !== this._tankBody.y;
         const hasRotated = this._previousRotation !== (this._tankHead.rotation + this._tankBody.rotation);
-
-
-
-        if (this._keys[this._controls.up] && !this._shortCooldown) {
-            this._tankBody.y -= speed;
+       
+        if(this._player) {
+            this.updatePositionPlayer(stadium, speed);
+        } else {
+            this.updatePositionIA(stadium, action, speed);
         }
-        if (this._keys[this._controls.left] && !this._shortCooldown) {
-            this._tankBody.x -= speed;
-        }
-        if (this._keys[this._controls.down] && !this._shortCooldown) {
-            this._tankBody.y += speed;
-        }
-        if (this._keys[this._controls.right] && !this._shortCooldown) {
-            this._tankBody.x += speed;
-        }
-
-        if(this._keys[this._controls.shoot]){
-            if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
-                console.log("shoot tank "+this._color);
-                let bullet = new Bullet(this._app, this._stadiumObject);
-
-                bullet.display();
-                bullet.shoot(this);
-
-                // Cooldown entre chaque tir et +1 balle tirée actuellement
-                this._shortCooldown = true; 
-                this._bulletsCooldown++;
-                setTimeout(() => {
-                    this._shortCooldown = false;
-                }, 200);
-                
-
-            }
-        }
-
 
         let tankBounds = this._tankBody.getBounds();
         let stadiumBounds = stadium._bodyStadium.getBounds();
@@ -507,6 +552,7 @@ export class Tank {
                 this._tankBody.y -= this._speed;
             }
         }
+        
         //if the tank posititons has changed, we update the bullet path to avoid too much computation
         if ((hasMoved || hasRotated) && stadium.isTankInside(this) && (this._keys[this._controls.up] || this._keys[this._controls.down] || this._keys[this._controls.left] || this._keys[this._controls.right])) {
             // temporary fix to avoid multiple bullet path at the beginning, true fix is using spawn position to not move the tank at the beginning
