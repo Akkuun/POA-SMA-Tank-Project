@@ -1,7 +1,72 @@
-#Menu{
-    align-items: center;
-    border: aqua 10px solid;
+/* Le conteneur principal */
+#Menu {
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    width: 100vw;
+    background: #2e0047;
+    justify-content: space-between; /* Espacer le panneau de gauche et le bloc */
+    animation: smooth 1s;
+}
+
+/* Paneau de gauche */
+#LeftPane {
+
+}
+
+/* Le bloc de menu à droite */
+#Bloc {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    padding-top: 10%;
+    justify-content: center;
+    align-items: center;
+    background: rgba(56, 7, 102, 0.9); /* Couleur avec transparence */
+    box-shadow: -10px 0px 30px rgba(0, 0, 0, 0.5);
+    padding: 40px;
+    border-radius: 15px 0px 0px 15px;
+    transition: all 0.3s ease;
 }
+
+/* Boutons */
+#Bloc > button {
+    background: #6a0572;
+    color: white;
+    font-size: 1.5em;
+    margin: 15px;
+    padding: 15px;
+    width: 60%;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.5s, transform 0.3s;
+}
+
+#Bloc > button:hover {
+    background: #8a2be2;
+    transform: scale(1.05);
+}
+
+/* Animation de texte */
+.animated-title {
+    font-size: 5em;
+    color: #fff;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+}
+
+/* Responsivité */
+@media (max-width: 768px) {
+    #Menu {
+        flex-direction: column;
+    }
+
+    #LeftPane, #Bloc {
+        width: 100%;
+        flex: none;
+        font-size: 3em;
+    }
+}
+.settings-info{
+    font-size: 3em;
+}
+
