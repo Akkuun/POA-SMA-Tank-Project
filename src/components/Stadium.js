@@ -1,10 +1,16 @@
 import * as PIXI from 'pixi.js';
+import {useState} from "react";
+
 
 export class Stadium {
     _width;
     _height;
     _bodyStadium;
     _walls = [];
+    _bullets = [];
+    _tanks = [];
+    _tankSpawnPositions = [];
+
     _app;
 
     constructor(width, height, app) {
@@ -22,6 +28,14 @@ export class Stadium {
         const centerX = (window.innerWidth - this._width) / 2;
         const centerY = (window.innerHeight - this._height) / 2;
         this._bodyStadium.position.set(centerX, centerY);
+    }
+
+    addBullet(bullet) {
+        this._bullets.push(bullet);
+    }
+
+    addTank(tank) {
+        this._tanks.push(tank);
     }
 
     addWall(x, y, width, height, canDestruct) {
@@ -87,7 +101,7 @@ export class Stadium {
     }
 
     generateStadiumFromFile(file) {
-        fetch(file)
+        return fetch(file)
             .then(response => response.text())
             .then(text => {
                 let map = text.split('\n').map(line => line.slice(0, -1).split(''));
@@ -104,8 +118,7 @@ export class Stadium {
                         }
                     }
                 }
-            }
-        );
+            });
     }
 
     get StadiumBounds_x() {
@@ -140,7 +153,7 @@ export class Wall {
         this._destructed = false;
         this._bodyWall = new PIXI.Graphics();
 
-        
+
         if(canDestruct){
             this._bodyWall.beginFill(0xff8000);
         }else{

@@ -10,6 +10,7 @@ function distance(x1, y1, x2, y2) {
 }
 
 export class Tank {
+    _destroyed = false;
     _coordinateSpawnY;
     _coordinateSpawnX;
     _color;
@@ -32,7 +33,7 @@ export class Tank {
     _shortCooldown = false; // Cooldown entre chaque tir
     _maxBullets;
     _bulletsCooldown = 0; // Nombre de balles tirées simultanément, toujours < maxBullets
-    constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX=0, spawnY=0, maxBullets=5) {
+    constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX, spawnY, maxBullets=5) {
         this._coordinateSpawnX = spawnX;
         this._coordinateSpawnY = spawnY;
         this._app=app;
@@ -80,6 +81,11 @@ export class Tank {
 
     // do a specific action base on the tank's action
     performAction(action) {
+        // this._bodyStadium = new PIXI.Graphics();
+        // this._bodyStadium.beginFill(0xc0a36a);
+        // this._bodyStadium.lineStyle(2, 0x30271a);
+        // this._bodyStadium.drawRect(0, 0, this._width, this._height);
+        // this._bodyStadium.endFill();
 
 
         // eslint-disable-next-line default-case
@@ -94,6 +100,10 @@ export class Tank {
                 this.updateBulletPath();
                 break;
         }
+    }
+
+    remove() {
+        this._stadiumObject._tanks.splice(this._stadiumObject._tanks.indexOf(this), 1);
     }
 
     getBoundsForCollision() {
@@ -123,9 +133,14 @@ export class Tank {
 
     //put the bullet path in the tank attribute
     updateBulletPath() {
-        this._bulletPath.clear();
+        while(this._bulletPath.children[0]) {
+            this._bulletPath.removeChild(this._bulletPath.children[0])
+        }
         const path = this.getBulletPath();
         this._bulletPath.addChild(path);
+        setTimeout(() => {
+            this._bulletPath.removeChild(this._bulletPath);
+        }, 1000);
     }
 
     getBulletPath() {
@@ -188,8 +203,6 @@ export class Tank {
                             let minDistance = Math.min(...distances);
                             let minIndex = distances.indexOf(minDistance);
                             globalRotation = rotations[minIndex];
-                            
-
                             collisionDetected = true;
                             cannonX = endX;
                             cannonY = endY;
@@ -459,7 +472,8 @@ export class Tank {
         if(this._keys[this._controls.shoot]){
             if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
                 console.log("shoot tank "+this._color);
-                let bullet = new Bullet(this._app);
+                let bullet = new Bullet(this._app, this._stadiumObject);
+
                 bullet.display();
                 bullet.shoot(this);
 
@@ -497,7 +511,7 @@ export class Tank {
         if ((hasMoved || hasRotated) && stadium.isTankInside(this) && (this._keys[this._controls.up] || this._keys[this._controls.down] || this._keys[this._controls.left] || this._keys[this._controls.right])) {
             // temporary fix to avoid multiple bullet path at the beginning, true fix is using spawn position to not move the tank at the beginning
             console.log("the tanks has moved and we update the bullet path");
-            this.performAction('getBulletPath');
+           // this.performAction('getBulletPath');   uncomment to see the bullet path line
             this._previousX = this._tankBody.x;
             this._previousY = this._tankBody.y;
             this._previousRotation = this._tankHead.rotation + this._tankBody.rotation;
@@ -534,6 +548,16 @@ export class Tank {
 
     updateCannonPosition(mouseX, mouseY) {
         this._tankHead.rotation = Math.atan2(mouseY - this._tankBody.y, mouseX - this._tankBody.x) - Math.PI / 2 - this._tankBody.rotation;
+    }
+
+    isInside (x, y) {
+        const bounds = this._tankBody.getBounds();
+        return (
+            x >= bounds.x &&
+            x <= bounds.x + bounds.width &&
+            y >= bounds.y &&
+            y <= bounds.y + bounds.height
+        );
     }
 }
 
