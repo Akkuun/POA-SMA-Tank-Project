@@ -4,17 +4,13 @@ import { TypeAnimation } from 'react-type-animation';
 import TankVideo from '../assets/Tank.mp4';
 import {useNavigate} from "react-router-dom"; // Chemin de la vidéo
 
-const MenuComponent = ({ settings }) => {
+const MenuComponent = ({ settings  , setSettings}) => {
     const [showSettings, setShowSettings] = useState(false); // Suivi de l'état des options
     const [tankNumber, setTankNumber] = useState(settings[0]);
     const [isPlayerPlaying, setIsPlayerPlaying] = useState(settings[1]);
 
     const onSettingsChange = (newSettings) => {
-        const updatedSettings = [...settings];
-        updatedSettings[0] = newSettings.tankNumber;
-        updatedSettings[1] = newSettings.isPlayerPlaying;
-        setTankNumber(newSettings.tankNumber);
-        setIsPlayerPlaying(newSettings.isPlayerPlaying);
+        setSettings(newSettings);
     }
 
     const navigate = useNavigate();
@@ -24,9 +20,12 @@ const MenuComponent = ({ settings }) => {
     };
 
     const handleSave = () => {
-        onSettingsChange({ tankNumber: Number(tankNumber), isPlayerPlaying : isPlayerPlaying });
+        // On sauvegarde les settings en tant que tableau, pas objet
+        onSettingsChange([Number(tankNumber), isPlayerPlaying]);
         setShowSettings(false); // Fermer le bloc après la sauvegarde
     };
+
+
 
     return (
         <div id="Menu">
