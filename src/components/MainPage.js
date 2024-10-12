@@ -4,17 +4,20 @@ import {Tank} from './Tank';
 import {Stadium} from './Stadium';
 import {Action} from './Tank';
 
-const MainPage = () => {
+const MainPage = ({settings}) => {
     const pixiContainerRef = useRef(null);
     const [tankSpawnPositions, setTankSpawnPositions] = useState([]);
     const WindowWidth = window.innerWidth;
     const WindowHeight = window.innerHeight;
+    const tanksColor = [0x00FF00, 0xFF0000, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF]; // tank's color available
+
+    // Accès direct aux propriétés de settings
+    console.log("settings MAIN", settings[0], settings[1]); // settings[0] pour tankNumber et settings[1] pour isPlayerPlaying
 
     // Fonction pour obtenir les positions de spawn
     function getSpawnPositions() {
         let filePath = 'maps/testSpawn.txt';
         let positions = [];
-
         fetch(filePath).then(response => response.text())
             .then(text => {
                 let map = text.split('\n').map(line => line.slice(0, -1).split(''));
@@ -25,8 +28,11 @@ const MainPage = () => {
                     for (let j = 0; j < cols; j++) {
                         if (map[i][j].charCodeAt(0) >= 'A'.charCodeAt(0) && map[i][j].charCodeAt(0) <= 'Z'.charCodeAt(0)) {
 
+
                             let tankNumber = map[i][j].charCodeAt(0) - 'A'.charCodeAt(0) + 1;
-                            positions[tankNumber] = {x: j * WindowWidth / cols, y: i * WindowHeight / rows};
+
+                                positions[tankNumber] = {x: j * WindowWidth / cols, y: i * WindowHeight / rows};
+                         //   positions[tankNumber] = {x: j * WindowWidth / cols, y: i * WindowHeight / rows};
                         }
                     }
                 }
@@ -62,10 +68,9 @@ app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height
            // console.log(mouseX,mouseY);
         });
 
-        const tanksColor = [0x00FF00, 0xFF0000, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF]; // tank's color available
 
         //tanks generation
-        for (let i = 0; i < tankSpawnPositions.length; i++) {
+        for (let i = 0; i < settings[0]+1; i++) {
             let tankSpawnPosition = tankSpawnPositions[i];
             // Tank object creation
             if (tankSpawnPosition) {
