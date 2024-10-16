@@ -93,7 +93,10 @@ app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height
                     tank.updateRotations(mouseX, mouseY);
                     tank.updatePosition(stadium);
                 } else {
+                    // tank.performActionIA(Action.Shoot, 500, 500);
+                    // tank.displayDecisionUI(Action.Shoot);
                     tank.performActionIA(Action.Shoot, 500, 500);
+
                 }
 
                 for (let otherTank of stadium._tanks) {

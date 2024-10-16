@@ -1,5 +1,6 @@
 import * as PIXI from "@pixi/graphics";
 import {Bullet} from "./Bullet";
+import {Text} from "pixi.js";
 
 const WindowWidth = window.innerWidth;
 const WindowHeight = window.innerHeight;
@@ -16,6 +17,35 @@ export const Action = {
     Right: 'Right',
     Shoot: 'Shoot'
 };
+
+function getActionValue(action) {
+
+    switch (action) {
+        case Action.Up:
+            return "Up";
+            break;
+        case Action.Down:
+            return "Down";
+            break;
+
+        case Action.Left:
+            return "Left";
+            break;
+
+        case Action.Right:
+            return "Right";
+            break;
+
+        case Action.Shoot:
+            return "Shoot";
+            break;
+
+        default:
+            return "None";
+            break;
+
+    }
+}
 
 export class Tank {
     _destroyed = false;
@@ -42,12 +72,13 @@ export class Tank {
     _maxBullets;
     _bulletsCooldown = 0; // Nombre de balles tirées simultanément, toujours < maxBullets
     _player;
-    constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX, spawnY, maxBullets=5, player) {
+
+    constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX, spawnY, maxBullets = 5, player) {
         this._coordinateSpawnX = spawnX;
         this._coordinateSpawnY = spawnY;
 
         this._player = player;
-        this._app=app;
+        this._app = app;
 
         this._color = color;
 
@@ -73,21 +104,21 @@ export class Tank {
         this._previousY = 0;
         this._previousRotation = 0;
 
-        if(this._player) {
-            // Listeners pour les touches
+        if (this._player) {
+            // Player key controls listener
             window.addEventListener("keydown", (e) => {
                 this._keys[e.key] = true;
             });
-    
+
             window.addEventListener("keyup", (e) => {
                 this._keys[e.key] = false;
             });
         }
-
+        // display all the tank parts
         this.displayBody();
         this.displayTracks();
         this.displayHead();
-
+        //set the tank position
         this._tankBody.x = this._coordinateSpawnX;
         this._tankBody.y = this._coordinateSpawnY;
     }
@@ -99,9 +130,10 @@ export class Tank {
         // this._bodyStadium.lineStyle(2, 0x30271a);
         // this._bodyStadium.drawRect(0, 0, this._width, this._height);
         // this._bodyStadium.endFill();
-        if(mouseX && mouseY) {
+        if (mouseX && mouseY) {
             this.updateCannonPosition(mouseX, mouseY);
         }
+        this.displayDecisionUI(action);
         this.updatePosition(this._stadiumObject, action);
     }
 
@@ -136,7 +168,7 @@ export class Tank {
 
     //put the bullet path in the tank attribute
     updateBulletPath() {
-        while(this._bulletPath.children[0]) {
+        while (this._bulletPath.children[0]) {
             this._bulletPath.removeChild(this._bulletPath.children[0])
         }
         const path = this.getBulletPath();
@@ -196,11 +228,11 @@ export class Tank {
                 } else {
                     for (let wall of this._stadiumObject._walls) {
                         if (wall.isInside(endX, endY)) {
-                            if(wall.getDestruct()){
+                            if (wall.getDestruct()) {
                                 return bulletPath;
                             }
                             // Tester la distance jusqu'à l'espace vide le plus proche pour chaque rebond possible
-                            let rotations = [Math.PI - globalRotation, -globalRotation]; 
+                            let rotations = [Math.PI - globalRotation, -globalRotation];
                             let distances = rotations.map(rotation => this.rayCastNearestEmptySpace(endX, endY, rotation));
                             // Trouver la distance minimale, et donc la rotation correspondante
                             let minDistance = Math.min(...distances);
@@ -237,7 +269,7 @@ export class Tank {
         let cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
         let cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
 
-        let path = [{startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation}]; 
+        let path = [{startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation}];
 
         const stadiumBounds = this._stadiumObject._bodyStadium.getBounds();
         let lineLength = 0;
@@ -270,7 +302,7 @@ export class Tank {
                 } else {
                     for (let wall of this._stadiumObject._walls) {
                         if (wall.isInside(endX, endY) && !wall._destructed) {
-                            if(wall.getDestruct()){
+                            if (wall.getDestruct()) {
                                 path[path.length - 1].endX = endX;
                                 path[path.length - 1].endY = endY;
                                 if (bounces < maxBounces) {
@@ -306,20 +338,28 @@ export class Tank {
 
                 }
             }
-            
+
             // Incrémenter le nombre de rebonds
             bounces += 1;
-            
+
             path[path.length - 1].endX = cannonX;
             path[path.length - 1].endY = cannonY;
             if (bounces < maxBounces) {
-                path.push({startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation, shouldDestructWall: false, destructWall: () => {}});
+                path.push({
+                    startX: cannonX,
+                    startY: cannonY,
+                    endX: cannonX,
+                    endY: cannonY,
+                    rotation: globalRotation,
+                    shouldDestructWall: false,
+                    destructWall: () => {
+                    }
+                });
             }
         }
 
         return path;
     }
-
 
 
     checkCollision(otherTank) {
@@ -463,29 +503,29 @@ export class Tank {
             if (this._keys[this._controls.right] && !this._shortCooldown) {
                 this._tankBody.x += speed;
             }
-    
-            if(this._keys[this._controls.shoot]){
+
+            if (this._keys[this._controls.shoot]) {
                 if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
                     let bullet = new Bullet(this._app, this._stadiumObject);
-    
+
                     bullet.display();
                     bullet.shoot(this);
-    
+
                     // Cooldown entre chaque tir et +1 balle tirée actuellement
-                    this._shortCooldown = true; 
+                    this._shortCooldown = true;
                     this._bulletsCooldown++;
                     setTimeout(() => {
                         this._shortCooldown = false;
                     }, 200);
-                    
-    
+
+
                 }
             }
         }
     }
 
     updatePositionIA(stadium, action, speed) {
-        switch(action) {
+        switch (action) {
             case Action.Up:
                 this._tankBody.y -= speed;
                 break;
@@ -500,14 +540,14 @@ export class Tank {
                 break;
             case Action.Shoot:
                 if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
-                   // console.log("shoot tank "+this._color);
+                    // console.log("shoot tank "+this._color);
                     let bullet = new Bullet(this._app, this._stadiumObject);
-    
+
                     bullet.display();
                     bullet.shoot(this);
-    
+
                     // Cooldown entre chaque tir et +1 balle tirée actuellement
-                    this._shortCooldown = true; 
+                    this._shortCooldown = true;
                     this._bulletsCooldown++;
                     setTimeout(() => {
                         this._shortCooldown = false;
@@ -525,8 +565,8 @@ export class Tank {
 
         const hasMoved = this._previousX !== this._tankBody.x || this._previousY !== this._tankBody.y;
         const hasRotated = this._previousRotation !== (this._tankHead.rotation + this._tankBody.rotation);
-       
-        if(this._player) {
+
+        if (this._player) {
             this.updatePositionPlayer(stadium, speed);
         } else {
             this.updatePositionIA(stadium, action, speed);
@@ -550,12 +590,12 @@ export class Tank {
                 this._tankBody.y -= this._speed;
             }
         }
-        
+
         //if the tank posititons has changed, we update the bullet path to avoid too much computation
         if ((hasMoved || hasRotated) && stadium.isTankInside(this) && (this._keys[this._controls.up] || this._keys[this._controls.down] || this._keys[this._controls.left] || this._keys[this._controls.right])) {
             // temporary fix to avoid multiple bullet path at the beginning, true fix is using spawn position to not move the tank at the beginning
-        //    console.log("the tanks has moved and we update the bullet path");
-           // this.performAction('getBulletPath');   uncomment to see the bullet path line
+            //    console.log("the tanks has moved and we update the bullet path");
+            // this.performAction('getBulletPath');   uncomment to see the bullet path line
             this._previousX = this._tankBody.x;
             this._previousY = this._tankBody.y;
             this._previousRotation = this._tankHead.rotation + this._tankBody.rotation;
@@ -594,7 +634,7 @@ export class Tank {
         this._tankHead.rotation = Math.atan2(mouseY - this._tankBody.y, mouseX - this._tankBody.x) - Math.PI / 2 - this._tankBody.rotation;
     }
 
-    isInside (x, y) {
+    isInside(x, y) {
         const bounds = this._tankBody.getBounds();
         return (
             x >= bounds.x &&
@@ -602,6 +642,28 @@ export class Tank {
             y >= bounds.y &&
             y <= bounds.y + bounds.height
         );
+    }
+
+    displayDecisionUI(Action) {
+        // Suppression du rectangle noir
+        const decisionText = new Text(Action, {
+            fontFamily: 'Arial',
+            fontSize: 24,
+            fill: 0xffffff,  // Blanc
+            align: 'center'
+        });
+
+        // Positionner le texte par rapport au tank
+        decisionText.x = this._tankBody.x - 25;  // Ajuster la position si nécessaire
+        decisionText.y = this._tankBody.y - 50;
+
+        // Ajouter le texte à la scène
+        this._app.stage.addChild(decisionText);
+
+        // Option pour le supprimer après un délai
+        setTimeout(() => {
+            this._app.stage.removeChild(decisionText);
+        }, 1000);  // Temps d'affichage, augmenté à 1000ms pour mieux voir
     }
 }
 
