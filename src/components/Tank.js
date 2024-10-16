@@ -1,5 +1,6 @@
 import * as PIXI from "@pixi/graphics";
 import {Bullet} from "./Bullet";
+import {Particle} from "./Particle";
 
 const WindowWidth = window.innerWidth;
 const WindowHeight = window.innerHeight;
@@ -42,6 +43,16 @@ export class Tank {
     _maxBullets;
     _bulletsCooldown = 0; // Nombre de balles tirées simultanément, toujours < maxBullets
     _player;
+    _particles = [];
+
+    createParticle(x, y) {
+        this._particles.push(new Particle(this._app, x, y));
+    }
+
+    updateParticles() {
+        this._particles = this._particles.filter(particle => particle.update());
+    }
+
     constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX, spawnY, maxBullets=5, player) {
         this._coordinateSpawnX = spawnX;
         this._coordinateSpawnY = spawnY;
@@ -463,7 +474,7 @@ export class Tank {
             if (this._keys[this._controls.right] && !this._shortCooldown) {
                 this._tankBody.x += speed;
             }
-    
+
             if(this._keys[this._controls.shoot]){
                 if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
                     let bullet = new Bullet(this._app, this._stadiumObject);
@@ -499,7 +510,7 @@ export class Tank {
                 this._tankBody.x += speed;
                 break;
             case Action.Shoot:
-                if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
+                /*if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
                    // console.log("shoot tank "+this._color);
                     let bullet = new Bullet(this._app, this._stadiumObject);
     
@@ -508,6 +519,32 @@ export class Tank {
     
                     // Cooldown entre chaque tir et +1 balle tirée actuellement
                     this._shortCooldown = true; 
+                    this._bulletsCooldown++;
+                    setTimeout(() => {
+                        this._shortCooldown = false;
+                    }, 200);
+                }
+                break;*/
+                if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
+                    let bullet = new Bullet(this._app, this._stadiumObject);
+                    bullet.display();
+                    bullet.shoot(this);
+
+                    // Créer des particules
+                    const bodyCenterX = this._tankBody.x;
+                    const bodyCenterY = this._tankBody.y;
+
+                    const cannonLength = 25 * scaleFactor;  // Longueur du canon
+
+                    let globalRotation = this._tankBody.rotation + this._tankHead.rotation + Math.PI / 2;
+
+                    let cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
+                    let cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
+
+                    this.createParticle(cannonX, cannonY);
+
+                    // Cooldown entre chaque tir
+                    this._shortCooldown = true;
                     this._bulletsCooldown++;
                     setTimeout(() => {
                         this._shortCooldown = false;

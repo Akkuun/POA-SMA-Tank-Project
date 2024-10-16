@@ -86,7 +86,7 @@ app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height
         }
 
         // Mise à jour des tanks
-        app.ticker.add(() => {
+        /*app.ticker.add(() => {
             for (let tank of stadium._tanks) {
                 if (tank._destroyed) continue;
                 if(tank._player) {
@@ -118,7 +118,46 @@ app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height
                     }
                 }
             }
+        });*/
+        app.ticker.add(() => {
+            for (let tank of stadium._tanks) {
+                if (tank._destroyed) continue;
+
+                if (tank._player) {
+                    tank.updateRotations(mouseX, mouseY);
+                    tank.updatePosition(stadium);
+                } else {
+                    tank.performActionIA(Action.Shoot, 500, 500);
+                }
+
+                // Mettre à jour les particules
+                tank.updateParticles();
+
+                for (let otherTank of stadium._tanks) {
+                    if (tank !== otherTank && tank.checkCollision(otherTank)) {
+                        tank.resolveCollision(otherTank);
+                    }
+                }
+
+                for (let wall of stadium._walls) {
+                    if (wall.testForAABB(tank)) {
+                        wall.resolveCollision(tank);
+                    }
+                }
+
+                for (let bullet of stadium._bullets) {
+                    if (bullet._distance > tank._tankBody.width && tank.isInside(bullet._bodyBullet.x, bullet._bodyBullet.y)) {
+                        tank.remove();
+                        tank._destroyed = true;
+                        tank._tankBody.x = -1000000;
+                        tank._tankBody.y = -1000000;
+                        app.stage.removeChild(tank);
+                        continue;
+                    }
+                }
+            }
         });
+
 
         // Nettoyage de l'application Pixi lors du démontage du composant
         return () => {
