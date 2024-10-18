@@ -1,0 +1,10 @@
+const WindowWidth = window.innerWidth;
+const WindowHeight = window.innerHeight;
+const targetWidth = 1920;
+const targetHeight = 969;
+const targetRatio = targetWidth/targetHeight;
+export const ScaledWidth = (WindowWidth/WindowHeight > targetRatio) ? WindowHeight * targetRatio : WindowWidth;
+export const ScaledHeight = (WindowWidth/WindowHeight <= targetRatio) ? WindowWidth / targetRatio : WindowHeight;
+export const stadiumHeight = ScaledHeight * 0.8;
+export const stadiumWidth = ScaledWidth * 0.8;
+export const ScaleFactor = (WindowWidth/WindowHeight < targetRatio) ? ScaledWidth / targetWidth : ScaledHeight / targetHeight;
