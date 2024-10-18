@@ -45,8 +45,8 @@ export class Tank {
     _player;
     _particles = [];
 
-    createParticle(x, y) {
-        this._particles.push(new Particle(this._app, x, y));
+    createParticle(x, y,typeOfParticle) {
+        this._particles.push(new Particle(this._app, x, y, typeOfParticle));
     }
 
     updateParticles() {
@@ -540,8 +540,8 @@ export class Tank {
 
                     let cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
                     let cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
-
-                    this.createParticle(cannonX, cannonY);
+                    //particule for shooting
+                    this.createParticle(cannonX, cannonY,1);
 
                     // Cooldown entre chaque tir
                     this._shortCooldown = true;
