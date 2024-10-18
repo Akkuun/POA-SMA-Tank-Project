@@ -3,6 +3,10 @@ import * as PIXI from 'pixi.js';
 import {Tank} from './Tank';
 import {Stadium} from './Stadium';
 import {Action} from './Tank';
+import {stadiumHeight, stadiumWidth, ScaleFactor, ScaledWidth, ScaledHeight} from './ScaleFactor';
+
+const WindowWidth = window.innerWidth;
+const WindowHeight = window.innerHeight;
 
 const MainPage = ({settings}) => {
     const pixiContainerRef = useRef(null);
@@ -30,9 +34,8 @@ const MainPage = ({settings}) => {
 
 
                             let tankNumber = map[i][j].charCodeAt(0) - 'A'.charCodeAt(0) + 1;
-
-                                positions[tankNumber] = {x: j * WindowWidth / cols, y: i * WindowHeight / rows};
-                         //   positions[tankNumber] = {x: j * WindowWidth / cols, y: i * WindowHeight / rows};
+                            positions[tankNumber] = {x: j * WindowWidth / cols, y: i * WindowHeight / rows};
+                            //   positions[tankNumber] = {x: j * WindowWidth / cols, y: i * WindowHeight / rows};
                         }
                     }
                 }
@@ -49,12 +52,12 @@ const MainPage = ({settings}) => {
 
         const app = new PIXI.Application({width: WindowWidth, height: WindowHeight, backgroundColor: 0x463928});
         app.stage.interactive = true;
-app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height);
+        app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height);
         pixiContainerRef.current.appendChild(app.view);
 
         const stadiumHeight = WindowHeight * 0.8;
         const stadiumWidth = WindowWidth * 0.8;
-        const stadium = new Stadium(stadiumWidth, stadiumHeight,app);
+        const stadium = new Stadium(stadiumWidth, stadiumHeight, app);
         app.stage.addChild(stadium._bodyStadium);
 
         stadium.generateStadiumFromFile('maps/testSpawn.txt'); // Stadium Wall generation from file
@@ -65,20 +68,23 @@ app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height
         app.stage.on('mousemove', (event) => {
             mouseX = event.data.global.x;
             mouseY = event.data.global.y;
-           // console.log(mouseX,mouseY);
+            // console.log(mouseX,mouseY);
         });
 
+        const tanksColor = [0x00FF00, 0xFF0000, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF]; // tank's color available
 
         //tanks generation
-        for (let i = 0; i < settings[0]+1; i++) {
+        for (let i = 0; i < settings[0] + 1; i++) {
             let tankSpawnPosition = tankSpawnPositions[i];
             // Tank object creation
             if (tankSpawnPosition) {
+                tankSpawnPosition.x += stadium._bodyStadium.x;
+                tankSpawnPosition.y += stadium._bodyStadium.y;
                 const tank = new Tank(tanksColor[i],
                     {up: "z", left: "q", down: "s", right: "d", shoot: " "},
                     stadiumWidth, stadiumHeight, stadium, app,
                     tankSpawnPosition.x, tankSpawnPosition.y,
-                    5 ,false
+                    5, settings[1]
                 );
                 stadium.addTank(tank);
                 app.stage.addChild(tank._tankBody); // tanks added to the stage
@@ -108,12 +114,21 @@ app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height
                     }
                 }
                 for (let bullet of stadium._bullets) {
-                    if (bullet._distance > tank._tankBody.width && tank.isInside(bullet._bodyBullet.x, bullet._bodyBullet.y)) {
+                    if(bullet._destroyed) continue;
+                    for (let otherBullet of stadium._bullets) {
+                        if(otherBullet._destroyed || bullet === otherBullet) continue;
+                        if (bullet.collidesWith(otherBullet)) {
+                            otherBullet.remove();
+                            bullet.remove();
+                        }
+                    }
+                    if (!bullet._destroyed && bullet._distance > tank._tankBody.width && tank.isInside(bullet._bodyBullet.x, bullet._bodyBullet.y)) {
                         tank.remove();
                         tank._destroyed = true;
                         tank._tankBody.x = -1000000;
                         tank._tankBody.y = -1000000;
                         app.stage.removeChild(tank);
+                        bullet.remove();
                         continue;
                     }
                 }
@@ -131,7 +146,7 @@ app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height
                 }
 
                 // Mettre à jour les particules
-                tank.updateParticles();
+                // tank.updateParticles();
 
                 for (let otherTank of stadium._tanks) {
                     if (tank !== otherTank && tank.checkCollision(otherTank)) {
@@ -161,8 +176,13 @@ app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height
 
         // Nettoyage de l'application Pixi lors du démontage du composant
         return () => {
-            app.stage.removeChildren()
-            app.destroy(true, true);
+            if (app && app.stage) {
+                if (app.stage.children.length > 0) {
+                    app.stage.removeChildren();
+                }
+                app.destroy(true, true);
+            }
+
 
         };
     }, [tankSpawnPositions, WindowHeight, WindowWidth]);

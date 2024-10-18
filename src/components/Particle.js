@@ -59,9 +59,14 @@ export class Particle {
         }
 
         this.app.stage.addChild(this.sprite);
+
     }
 
     update() {
+        if(!this.sprite) return false;
+        if(this.app.stage.children.indexOf(this.sprite) === -1) return false;
+
+
         const elapsed = Date.now() - this.startTime;
         this.size -= 0.05;
 
@@ -78,5 +83,12 @@ export class Particle {
             return false;
         }
         return true;
+    }
+
+    //function that deletes all the particles
+    delete() {
+        this.sprite.destroy();
+
+
     }
 }

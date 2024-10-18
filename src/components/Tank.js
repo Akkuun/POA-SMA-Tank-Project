@@ -1,10 +1,14 @@
 import * as PIXI from "@pixi/graphics";
 import {Bullet} from "./Bullet";
+import { ScaleFactor } from "./ScaleFactor";
 import {Particle} from "./Particle";
 
 const WindowWidth = window.innerWidth;
 const WindowHeight = window.innerHeight;
-const scaleFactor = Math.min(WindowWidth, WindowHeight) / 700; //Main factor to scale the tank
+//const scaleFactor = Math.min(WindowWidth, WindowHeight) / 700; //Main factor to scale the tank
+// const scaleFactor = ScaleFactor * 0.7;
+const scaleFactor = ScaleFactor;
+const fixSize = 1.2;
 
 function distance(x1, y1, x2, y2) {
     return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
@@ -53,6 +57,11 @@ export class Tank {
         this._particles = this._particles.filter(particle => particle.update());
     }
 
+    deleteParticles() {
+        this._particles.forEach(particle => particle.delete());
+
+    }
+
     constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX, spawnY, maxBullets=5, player) {
         this._coordinateSpawnX = spawnX;
         this._coordinateSpawnY = spawnY;
@@ -64,9 +73,9 @@ export class Tank {
 
         this._maxBullets = maxBullets;
 
-        this._speed = 2;
+        this._speed = 3 * fixSize * scaleFactor;
         this._speedWhileRotating = this._speed * 0.7;
-        this._rotationSpeed = 0.02;
+        this._rotationSpeed = 0.05*fixSize;
         this._keys = {};
 
         this._controls = controls;
@@ -165,7 +174,7 @@ export class Tank {
         const bodyCenterY = this._tankBody.y;
 
         //const cannonOffset = 25 * scaleFactor;  // Distance entre le centre du tank et l'extrémité du canon
-        const cannonLength = 25 * scaleFactor;  // Longueur du canon
+        const cannonLength = 25 * fixSize * scaleFactor;  // Longueur du canon
 
         // Calcule la rotation globale avec un ajustement de +PI
         let globalRotation = this._tankBody.rotation + this._tankHead.rotation + Math.PI / 2;
@@ -239,8 +248,8 @@ export class Tank {
         const bodyCenterX = this._tankBody.x;
         const bodyCenterY = this._tankBody.y;
 
-        //const cannonOffset = 25 * scaleFactor;  // Distance entre le centre du tank et l'extrémité du canon
-        const cannonLength = 25 * scaleFactor;  // Longueur du canon
+        //const cannonOffset = 25 * fixSize * scaleFactor;  // Distance entre le centre du tank et l'extrémité du canon
+        const cannonLength = 25 * fixSize * scaleFactor;  // Longueur du canon
 
         // Calcule la rotation globale avec un ajustement de +PI
         let globalRotation = this._tankBody.rotation + this._tankHead.rotation + Math.PI / 2;
@@ -372,17 +381,17 @@ export class Tank {
 
     displayHead() {
 
-        const headRadius = 18 * scaleFactor;
-        const headCenter = 25 * scaleFactor;
-        const rectX = 20 * scaleFactor;
-        const rectY = 10 * scaleFactor;
-        const rectWidth = 10 * scaleFactor;
-        const rectHeight = 50 * scaleFactor;
-        const innerRectX = 21 * scaleFactor;
-        const innerRectY = 11 * scaleFactor;
-        const innerRectWidth = 8 * scaleFactor;
-        const innerRectHeight = 48 * scaleFactor;
-        const innerCircleRadius = 16 * scaleFactor;
+        const headRadius = 18 * fixSize * scaleFactor;
+        const headCenter = 25 * fixSize * scaleFactor;
+        const rectX = 20 * fixSize * scaleFactor;
+        const rectY = 10 * fixSize * scaleFactor;
+        const rectWidth = 10 * fixSize * scaleFactor;
+        const rectHeight = 50 * fixSize * scaleFactor;
+        const innerRectX = 21 * fixSize * scaleFactor;
+        const innerRectY = 11 * fixSize * scaleFactor;
+        const innerRectWidth = 8 * fixSize * scaleFactor;
+        const innerRectHeight = 48 * fixSize * scaleFactor;
+        const innerCircleRadius = 16 * fixSize * scaleFactor;
 
         // head contour
         this._tankHead.beginFill(0x000000);
@@ -406,22 +415,22 @@ export class Tank {
 
         // Attach point for the head to the body to rotate
         this._tankHead.pivot.set(headCenter, headCenter);
-        this._tankHead.x = this._tankBody.x + 25 * scaleFactor;
-        this._tankHead.y = this._tankBody.y + 25 * scaleFactor;
+        this._tankHead.x = this._tankBody.x + 25 * fixSize * scaleFactor;
+        this._tankHead.y = this._tankBody.y + 25 * fixSize * scaleFactor;
 
         this._tankBody.addChild(this._tankHead);
     }
 
     displayTracks() {
 
-        const trackWidth = 5 * scaleFactor;
-        const trackHeight = 55 * scaleFactor;
-        const trackCornerRadius = 10 * scaleFactor;
-        const trackOffsetX = 48 * scaleFactor; // Horizontal offset
-        const trackOffsetY = -2 * scaleFactor; // Vertical offset
-        const metalPlateWidth = 3 * scaleFactor;
-        const metalPlateHeight = 7 * scaleFactor;
-        const metalPlateSpacing = 9 * scaleFactor;
+        const trackWidth = 5 * fixSize * scaleFactor;
+        const trackHeight = 55 * fixSize * scaleFactor;
+        const trackCornerRadius = 10 * fixSize * scaleFactor;
+        const trackOffsetX = 48 * fixSize * scaleFactor; // Horizontal offset
+        const trackOffsetY = -2 * fixSize * scaleFactor; // Vertical offset
+        const metalPlateWidth = 3 * fixSize * scaleFactor;
+        const metalPlateHeight = 7 * fixSize * scaleFactor;
+        const metalPlateSpacing = 9 * fixSize * scaleFactor;
 
         // Right Track
         this._tankBody.beginFill(0x000000); // Contour
@@ -429,25 +438,25 @@ export class Tank {
         this._tankBody.endFill();
         for (let i = 0; i < 6; i++) {
             this._tankBody.beginFill(0xC0c0c0); // Metal plates
-            this._tankBody.drawRect(trackOffsetX + scaleFactor, i * metalPlateSpacing, metalPlateWidth, metalPlateHeight);
+            this._tankBody.drawRect(trackOffsetX + fixSize * scaleFactor, i * metalPlateSpacing, metalPlateWidth, metalPlateHeight);
             this._tankBody.endFill();
         }
 
         // Left Track
         this._tankBody.beginFill(0x000000); // Contour
-        this._tankBody.drawRoundedRect(-2 * scaleFactor, trackOffsetY, trackWidth, trackHeight, trackCornerRadius);
+        this._tankBody.drawRoundedRect(-2 * fixSize * scaleFactor, trackOffsetY, trackWidth, trackHeight, trackCornerRadius);
         this._tankBody.endFill();
         for (let i = 0; i < 6; i++) {
             this._tankBody.beginFill(0xC0c0c0); // Metal plates
-            this._tankBody.drawRect(-1 * scaleFactor, i * metalPlateSpacing, metalPlateWidth, metalPlateHeight);
+            this._tankBody.drawRect(-1 * fixSize * scaleFactor, i * metalPlateSpacing, metalPlateWidth, metalPlateHeight);
             this._tankBody.endFill();
         }
     }
 
     displayBody() {
         // Body dimensions
-        const bodyWidth = 50 * scaleFactor;
-        const bodyHeight = 50 * scaleFactor;
+        const bodyWidth = 50 * fixSize * scaleFactor;
+        const bodyHeight = 50 * fixSize * scaleFactor;
         const bodyX = 0;  // X body position (centered or adjusted if necessary)
         const bodyY = 0;  // Y body position (centered or adjusted if necessary)
 
@@ -487,7 +496,7 @@ export class Tank {
                     this._bulletsCooldown++;
                     setTimeout(() => {
                         this._shortCooldown = false;
-                    }, 200);
+                    }, 350);
                     
     
                 }
@@ -510,27 +519,12 @@ export class Tank {
                 this._tankBody.x += speed;
                 break;
             case Action.Shoot:
-                /*if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
-                   // console.log("shoot tank "+this._color);
-                    let bullet = new Bullet(this._app, this._stadiumObject);
-    
-                    bullet.display();
-                    bullet.shoot(this);
-    
-                    // Cooldown entre chaque tir et +1 balle tirée actuellement
-                    this._shortCooldown = true; 
-                    this._bulletsCooldown++;
-                    setTimeout(() => {
-                        this._shortCooldown = false;
-                    }, 200);
-                }
-                break;*/
                 if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
                     let bullet = new Bullet(this._app, this._stadiumObject);
                     bullet.display();
                     bullet.shoot(this);
 
-                    // Créer des particules
+
                     const bodyCenterX = this._tankBody.x;
                     const bodyCenterY = this._tankBody.y;
 
@@ -541,7 +535,7 @@ export class Tank {
                     let cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
                     let cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
                     //particule for shooting
-                    this.createParticle(cannonX, cannonY,1);
+                    //this.createParticle(cannonX, cannonY,1);
 
                     // Cooldown entre chaque tir
                     this._shortCooldown = true;
