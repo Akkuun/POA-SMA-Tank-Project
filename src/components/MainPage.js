@@ -72,12 +72,13 @@ app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height
             let tankSpawnPosition = tankSpawnPositions[i];
             // Tank object creation
             if (tankSpawnPosition) {
+                tankSpawnPosition.x += stadium._bodyStadium.x;
                 tankSpawnPosition.y += stadium._bodyStadium.y;
                 const tank = new Tank(tanksColor[i],
                     {up: "z", left: "q", down: "s", right: "d", shoot: " "},
                     stadiumWidth, stadiumHeight, stadium, app,
                     tankSpawnPosition.x, tankSpawnPosition.y,
-                    5 ,false
+                    5 ,true
                 );
                 stadium.addTank(tank);
                 app.stage.addChild(tank._tankBody); // tanks added to the stage

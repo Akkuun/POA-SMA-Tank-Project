@@ -1,8 +1,11 @@
 import * as PIXI from 'pixi.js';
+import {ScaleFactor} from './ScaleFactor';
+
+
+const scaleFactor = Math.sqrt(ScaleFactor);
 
 export class Bullet {
     _bodyBullet;
-    _rotationSpeed;
     _speed;
     _app;
     _path;
@@ -17,20 +20,19 @@ export class Bullet {
         this._stadium = stadium;
         
         this._bodyBullet = new PIXI.Graphics();
-        this._rotationSpeed = 0.05;
-        this._speed = 4;
+        this._speed = 4 * scaleFactor;
 
         this._destroyed = false;
 
         const lineWidth = 2;
         const lineColor = 0x000000;
         const fillColor = 0xd8a952;
-        const startX = 6;
-        const startY = 6;
-        const endX = startX*3;
-        const endY = startY*2;
-        const controlX = startX*2;
-        const controlY = startY*6;
+        const startX = 6*scaleFactor;
+        const startY = 6*scaleFactor;
+        const endX = startX*2.5*scaleFactor;
+        const endY = startY*2*scaleFactor;
+        const controlX = startX*2*scaleFactor;
+        const controlY = startY*5*scaleFactor;
 
 
 

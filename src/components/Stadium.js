@@ -1,5 +1,8 @@
 import * as PIXI from 'pixi.js';
 import {useState} from "react";
+import { ScaleFactor } from './ScaleFactor';
+
+const scaleFactor = ScaleFactor;
 
 export class Stadium {
     _width;
