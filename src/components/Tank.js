@@ -1,6 +1,7 @@
 import * as PIXI from "@pixi/graphics";
 import {Bullet} from "./Bullet";
 import { ScaleFactor } from "./ScaleFactor";
+import {Particle} from "./Particle";
 
 const WindowWidth = window.innerWidth;
 const WindowHeight = window.innerHeight;
@@ -46,6 +47,22 @@ export class Tank {
     _maxBullets;
     _bulletsCooldown = 0; // Nombre de balles tirées simultanément, toujours < maxBullets
     _player;
+    _particles = [];
+
+    createParticle(x, y,typeOfParticle) {
+        this._particles.push(new Particle(this._app, x, y, typeOfParticle));
+    }
+
+    updateParticles() {
+        if (!this._app.stage) return;
+        this._particles = this._particles.filter(particle => particle.update());
+    }
+
+    deleteParticles() {
+        this._particles.forEach(particle => particle.delete());
+
+    }
+
     constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX, spawnY, maxBullets=5, player) {
         this._coordinateSpawnX = spawnX;
         this._coordinateSpawnY = spawnY;
@@ -467,7 +484,7 @@ export class Tank {
             if (this._keys[this._controls.right] && !this._shortCooldown) {
                 this._tankBody.x += speed;
             }
-    
+
             if(this._keys[this._controls.shoot]){
                 if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
                     let bullet = new Bullet(this._app, this._stadiumObject);
@@ -505,12 +522,27 @@ export class Tank {
             case Action.Shoot:
                 if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
                     let bullet = new Bullet(this._app, this._stadiumObject);
-    
                     bullet.display();
                     bullet.shoot(this);
-    
-                    // Cooldown entre chaque tir et +1 balle tirée actuellement
-                    this._shortCooldown = true; 
+
+
+                    const bodyCenterX = this._tankBody.x;
+                    const bodyCenterY = this._tankBody.y;
+
+                    const cannonLength = 25 * scaleFactor;  // Longueur du canon
+
+                    let globalRotation = this._tankBody.rotation + this._tankHead.rotation + Math.PI / 2;
+
+                    let cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
+                    let cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
+                    //particule for shooting
+                    if(this._app.stage){
+                        this.createParticle(cannonX, cannonY,1);
+
+                    }
+
+                    // Cooldown entre chaque tir
+                    this._shortCooldown = true;
                     this._bulletsCooldown++;
                     setTimeout(() => {
                         this._shortCooldown = false;
@@ -557,7 +589,7 @@ export class Tank {
         //if the tank posititons has changed, we update the bullet path to avoid too much computation
         if ((hasMoved || hasRotated) && stadium.isTankInside(this) && (this._keys[this._controls.up] || this._keys[this._controls.down] || this._keys[this._controls.left] || this._keys[this._controls.right])) {
             // temporary fix to avoid multiple bullet path at the beginning, true fix is using spawn position to not move the tank at the beginning
-            console.log("the tanks has moved and we update the bullet path");
+        //    console.log("the tanks has moved and we update the bullet path");
            // this.performAction('getBulletPath');   uncomment to see the bullet path line
             this._previousX = this._tankBody.x;
             this._previousY = this._tankBody.y;

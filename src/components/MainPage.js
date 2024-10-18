@@ -34,8 +34,8 @@ const MainPage = ({settings}) => {
 
 
                             let tankNumber = map[i][j].charCodeAt(0) - 'A'.charCodeAt(0) + 1;
-                                positions[tankNumber] = {x: j * WindowWidth / cols, y: i * WindowHeight / rows};
-                         //   positions[tankNumber] = {x: j * WindowWidth / cols, y: i * WindowHeight / rows};
+                            positions[tankNumber] = {x: j * WindowWidth / cols, y: i * WindowHeight / rows};
+                            //   positions[tankNumber] = {x: j * WindowWidth / cols, y: i * WindowHeight / rows};
                         }
                     }
                 }
@@ -52,12 +52,12 @@ const MainPage = ({settings}) => {
 
         const app = new PIXI.Application({width: WindowWidth, height: WindowHeight, backgroundColor: 0x463928});
         app.stage.interactive = true;
-app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height);
+        app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height);
         pixiContainerRef.current.appendChild(app.view);
 
         const stadiumHeight = WindowHeight * 0.8;
         const stadiumWidth = WindowWidth * 0.8;
-        const stadium = new Stadium(stadiumWidth, stadiumHeight,app);
+        const stadium = new Stadium(stadiumWidth, stadiumHeight, app);
         app.stage.addChild(stadium._bodyStadium);
 
         stadium.generateStadiumFromFile('maps/testSpawn.txt'); // Stadium Wall generation from file
@@ -68,13 +68,13 @@ app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height
         app.stage.on('mousemove', (event) => {
             mouseX = event.data.global.x;
             mouseY = event.data.global.y;
-           // console.log(mouseX,mouseY);
+            // console.log(mouseX,mouseY);
         });
 
         const tanksColor = [0x00FF00, 0xFF0000, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF]; // tank's color available
 
         //tanks generation
-        for (let i = 0; i < settings[0]+1; i++) {
+        for (let i = 0; i < settings[0] + 1; i++) {
             let tankSpawnPosition = tankSpawnPositions[i];
             // Tank object creation
             if (tankSpawnPosition) {
@@ -84,7 +84,7 @@ app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height
                     {up: "z", left: "q", down: "s", right: "d", shoot: " "},
                     stadiumWidth, stadiumHeight, stadium, app,
                     tankSpawnPosition.x, tankSpawnPosition.y,
-                    5 ,true
+                    5, settings[1]
                 );
                 stadium.addTank(tank);
                 app.stage.addChild(tank._tankBody); // tanks added to the stage
@@ -92,7 +92,7 @@ app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height
         }
 
         // Mise à jour des tanks
-        app.ticker.add(() => {
+        /*app.ticker.add(() => {
             for (let tank of stadium._tanks) {
                 if (tank._destroyed) continue;
                 if(tank._player) {
@@ -133,12 +133,56 @@ app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height
                     }
                 }
             }
+        });*/
+        app.ticker.add(() => {
+            for (let tank of stadium._tanks) {
+                if (tank._destroyed) continue;
+
+                if (tank._player) {
+                    tank.updateRotations(mouseX, mouseY);
+                    tank.updatePosition(stadium);
+                } else {
+                    tank.performActionIA(Action.Shoot, 500, 500);
+                }
+
+                // Mettre à jour les particules
+                 tank.updateParticles();
+
+                for (let otherTank of stadium._tanks) {
+                    if (tank !== otherTank && tank.checkCollision(otherTank)) {
+                        tank.resolveCollision(otherTank);
+                    }
+                }
+
+                for (let wall of stadium._walls) {
+                    if (wall.testForAABB(tank)) {
+                        wall.resolveCollision(tank);
+                    }
+                }
+
+                for (let bullet of stadium._bullets) {
+                    if (bullet._distance > tank._tankBody.width && tank.isInside(bullet._bodyBullet.x, bullet._bodyBullet.y)) {
+                        tank.remove();
+                        tank._destroyed = true;
+                        tank._tankBody.x = -1000000;
+                        tank._tankBody.y = -1000000;
+                        app.stage.removeChild(tank);
+                        continue;
+                    }
+                }
+            }
         });
+
 
         // Nettoyage de l'application Pixi lors du démontage du composant
         return () => {
-            app.stage.removeChildren()
-            app.destroy(true, true);
+            if (app && app.stage) {
+                if (app.stage.children.length > 0) {
+                    app.stage.removeChildren();
+                }
+                app.destroy(true, true);
+            }
+
 
         };
     }, [tankSpawnPositions, WindowHeight, WindowWidth]);
