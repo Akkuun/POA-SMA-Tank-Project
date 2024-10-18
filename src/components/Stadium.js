@@ -36,8 +36,13 @@ export class Stadium {
     }
 
     destructWall(wallg) {
-        // Supprimer le mur de la liste des murs
         const wallIndex = this._walls.indexOf(wallg);
+        let x = wallg._bodyWall.x;
+        let y = wallg._bodyWall.y;
+        let width = wallg._width;
+        let height = wallg._height;
+
+        // Supprimer le mur de la liste des murs
         if (wallIndex > -1) {
             this._walls.splice(wallIndex, 1);
         }
@@ -47,8 +52,16 @@ export class Stadium {
 
         // Détruire l'objet graphique du mur pour libérer les ressources
         wallg._bodyWall.destroy({ children: true, texture: true, baseTexture: true });
-    }
 
+        // Ajouter un carré rouge à la position du mur détruit
+        const redSquare = new PIXI.Graphics();
+        redSquare.beginFill(0xa35d14);
+        redSquare.lineStyle(2, 0x30271a);
+        redSquare.drawRect(x+this._bodyStadium.x, y+this._bodyStadium.y, width, height);
+        redSquare.endFill();
+        this._app.stage.addChild(redSquare);
+        this._app.stage.addChildAt(redSquare, 1);
+    }
 
     testForAABB(object) {
         const bounds = object.getBounds();
@@ -131,11 +144,13 @@ export class Wall {
     _height;
     _bodyWall;
     _destruct;
+    _hit;
 
-    constructor(width, height, canDestruct) {
+    constructor(width, height, canDestruct, hit=1) {
         this._width = width;
         this._height = height;
         this._destruct = canDestruct;
+        this._hit = hit;
         this._bodyWall = new PIXI.Graphics();
 
         
@@ -211,5 +226,12 @@ export class Wall {
             y >= bounds.y &&
             y <= bounds.y + bounds.height
         );
+    }
+
+    destruct(){
+        this._hit--;
+        if(this._hit === 0){
+            this._bodyWall.destroy({ children: true, texture: true, baseTexture: true });
+        }
     }
 }
