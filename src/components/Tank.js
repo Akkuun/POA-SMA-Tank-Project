@@ -120,9 +120,54 @@ export class Tank {
     see() {
         return this._stadiumObject;
     }
+/*
+    safeMove() {
+        let dangerousBullets = [];
+        for (let bullet in this._stadiumObject._bullets) {
+            if (bullet.willIntersect(this)) dangerousBullets.push(bullet); 
+        }
+        if (dangerousBullets.length() == 0) return null;
+        let closest = dangerousBullets[0];
+        for (let bullet in dangerousBullets) {
+            if( distance entre this et bullet < closest distance) closest = bullet;
+        }
+        return {x: bullet.x - this.x, y: bullet.y - this.y}; 
+    }*/
 
+    canShootStaticObject(staticObject) {
 
+    }
 
+    canShootMovingObject(bullet) {
+
+    }
+/*
+    getActionBasedEnvironnement() {
+        let move
+        if (move = safeMove() != null) {
+            if (this.canShootMovingObject(this._dangerousBullet)) {
+                return shoot(this._dangerousBullet);
+            } else {
+                return move(move.x, move.y);
+            }
+        } else {
+            for (let otherTank in this._stadiumObject.tanks) {
+                if (this === otherTank) continue;
+                if (this.canShootStaticObject(otherTank)) {
+                    return shoot(otherTank.x, otherTank.y);
+                }
+            }
+            for (let wall in this._stadiumObject.walls) {
+                if (!wall._destruct) continue; // skip les non destructibles
+                if (this.canShootStaticObject(wall)) {
+                    return shoot(wall.x, wall.y);
+                }
+            }
+            return move(là où il peut tirer ?); // ou attendre changement de l'environnement
+        }
+        return null;
+    }
+*/
 
     // do a specific action base on the tank's action
     performActionIA(action, mouseX, mouseY) {
