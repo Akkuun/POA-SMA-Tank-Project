@@ -19,6 +19,10 @@ export const Action = {
     Down: 'Down',
     Left: 'Left',
     Right: 'Right',
+    UpLeft: 'UpLeft',
+    UpRight: 'UpRight',
+    DownLeft: 'DownLeft',
+    DownRight: 'DownRight',
     Shoot: 'Shoot'
 };
 
@@ -113,13 +117,15 @@ export class Tank {
         this._tankBody.y = this._coordinateSpawnY;
     }
 
+    see() {
+        return this._stadiumObject;
+    }
+
+
+
+
     // do a specific action base on the tank's action
     performActionIA(action, mouseX, mouseY) {
-        // this._bodyStadium = new PIXI.Graphics();
-        // this._bodyStadium.beginFill(0xc0a36a);
-        // this._bodyStadium.lineStyle(2, 0x30271a);
-        // this._bodyStadium.drawRect(0, 0, this._width, this._height);
-        // this._bodyStadium.endFill();
         if(mouseX && mouseY) {
             this.updateCannonPosition(mouseX, mouseY);
         }
@@ -517,6 +523,22 @@ export class Tank {
                 this._tankBody.y += speed;
                 break;
             case Action.Right:
+                this._tankBody.x += speed;
+                break;
+            case Action.UpLeft:
+                this._tankBody.y -= speed;
+                this._tankBody.x -= speed;
+                break;
+            case Action.UpRight:
+                this._tankBody.y -= speed;
+                this._tankBody.x += speed;
+                break;
+            case Action.DownLeft:
+                this._tankBody.y += speed;
+                this._tankBody.x -= speed;
+                break;
+            case Action.DownRight:
+                this._tankBody.y += speed;
                 this._tankBody.x += speed;
                 break;
             case Action.Shoot:

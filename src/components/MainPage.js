@@ -142,7 +142,7 @@ const MainPage = ({settings}) => {
                     tank.updateRotations(mouseX, mouseY);
                     tank.updatePosition(stadium);
                 } else {
-                    tank.performActionIA(Action.Shoot, 500, 500);
+                    tank.performActionIA(Action.UpRight, 500, 500);
                 }
 
                 // Mettre à jour les particules
