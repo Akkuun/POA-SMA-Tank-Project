@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import '../styles/SettingsComponent.css';  // Assurez-vous d'importer le CSS
 
 const SettingsComponent = ({ onSettingsChange }) => {
     const [tankNumber, setTankNumber] = useState('');
@@ -7,43 +8,44 @@ const SettingsComponent = ({ onSettingsChange }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Transmettre les paramètres sous forme d'objet pour regrouper les deux options
         onSettingsChange({
             tankNumber: Number(tankNumber),
             isPlayerPlaying: isPlayerPlaying
         });
+        navigate('/');
     };
-    const navigate = useNavigate(); // Initialiser useNavigate
+
+    const navigate = useNavigate();
 
     return (
-        <div>
-            <h1>Settings Component</h1>
-            <form onSubmit={handleSubmit}>
-                <label>
-                    Tank Number:
+        <div id="SettingsContainer">
+            <h1 className="settings-title">Settings</h1>
+            <form onSubmit={handleSubmit} id="SettingsForm">
+                <div className="form-group">
+                    <label htmlFor="tankNumber" className="form-label">Tank Number:</label>
                     <input
                         type="number"
-                        name="tankNumber"
+                        id="tankNumber"
+                        className="form-input"
                         value={tankNumber}
                         onChange={(e) => setTankNumber(e.target.value)}
                     />
-                </label>
-                <br />
-                <label>
-                    Is Player Playing:
+                </div>
+                <div className="form-group">
+                    <label htmlFor="isPlayerPlaying" className="form-label">Is Player Playing:</label>
                     <input
                         type="checkbox"
-                        name="isPlayerPlaying"
-                        checked={isPlayerPlaying} // Utiliser checked pour les checkbox
-                        onChange={(e) => setIsPlayerPlaying(e.target.checked)} // e.target.checked renvoie un booléen
+                        id="isPlayerPlaying"
+                        className="form-checkbox"
+                        checked={isPlayerPlaying}
+                        onChange={(e) => setIsPlayerPlaying(e.target.checked)}
                     />
-                </label>
-                <br />
-                <input type="submit" value="Submit" />
+                </div>
+                <input type="submit" value="Submit" className="form-button" />
             </form>
-            <button onClick={() => navigate('/')}>Go Back</button>
+            <button onClick={() => navigate('/')} className="form-button go-back">Go Back</button>
         </div>
     );
-}
+};
 
 export default SettingsComponent;

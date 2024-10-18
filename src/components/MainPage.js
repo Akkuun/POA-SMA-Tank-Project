@@ -8,15 +8,20 @@ import {stadiumHeight, stadiumWidth, ScaleFactor, ScaledWidth, ScaledHeight} fro
 const WindowWidth = window.innerWidth;
 const WindowHeight = window.innerHeight;
 
-const MainPage = () => {
+const MainPage = ({settings}) => {
     const pixiContainerRef = useRef(null);
     const [tankSpawnPositions, setTankSpawnPositions] = useState([]);
+    const WindowWidth = window.innerWidth;
+    const WindowHeight = window.innerHeight;
+    const tanksColor = [0x00FF00, 0xFF0000, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF]; // tank's color available
+
+    // Accès direct aux propriétés de settings
+    console.log("settings MAIN", settings[0], settings[1]); // settings[0] pour tankNumber et settings[1] pour isPlayerPlaying
 
     // Fonction pour obtenir les positions de spawn
     function getSpawnPositions() {
         let filePath = 'maps/testSpawn.txt';
         let positions = [];
-
         fetch(filePath).then(response => response.text())
             .then(text => {
                 let map = text.split('\n').map(line => line.slice(0, -1).split(''));
@@ -27,8 +32,10 @@ const MainPage = () => {
                     for (let j = 0; j < cols; j++) {
                         if (map[i][j].charCodeAt(0) >= 'A'.charCodeAt(0) && map[i][j].charCodeAt(0) <= 'Z'.charCodeAt(0)) {
 
+
                             let tankNumber = map[i][j].charCodeAt(0) - 'A'.charCodeAt(0) + 1;
-                            positions[tankNumber] = {x: j * ScaledWidth / cols, y: i * ScaledHeight / rows};
+                                positions[tankNumber] = {x: j * WindowWidth / cols, y: i * WindowHeight / rows};
+                         //   positions[tankNumber] = {x: j * WindowWidth / cols, y: i * WindowHeight / rows};
                         }
                     }
                 }
@@ -48,9 +55,8 @@ const MainPage = () => {
 app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height);
         pixiContainerRef.current.appendChild(app.view);
 
-        
-        console.log(WindowWidth, " ", WindowHeight," ",WindowWidth/WindowHeight);
-
+        const stadiumHeight = WindowHeight * 0.8;
+        const stadiumWidth = WindowWidth * 0.8;
         const stadium = new Stadium(stadiumWidth, stadiumHeight,app);
         app.stage.addChild(stadium._bodyStadium);
 
@@ -68,7 +74,7 @@ app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height
         const tanksColor = [0x00FF00, 0xFF0000, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF]; // tank's color available
 
         //tanks generation
-        for (let i = 0; i < tankSpawnPositions.length; i++) {
+        for (let i = 0; i < settings[0]+1; i++) {
             let tankSpawnPosition = tankSpawnPositions[i];
             // Tank object creation
             if (tankSpawnPosition) {
@@ -131,7 +137,9 @@ app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height
 
         // Nettoyage de l'application Pixi lors du démontage du composant
         return () => {
+            app.stage.removeChildren()
             app.destroy(true, true);
+
         };
     }, [tankSpawnPositions, WindowHeight, WindowWidth]);
 
