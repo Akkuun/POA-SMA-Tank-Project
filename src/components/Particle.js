@@ -27,7 +27,7 @@ export class Particle {
                     const endX = Math.cos(angle) * lineLength;
                     const endY = Math.sin(angle) * lineLength;
 
-                    this.sprite.lineStyle(2, 0xffffff); // Éclat blanc
+                    this.sprite.lineStyle(2, 0xff0000); // Éclat jaune
                     this.sprite.moveTo(0, 0);
                     this.sprite.lineTo(endX, endY);
                 }
