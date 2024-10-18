@@ -1,0 +1,39 @@
+/* Bouton de soumission */
+.form-button {
+    background: #FF4C68; /* Couleur de fond plus vive */
+    color: white;
+    font-size: 1.5em;
+    margin: 15px;
+    padding: 15px;
+    width: 60%;
+    border: 2px solid white; /* Ajout d'une bordure blanche */
+    border-radius: 15px; /* Bordure plus arrondie */
+    cursor: pointer;
+    transition: background-color 0.5s, transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Ajouter une ombre portée */
+}
+
+/* Effet de survol */
+.form-button:hover {
+    background: #FF6A85; /* Légère modification de la couleur au survol */
+    transform: translateY(-5px); /* Bouton qui "monte" légèrement */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4); /* Ombre plus grande */
+}
+
+/* Ajout d'une différentiation entre les deux boutons */
+.form-button.go-back {
+    background: #4C9EFF; /* Couleur différente pour le bouton "Go Back" */
+    border-color: #B0D9FF;
+}
+
+.form-button.go-back:hover {
+    background: #6AB2FF;
+}
+
+/* Responsivité */
+@media (max-width: 768px) {
+    .form-button {
+        width: 80%;
+        font-size: 1.2em;
+    }
+}
