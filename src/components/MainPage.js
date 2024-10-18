@@ -122,7 +122,9 @@ app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height
 
         // Nettoyage de l'application Pixi lors du démontage du composant
         return () => {
+            app.stage.removeChildren()
             app.destroy(true, true);
+
         };
     }, [tankSpawnPositions, WindowHeight, WindowWidth]);
 
