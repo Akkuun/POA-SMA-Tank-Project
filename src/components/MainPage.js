@@ -146,7 +146,7 @@ const MainPage = ({settings}) => {
                 }
 
                 // Mettre à jour les particules
-                // tank.updateParticles();
+                 tank.updateParticles();
 
                 for (let otherTank of stadium._tanks) {
                     if (tank !== otherTank && tank.checkCollision(otherTank)) {

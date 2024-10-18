@@ -54,6 +54,7 @@ export class Tank {
     }
 
     updateParticles() {
+        if (!this._app.stage) return;
         this._particles = this._particles.filter(particle => particle.update());
     }
 
@@ -535,7 +536,10 @@ export class Tank {
                     let cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
                     let cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
                     //particule for shooting
-                    //this.createParticle(cannonX, cannonY,1);
+                    if(this._app.stage){
+                        this.createParticle(cannonX, cannonY,1);
+
+                    }
 
                     // Cooldown entre chaque tir
                     this._shortCooldown = true;
