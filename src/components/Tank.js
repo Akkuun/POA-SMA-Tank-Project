@@ -5,8 +5,6 @@ import {Particle} from "./Particle";
 
 const WindowWidth = window.innerWidth;
 const WindowHeight = window.innerHeight;
-//const scaleFactor = Math.min(WindowWidth, WindowHeight) / 700; //Main factor to scale the tank
-// const scaleFactor = ScaleFactor * 0.7;
 const scaleFactor = ScaleFactor;
 const fixSize = 1.2;
 

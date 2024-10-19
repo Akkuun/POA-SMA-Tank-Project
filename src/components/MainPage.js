@@ -3,10 +3,8 @@ import * as PIXI from 'pixi.js';
 import {Tank} from './Tank';
 import {Stadium} from './Stadium';
 import {Action} from './Tank';
-import {stadiumHeight, stadiumWidth, ScaleFactor, ScaledWidth, ScaledHeight} from './ScaleFactor';
 
-const WindowWidth = window.innerWidth;
-const WindowHeight = window.innerHeight;
+
 
 const MainPage = ({settings}) => {
     const pixiContainerRef = useRef(null);
@@ -14,13 +12,10 @@ const MainPage = ({settings}) => {
     const WindowWidth = window.innerWidth;
     const WindowHeight = window.innerHeight;
     const tanksColor = [0x00FF00, 0xFF0000, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF]; // tank's color available
+    const filePath = 'maps/testSpawn.txt';
 
-    // Accès direct aux propriétés de settings
-    console.log("settings MAIN", settings[0], settings[1]); // settings[0] pour tankNumber et settings[1] pour isPlayerPlaying
-
-    // Fonction pour obtenir les positions de spawn
+    // getSpawnPositions from map file
     function getSpawnPositions() {
-        let filePath = 'maps/testSpawn.txt';
         let positions = [];
         fetch(filePath).then(response => response.text())
             .then(text => {
@@ -28,14 +23,15 @@ const MainPage = ({settings}) => {
                 let rows = map.length;
                 let cols = map[0].length;
 
+
                 for (let i = 0; i < rows; i++) {
                     for (let j = 0; j < cols; j++) {
-                        if (map[i][j].charCodeAt(0) >= 'A'.charCodeAt(0) && map[i][j].charCodeAt(0) <= 'Z'.charCodeAt(0)) {
+
+                        if (map[i][j] >= 'A' && map[i][j] <= 'Z') {
 
 
                             let tankNumber = map[i][j].charCodeAt(0) - 'A'.charCodeAt(0) + 1;
                             positions[tankNumber] = {x: j * WindowWidth / cols, y: i * WindowHeight / rows};
-                            //   positions[tankNumber] = {x: j * WindowWidth / cols, y: i * WindowHeight / rows};
                         }
                     }
                 }
@@ -68,10 +64,8 @@ const MainPage = ({settings}) => {
         app.stage.on('mousemove', (event) => {
             mouseX = event.data.global.x;
             mouseY = event.data.global.y;
-            // console.log(mouseX,mouseY);
         });
 
-        const tanksColor = [0x00FF00, 0xFF0000, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF]; // tank's color available
 
         //tanks generation
         for (let i = 0; i < settings[0] + 1; i++) {
@@ -91,49 +85,6 @@ const MainPage = ({settings}) => {
             }
         }
 
-        // Mise à jour des tanks
-        /*app.ticker.add(() => {
-            for (let tank of stadium._tanks) {
-                if (tank._destroyed) continue;
-                if(tank._player) {
-                    tank.updateRotations(mouseX, mouseY);
-                    tank.updatePosition(stadium);
-                } else {
-                    tank.performActionIA(Action.Shoot, 500, 500);
-                }
-
-                for (let otherTank of stadium._tanks) {
-                    if (tank !== otherTank && tank.checkCollision(otherTank)) {
-                        tank.resolveCollision(otherTank);
-                    }
-
-                }
-                for (let wall of stadium._walls) {
-                    if (wall.testForAABB(tank)) {
-                        wall.resolveCollision(tank);
-                    }
-                }
-                for (let bullet of stadium._bullets) {
-                    if(bullet._destroyed) continue;
-                    for (let otherBullet of stadium._bullets) {
-                        if(otherBullet._destroyed || bullet === otherBullet) continue;
-                        if (bullet.collidesWith(otherBullet)) {
-                            otherBullet.remove();
-                            bullet.remove();
-                        }
-                    }
-                    if (!bullet._destroyed && bullet._distance > tank._tankBody.width && tank.isInside(bullet._bodyBullet.x, bullet._bodyBullet.y)) {
-                        tank.remove();
-                        tank._destroyed = true;
-                        tank._tankBody.x = -1000000;
-                        tank._tankBody.y = -1000000;
-                        app.stage.removeChild(tank);
-                        bullet.remove();
-                        continue;
-                    }
-                }
-            }
-        });*/
         app.ticker.add(() => {
             for (let tank of stadium._tanks) {
                 if (tank._destroyed) continue;
@@ -185,7 +136,7 @@ const MainPage = ({settings}) => {
 
 
         };
-    }, [tankSpawnPositions, WindowHeight, WindowWidth]);
+    }, [tankSpawnPositions, WindowHeight, WindowWidth, settings]);
 
     return (
         <div ref={pixiContainerRef}></div>
