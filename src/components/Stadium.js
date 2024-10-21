@@ -130,6 +130,10 @@ export class Stadium {
         return this._bodyStadium.getBounds().y;
     }
 
+    get bullets(){
+        return this._bullets;
+    }
+
     isPointInsideAWall(x, y) {
         for (let wall of this._walls) {
             if (wall.isInside(x, y)) {
@@ -229,4 +233,6 @@ export class Wall {
             y <= bounds.y + bounds.height
         );
     }
+
+
 }
