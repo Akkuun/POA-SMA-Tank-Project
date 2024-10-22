@@ -27,7 +27,7 @@ export class AABB {
     _app;
     _bodyAABB;
 
-    constructor(p0, p1, app=null) {
+    constructor(p0, p1, app) {
         this._pos = p0;
         this._half = {x: 0, y: 0};
         this._half.x = p1.x - p0.x;
@@ -36,11 +36,6 @@ export class AABB {
             this._app = app;
             this.displayAABB();
         }
-    }
-
-    addApp(app) {
-        this._app = app;
-        this.displayAABB();
     }
 
     displayAABB() {
@@ -84,10 +79,7 @@ export class AABB {
 
     move(axis, value) {
         this._pos[axis] += value;
-        if (this._bodyAABB && this._app) {
-            this._bodyAABB.clear();
-            this.displayAABB();
-        }
+        this._bodyAABB.position[axis] += value;
     }
 
     toString() {

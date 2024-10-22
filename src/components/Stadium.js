@@ -42,10 +42,9 @@ export class Stadium {
         this._tanks.push(tank);
     }
 
-    addWall(x, y, width, height, canDestruct, app) {
-        const wall = new Wall(width, height, canDestruct);
-        wall._bodyWall.position.set(x, y);
-        wall.initAABB({x: this._bodyStadium.x, y: this._bodyStadium.y}, app);
+    addWall(x, y, width, height, canDestruct) {
+        const wall = new Wall(x,y,width, height, canDestruct, {x: this._bodyStadium.x, y: this._bodyStadium.y}, this._app);
+        //wall.initAABB({x: this._bodyStadium.x, y: this._bodyStadium.y}, this._app);
         this._bodyStadium.addChild(wall._bodyWall);
         if(canDestruct) this._destructiveWalls.push(wall);
         this._walls.push(wall);
@@ -106,7 +105,7 @@ export class Stadium {
         app.stage.addChild(this._bodyStadium);
     }
 
-    generateStadiumFromFile(file, app) {
+    generateStadiumFromFile(file) {
         fetch(file)
             .then(response => response.text())
             .then(text => {
@@ -118,9 +117,9 @@ export class Stadium {
                 for (let i = 0; i < rows; i++) {
                     for (let j = 0; j < cols; j++) {
                         if (map[i][j] === '1') {
-                            this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows, false, app);
+                            this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows, false, this._app);
                         }else if(map[i][j] === '2'){
-                            this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows, true, app);
+                            this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows, true, this._app);
                         }
                     }
                 }
@@ -156,8 +155,10 @@ export class Wall extends AABB{
     _destruct;
     _destructed;
 
-    constructor(width, height, canDestruct) {
-        super({x: 0, y: 0}, {x: 0, y: 0});
+    constructor(x,y, width, height, canDestruct, aabboffset, app) {
+        super({x: x, y: y}, {x: x+width/2, y: y+height/2}, app);
+        super.move('x', aabboffset?.x || 0);
+        super.move('y', aabboffset?.y || 0);
         this._width = width;
         this._height = height;
         this._destruct = canDestruct;
@@ -177,20 +178,7 @@ export class Wall extends AABB{
         // Calculer la position centrale
         const centerX = (window.innerWidth - this._width) / 2;
         const centerY = (window.innerHeight - this._height) / 2;
-        this._bodyWall.position.set(centerX, centerY);
-    }
-
-    initAABB(aabbOffset, app) {
-        this._pos = { x: this._bodyWall.x, y: this._bodyWall.y };
-        this._half = { x: this._width/2, y: this._height/2 };
-        this.move('x', aabbOffset?.x || 0);
-        this.move('y', aabbOffset?.y || 0);
-
-        this.addApp(app);
-    }
-
-    display() {
-        this._app.stage.addChild(this._bodyWall);
+        this._bodyWall.position.set(x, y);
     }
 
     testForAABB(tank) {
