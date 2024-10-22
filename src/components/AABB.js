@@ -38,6 +38,10 @@ export class AABB {
         }
     }
 
+    removeDisplay() {
+        if (this._bodyAABB && this._app && this._app.stage) this._app.stage.removeChild(this._bodyAABB);
+    }
+
     displayAABB() {
         this._bodyAABB = new PIXI.Graphics();
         this._bodyAABB.lineStyle(2, 0xff0000);

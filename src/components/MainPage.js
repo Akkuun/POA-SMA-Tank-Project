@@ -114,6 +114,9 @@ const MainPage = ({settings}) => {
 
                 for (let bullet of stadium._bullets) {
                     if (bullet._distance > tank._tankBody.width && tank.isInside(bullet._bodyBullet.x, bullet._bodyBullet.y)) {
+                        if (tank._AABBforWalls) {
+                            tank._AABBforWalls.removeDisplay();
+                        }
                         tank.remove();
                         tank._destroyed = true;
                         tank._tankBody.x = -1000000;
