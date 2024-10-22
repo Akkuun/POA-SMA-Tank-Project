@@ -5,7 +5,6 @@ import {Stadium} from './Stadium';
 import {Action} from './Tank';
 
 
-
 const MainPage = ({settings}) => {
     const pixiContainerRef = useRef(null);
     const [tankSpawnPositions, setTankSpawnPositions] = useState([]);
@@ -94,11 +93,11 @@ const MainPage = ({settings}) => {
                     tank.updatePosition(stadium);
                 } else {
                     // tank.performActionIA(Action.UpRight, 500, 500); // IA action
-                    tank.getActionBasedEnvironnement(mouseX,mouseY);
+                    tank.getActionBasedEnvironnement(mouseX, mouseY);
                 }
 
                 // Mettre à jour les particules
-                 tank.updateParticles();
+                tank.updateParticles();
 
                 for (let otherTank of stadium._tanks) {
                     if (tank !== otherTank && tank.checkCollision(otherTank)) {

@@ -185,8 +185,12 @@ export class Tank {
     //function that return if the tank can shoot a moving object ( bullet) based on his actual position, we use the tankHead and tankBody rotation to calculate the possible shoot and we do a 360° rotation
     canShootMovingObject(bullet) {
 
+        let result = bullet.willIntersect(this);
 
-        return bullet.willIntersect(this);
+       // console.log(result);
+        return result.distance >= 0 && result.distance <= this._tankBody.width;
+
+
 
     }
 
@@ -203,22 +207,58 @@ export class Tank {
          this._dangerousBullet = null;
     }
 
-    //function that perform the correct movement action based on x_positon,y_position
-    move(x_position, y_position) {
-        if (x_position > this._tankBody.x && y_position < this._tankBody.y) return Action.UpRight;
-        if (x_position < this._tankBody.x && y_position < this._tankBody.y) return Action.UpLeft;
-        if (x_position > this._tankBody.x && y_position > this._tankBody.y) return Action.DownRight;
-        if (x_position < this._tankBody.x && y_position > this._tankBody.y) return Action.DownLeft;
-        if (x_position === this._tankBody.x && y_position < this._tankBody.y) return Action.Up;
-        if (x_position === this._tankBody.x && y_position > this._tankBody.y) return Action.Down;
-        if (y_position === this._tankBody.y && x_position < this._tankBody.x) return Action.Left;
-        if (y_position === this._tankBody.y && x_position > this._tankBody.x) return Action.Right;
+    //function that perform the correct movement action to dodge the incomming bullet
+    // the tank will dodge the bullet by moving to the opposite direction of the bullet, but will be blocked by the stadium walls
+    dodge(bullet) {
+        const bulletCoordinate = bullet.getBounds();
+        let finalAction = null;
+        // if (this._tankBody.x < bulletCoordinate.x) {
+        //     if (this._tankBody.y < bulletCoordinate.y ) { // check if the bullet is on the right or left of the tank and the tank is not colliding with a wall
+        //         finalAction =  Action.UpRight;
+        //     } else {
+        //         finalAction = Action.DownRight;
+        //     }
+        // } else {
+        //     if (this._tankBody.y < bulletCoordinate.y) {
+        //         finalAction = Action.UpLeft;
+        //     } else {
+        //         finalAction = Action.DownLeft;
+        //     }
+        // }
+
+        finalAction = Action.Right;
+
+        this.performActionIA(finalAction,bulletCoordinate.x,bulletCoordinate.y);
+        console.log(finalAction)
+        this._dangerousBullet = null;
     }
 
 
+    canShootWall(wall) {
+        // Calculate the angle to the walls
+        const wallBounds = wall.getBodyWall().getBounds();
+        const wallCenterX = wallBounds.x + wallBounds.width / 2;
+        const wallCenterY = wallBounds.y + wallBounds.height / 2;
+        const angleToWall = Math.atan2(wallCenterY - this._tankBody.y, wallCenterX - this._tankBody.x);
+
+        // Set the tank head rotation to aim at the wall
+        this._tankHead.rotation = angleToWall - this._tankBody.rotation - Math.PI / 2;
+
+
+        let path = this.getBulletPathCurve();
+
+        for (let segment of path) {
+            if (this.isSegmentTouchingWall(wall, segment.startX, segment.startY, segment.endX, segment.endY)) {
+
+                return true;
+            }
+        }
+        return false;
+    }
+
     //function that return the action to do based on the environnement -> IA strategies
     getActionBasedEnvironnement(mouseX, mouseY) {
-
+//PSEUDO CODE
         /*  let move = this.safeMove(); // check if the tank is in danger -> null if the tank is safe or return the x,y position of the closest bullet
           if (move != null) { //if the tank will be hit by a bullet, try to hit the bullet or dodge it
               if (this.canShootMovingObject(this._dangerousBullet)) {
@@ -248,53 +288,31 @@ export class Tank {
 
         let move = this.safeMove(this._stadiumObject._bullets);
 
-        if (move != null) {
+        if (move != null) { // the tank is in danger , 1st priority is to shoot the bullet incoming , 2nd priority is to dodge the bullet
+            if (this.canShootMovingObject(this._dangerousBullet)) { // if the tank can shoot the bullet incoming
+                this.shootIncommingBullet(this._dangerousBullet); // align the cannon to the bullet and shoot
+            } else {
+              //  console.log("move");
+                this.dodge(this._dangerousBullet); // dodge the incoming bullet
 
-            //console.log("move", move);
-            if (this.canShootMovingObject(this._dangerousBullet)) {
-                console.log("true")
-                this.shootIncommingBullet(this._dangerousBullet);
             }
-            // return this.shoot(this._dangerousBullet.x,this._dangerousBullet.y);
-            //
-            // if (this.canShootStaticObject(this._dangerousBullet)) {
-            //     return this.shoot(this._dangerousBullet.x, this._dangerousBullet.y);
-            // } else {
-            //     return this.move(move.x, move.y);
-            // }
-        } else {
+        }
+        else { // the tank is not in danger , 1st priority is to shoot the tank (if possible) , 2nd priority is to shoot the destructible wall
             for (let i = 0; i < this._stadiumObject._tanks.length; i++) {
                 if (this === this._stadiumObject._tanks[i]) continue;
                 if (this.canShootStaticObject(this._stadiumObject._tanks[i])) {
-                    // return this.shoot(this._stadiumObject._tanks[i].x, this._stadiumObject._tanks[i].y);
-
                     this.shoot();
                 }
-
-                // if (this.canShootStaticObject(this._stadiumObject._tanks[i])) { // shoot the tank without mooving
-                //
-                //     return this.shoot(this._stadiumObject._tanks[i].x, this._stadiumObject._tanks[i].y); // shoot otherTank x,y
-                // }
             }
+
+            // for(let wall of this._stadiumObject._destructiveWalls) {
+            //     if (this.canShootWall(wall)) {
+            //       //  this.shoot();
+            //     }
+            // }
         }
 
-        // if(move!=null) {
-        //     if (this.canShootMovingObject(this._dangerousBullet)) {
-        //         return this.shoot(this._dangerousBullet.x, this._dangerousBullet.y);
-        //     }
-        // }
-        // else{
-        //     return this.move(move.x,move.y);
-        // }
-        //
-        // if (move != null) { //if the tank will be hit by a bullet, try to hit the bullet or dodge it
-        //     if (this.canShootMovingObject(this._dangerousBullet)) {
-        //        // return this.shoot(this._dangerousBullet.x,this._dangerousBullet.y);
-        //     } else {
-        //         //return this.move(move.x, move.y);
-        //         //this.performActionIA(this.move(move.x,move.y),mouseX,mouseY);
-        //     }
-        // }
+        return null
 
 
     }
@@ -896,5 +914,23 @@ export class Tank {
     }
 
 
+    isSegmentTouchingWall(wall, startX, startY, endX, endY) {
+
+        // Check if either end of the segment is inside the wall
+        if (wall.isInside(startX, startY) || wall.isInside(endX, endY)) {
+            return true;
+        }
+
+        // Check if the segment intersects any of the wall's edges
+        const edges = wall.getEdges();
+
+        for (let edge of edges) {
+            if (this.doSegmentsIntersect(startX, startY, endX, endY, edge.x1, edge.y1, edge.x2, edge.y2)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
 

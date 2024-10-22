@@ -9,6 +9,7 @@ export class Stadium {
     _height;
     _bodyStadium;
     _walls = [];
+    _destructiveWalls = [];
     _bullets = [];
     _tanks = [];
     _tankSpawnPositions = [];
@@ -44,6 +45,7 @@ export class Stadium {
         const wall = new Wall(width, height, canDestruct);
         wall._bodyWall.position.set(x, y);
         this._bodyStadium.addChild(wall._bodyWall);
+        if(canDestruct) this._destructiveWalls.push(wall);
         this._walls.push(wall);
     }
 
@@ -232,6 +234,13 @@ export class Wall {
             y >= bounds.y &&
             y <= bounds.y + bounds.height
         );
+    }
+
+    //return x1, y1, x2, y2
+    getEdges(){
+
+        return [this._bodyWall.getBounds().x, this._bodyWall.getBounds().y, this._bodyWall.getBounds().x + this._width, this._bodyWall.getBounds().y + this._height];
+
     }
 
 
