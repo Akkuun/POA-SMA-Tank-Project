@@ -42,8 +42,7 @@ export class AABB {
         this._bodyAABB = new PIXI.Graphics();
         this._bodyAABB.lineStyle(2, 0xff0000);
         this._bodyAABB.drawRect(this._pos.x, this._pos.y, this._half.x*2, this._half.y*2);
-        if (this._app)
-        this._app.stage.addChild(this._bodyAABB);
+        if (this._app && this._app.stage) this._app.stage.addChild(this._bodyAABB);
     }
 
     intersectsAABB(other) {
@@ -75,7 +74,6 @@ export class AABB {
         }
         return intersection;
     }
-
 
     move(axis, value) {
         this._pos[axis] += value;

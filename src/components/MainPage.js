@@ -3,7 +3,7 @@ import * as PIXI from 'pixi.js';
 import {Tank} from './Tank';
 import {Stadium} from './Stadium';
 import {Action} from './Tank';
-import {stadiumWidth, stadiumHeight} from './ScaleFactor';
+import {stadiumWidth, stadiumHeight, ScaleFactor} from './ScaleFactor';
 
 
 const MainPage = ({settings}) => {
@@ -31,7 +31,7 @@ const MainPage = ({settings}) => {
 
 
                             let tankNumber = map[i][j].charCodeAt(0) - 'A'.charCodeAt(0) + 1;
-                            positions[tankNumber] = {x: j * WindowWidth / cols, y: i * WindowHeight / rows};
+                            positions[tankNumber] = {x: j * stadiumWidth / cols, y: i * stadiumHeight / rows};
                         }
                     }
                 }
@@ -55,7 +55,7 @@ const MainPage = ({settings}) => {
         const stadium = new Stadium(stadiumWidth, stadiumHeight, app);
         app.stage.addChild(stadium._bodyStadium);
 
-        stadium.generateStadiumFromFile('maps/testwall.txt'); // Stadium Wall generation from file
+        stadium.generateStadiumFromFile(filePath); // Stadium Wall generation from file
 
         // Mouse positions
         let mouseX = 0;

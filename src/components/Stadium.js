@@ -60,6 +60,11 @@ export class Stadium {
         if (wallIndex > -1) {
             this._walls.splice(wallIndex, 1);
         }
+        // Retirer l'affichage de sa AABB
+        this._app.stage.removeChild(wallg._bodyAABB);
+
+        // Détruire l'objet graphique de l'AABB du mur pour libérer les ressources
+        wallg._bodyAABB.destroy({ children: true, texture: true, baseTexture: true });
 
         // Retirer le mur de la scène PIXI
         this._app.stage.removeChild(wallg._bodyWall);
