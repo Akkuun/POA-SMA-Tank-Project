@@ -27,11 +27,12 @@ export class AABB {
     _app;
     _bodyAABB;
 
-    constructor(p0, p1, app) {
+    constructor(p0, p1, app, debug=false) {
         this._pos = p0;
         this._half = {x: 0, y: 0};
         this._half.x = p1.x - p0.x;
         this._half.y = p1.y - p0.y;
+        if (!debug) return;
         if (app) {
             this._app = app;
             this.displayAABB();
@@ -81,7 +82,7 @@ export class AABB {
 
     move(axis, value) {
         this._pos[axis] += value;
-        this._bodyAABB.position[axis] += value;
+        if (this._bodyAABB) this._bodyAABB.position[axis] += value;
     }
 
     toString() {
