@@ -3,6 +3,7 @@ import * as PIXI from 'pixi.js';
 import {Tank} from './Tank';
 import {Stadium} from './Stadium';
 import {Action} from './Tank';
+import {stadiumWidth, stadiumHeight} from './ScaleFactor';
 
 
 const MainPage = ({settings}) => {
@@ -50,8 +51,6 @@ const MainPage = ({settings}) => {
         app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height);
         pixiContainerRef.current.appendChild(app.view);
 
-        const stadiumHeight = WindowHeight * 0.8;
-        const stadiumWidth = WindowWidth * 0.8;
         const stadium = new Stadium(stadiumWidth, stadiumHeight, app);
         app.stage.addChild(stadium._bodyStadium);
 
@@ -106,11 +105,11 @@ const MainPage = ({settings}) => {
                 }
 
                 for (let wall of stadium._walls) {
-                    console.log(wall._aabb.toString());
-                    console.log("tank", tank._wallAABB.toString());
+                    //console.log(wall._aabb.toString());
+                    //console.log("tank", tank._wallAABB.toString());
                     let intersection;
                     if (intersection = wall.testForAABB(tank)) {
-                        console.log("collision", intersection, "tank", tank._wallAABB.toString(), "wall", wall._aabb.toString());
+                        //console.log("collision", intersection, "tank", tank._wallAABB.toString(), "wall", wall._aabb.toString());
                         wall.resolveCollision(tank, intersection);
                     }
                 }

@@ -12,7 +12,7 @@ export class Intersection {
     _t;
     _axis;
 
-    constructor(delta, normal, pos) {
+    constructor() {
         this._delta = {x: 0, y: 0};
         this._normal = {x: 0, y: 0};
         this._pos = {x: 0, y: 0};
@@ -32,7 +32,7 @@ export class AABB {
         this._half = {x: 0, y: 0};
         this._half.x = p1.x - p0.x;
         this._half.y = p1.y - p0.y;
-        console.log(app);
+        console.log("AABB", this._pos, this._half, app); 
         if (app) {
             this._app = app;
             this.display();
@@ -41,7 +41,7 @@ export class AABB {
 
     display() {
         this._body = new PIXI.Graphics();
-        this._body.lineStyle(2, 0x30271a);
+        this._body.lineStyle(2, 0xff0000);
         this._body.drawRect(this._pos.x, this._pos.y, this._half.x*2, this._half.y*2);
         this._app.stage.addChild(this._body);
     }

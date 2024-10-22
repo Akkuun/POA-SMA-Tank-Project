@@ -43,8 +43,10 @@ export class Stadium {
     }
 
     addWall(x, y, width, height, canDestruct) {
-        const wall = new Wall(width, height, canDestruct, {x: this._bodyStadium.x, y: this._bodyStadium.y}, this._app);
+        const wall = new Wall(width, height, canDestruct);
         wall._bodyWall.position.set(x, y);
+        console.log(this._app);
+        wall.initAABB({x: this._bodyStadium.x, y: this._bodyStadium.y}, this._app);
         this._bodyStadium.addChild(wall._bodyWall);
         if(canDestruct) this._destructiveWalls.push(wall);
         this._walls.push(wall);
@@ -117,6 +119,7 @@ export class Stadium {
                 for (let i = 0; i < rows; i++) {
                     for (let j = 0; j < cols; j++) {
                         if (map[i][j] === '1') {
+                            console.log("add wall at", j * this._width / cols, i * this._height / rows);
                             this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows, false);
                         }else if(map[i][j] === '2'){
                             this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows, true);
@@ -156,7 +159,7 @@ export class Wall {
     _destructed;
     _aabb;
 
-    constructor(width, height, canDestruct, aabbOffset, app) {
+    constructor(width, height, canDestruct) {
         this._width = width;
         this._height = height;
         this._destruct = canDestruct;
@@ -177,7 +180,9 @@ export class Wall {
         const centerX = (window.innerWidth - this._width) / 2;
         const centerY = (window.innerHeight - this._height) / 2;
         this._bodyWall.position.set(centerX, centerY);
+    }
 
+    initAABB(aabbOffset, app) {
         this._aabb = new AABB({ x: this._bodyWall.x, y: this._bodyWall.y }, { x: this._bodyWall.x + this._width/2, y: this._bodyWall.y + this._height/2 }, app);
         this._aabb.move('x', aabbOffset?.x || 0);
         this._aabb.move('y', aabbOffset?.y || 0);
