@@ -469,16 +469,20 @@ export class Tank {
 
         const stadiumBounds = this._stadiumObject._bodyStadium.getBounds();
         let lineLength = 0;
+        let acumulatedLength = 0;
         let maxBounces = 3; // Nombre maximum de rebonds
         let bounces = 0;
 
         while (bounces < maxBounces) {
             lineLength = 0;
             let collisionDetected = false;
+            let destructWallAtDistance = Infinity;
+            let destructWallFunction = () => {return false;};
 
             // Continue à tracer la ligne jusqu'à ce qu'on touche un mur
             while (!collisionDetected) {
                 lineLength += 0.5;
+                acumulatedLength += 0.5;
                 let endX = cannonX + Math.cos(globalRotation) * lineLength;
                 let endY = cannonY + Math.sin(globalRotation) * lineLength;
 
@@ -498,26 +502,44 @@ export class Tank {
                 } else {
                     for (let wall of this._stadiumObject._walls) {
                         if (wall.isInside(endX, endY) && !wall._destructed) {
-                            if (wall.getDestruct()) {
-                                path[path.length - 1].endX = endX;
-                                path[path.length - 1].endY = endY;
-                                if (bounces < maxBounces) {
-                                    wall._destructed = true;
-                                    path.push({
-                                        startX: cannonX,
-                                        startY: cannonY,
-                                        endX: cannonX,
-                                        endY: cannonY,
-                                        rotation: globalRotation,
-                                        destructWallAtSegment: true,
-                                        destructWall: () => {
-                                            this._stadiumObject.destructWall(wall);
-                                        }
-                                    });
-                                }
-                                return path;
 
+                            if (wall.getDestruct()) {
+                                destructWallAtDistance = acumulatedLength;
+                                destructWallFunction = () => {
+                                    if (!wall._destructed) {
+                                        wall._destructed = true;
+                                        this._stadiumObject.destructWall(wall);
+                                        return true;
+                                    }
+                                    return false;
+                                };
                             }
+                            // if (wall.getDestruct()) {
+                            //     path[path.length - 1].endX = endX;
+                            //     path[path.length - 1].endY = endY;
+                            //     if (bounces < maxBounces) {
+                            //         path.push({
+                            //             startX: cannonX,
+                            //             startY: cannonY,
+                            //             endX: cannonX,
+                            //             endY: cannonY,
+                            //             rotation: globalRotation,
+                            //             destructWallAtSegment: true,
+                            //             destructWall: () => {
+                            //                 if (!wall._destructed) {
+                            //                     wall._destructed = true;
+                            //                     this._stadiumObject.destructWall(wall);
+                            //                     return true;
+                            //                 }
+                            //                 return false;
+                            //             }
+                            //         });
+                            //     }
+                            //     return path;
+
+                            // }
+
+
                             // Tester la distance jusqu'à l'espace vide le plus proche pour chaque rebond possible
                             let rotations = [Math.PI - globalRotation, -globalRotation];
                             let distances = rotations.map(rotation => this.rayCastNearestEmptySpace(endX, endY, rotation));
@@ -547,9 +569,8 @@ export class Tank {
                     endX: cannonX,
                     endY: cannonY,
                     rotation: globalRotation,
-                    shouldDestructWall: false,
-                    destructWall: () => {
-                    }
+                    destructWallAtDistance: destructWallAtDistance,
+                    destructWall: destructWallFunction
                 });
             }
         }
