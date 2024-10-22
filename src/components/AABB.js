@@ -25,25 +25,30 @@ export class AABB {
     _pos;
     _half;
     _app;
-    _body;
+    _bodyAABB;
 
     constructor(p0, p1, app=null) {
         this._pos = p0;
         this._half = {x: 0, y: 0};
         this._half.x = p1.x - p0.x;
         this._half.y = p1.y - p0.y;
-        console.log("AABB", this._pos, this._half, app); 
         if (app) {
             this._app = app;
-            this.display();
+            this.displayAABB();
         }
     }
 
-    display() {
-        this._body = new PIXI.Graphics();
-        this._body.lineStyle(2, 0xff0000);
-        this._body.drawRect(this._pos.x, this._pos.y, this._half.x*2, this._half.y*2);
-        this._app.stage.addChild(this._body);
+    addApp(app) {
+        this._app = app;
+        this.displayAABB();
+    }
+
+    displayAABB() {
+        this._bodyAABB = new PIXI.Graphics();
+        this._bodyAABB.lineStyle(2, 0xff0000);
+        this._bodyAABB.drawRect(this._pos.x, this._pos.y, this._half.x*2, this._half.y*2);
+        if (this._app)
+        this._app.stage.addChild(this._bodyAABB);
     }
 
     intersectsAABB(other) {
@@ -79,9 +84,9 @@ export class AABB {
 
     move(axis, value) {
         this._pos[axis] += value;
-        if (this._body && this._app) {
-            this._body.clear();
-            this.display();
+        if (this._bodyAABB && this._app) {
+            this._bodyAABB.clear();
+            this.displayAABB();
         }
     }
 

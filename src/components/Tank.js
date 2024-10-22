@@ -52,7 +52,7 @@ export class Tank {
     _player;
     _particles = [];
     _dangerousBullet;
-    _wallAABB;
+    _AABBforWalls;
 
     createParticle(x, y, typeOfParticle) {
         this._particles.push(new Particle(this._app, x, y, typeOfParticle));
@@ -131,7 +131,7 @@ export class Tank {
         
         this._tankBody.x = this._coordinateSpawnX;
         this._tankBody.y = this._coordinateSpawnY;
-        this._wallAABB = new AABB({x: this._tankBody.x-this._tankBody.width/2, y: this._tankBody.y-this._tankBody.height/2}, {x: this._tankBody.x, y: this._tankBody.y}, this._app);
+        this._AABBforWalls = new AABB({x: this._tankBody.x-this._tankBody.width/2, y: this._tankBody.y-this._tankBody.height/2}, {x: this._tankBody.x, y: this._tankBody.y}, this._app);
     }
 
     see() {
@@ -164,7 +164,7 @@ export class Tank {
 
     move(axis, value) {
         this._tankBody[axis] += value;
-        this._wallAABB.move(axis, value);
+        this._AABBforWalls.move(axis, value);
     }
 
     //function that return if the tank can shoot a static object ( wall or tank) based on his actual position, we use the tankHead and tankBody rotation to calculate the possible shoot and we do a 360° rotation
@@ -829,19 +829,19 @@ export class Tank {
 
             if (tankBounds.x < stadiumBounds.x) {
                 this._tankBody.x += this._speed;
-                this._wallAABB.move("x", this._speed);
+                this._AABBforWalls.move("x", this._speed);
             }
             if (tankBounds.x + tankBounds.width > stadiumBounds.x + stadiumBounds.width) {
                 this._tankBody.x -= this._speed;
-                this._wallAABB.move("x", -this._speed);
+                this._AABBforWalls.move("x", -this._speed);
             }
             if (tankBounds.y < stadiumBounds.y) {
                 this._tankBody.y += this._speed;
-                this._wallAABB.move("y", this._speed);
+                this._AABBforWalls.move("y", this._speed);
             }
             if (tankBounds.y + tankBounds.height > stadiumBounds.y + stadiumBounds.height) {
                 this._tankBody.y -= this._speed;
-                this._wallAABB.move("y", -this._speed);
+                this._AABBforWalls.move("y", -this._speed);
             }
         }
 

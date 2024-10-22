@@ -47,6 +47,7 @@ const MainPage = ({settings}) => {
         if (tankSpawnPositions.length === 0) return; // wait for tankSpawnPositions to be set
 
         const app = new PIXI.Application({width: WindowWidth, height: WindowHeight, backgroundColor: 0x463928});
+
         app.stage.interactive = true;
         app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height);
         pixiContainerRef.current.appendChild(app.view);
@@ -54,7 +55,7 @@ const MainPage = ({settings}) => {
         const stadium = new Stadium(stadiumWidth, stadiumHeight, app);
         app.stage.addChild(stadium._bodyStadium);
 
-        stadium.generateStadiumFromFile('maps/testwall.txt'); // Stadium Wall generation from file
+        stadium.generateStadiumFromFile('maps/testwall.txt', app); // Stadium Wall generation from file
 
         // Mouse positions
         let mouseX = 0;

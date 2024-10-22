@@ -42,11 +42,10 @@ export class Stadium {
         this._tanks.push(tank);
     }
 
-    addWall(x, y, width, height, canDestruct) {
+    addWall(x, y, width, height, canDestruct, app) {
         const wall = new Wall(width, height, canDestruct);
         wall._bodyWall.position.set(x, y);
-        console.log(this._app);
-        wall.initAABB({x: this._bodyStadium.x, y: this._bodyStadium.y}, this._app);
+        wall.initAABB({x: this._bodyStadium.x, y: this._bodyStadium.y}, app);
         this._bodyStadium.addChild(wall._bodyWall);
         if(canDestruct) this._destructiveWalls.push(wall);
         this._walls.push(wall);
@@ -107,8 +106,8 @@ export class Stadium {
         app.stage.addChild(this._bodyStadium);
     }
 
-    generateStadiumFromFile(file) {
-        return fetch(file)
+    generateStadiumFromFile(file, app) {
+        fetch(file)
             .then(response => response.text())
             .then(text => {
                 let map = text.split('\n').map(line => line.slice(0, -1).split(''));
@@ -119,10 +118,9 @@ export class Stadium {
                 for (let i = 0; i < rows; i++) {
                     for (let j = 0; j < cols; j++) {
                         if (map[i][j] === '1') {
-                            console.log("add wall at", j * this._width / cols, i * this._height / rows);
-                            this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows, false);
+                            this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows, false, app);
                         }else if(map[i][j] === '2'){
-                            this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows, true);
+                            this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows, true, app);
                         }
                     }
                 }
@@ -151,15 +149,15 @@ export class Stadium {
 }
 
 
-export class Wall {
+export class Wall extends AABB{
     _width;
     _height;
     _bodyWall;
     _destruct;
     _destructed;
-    _aabb;
 
     constructor(width, height, canDestruct) {
+        super({x: 0, y: 0}, {x: 0, y: 0});
         this._width = width;
         this._height = height;
         this._destruct = canDestruct;
@@ -183,46 +181,24 @@ export class Wall {
     }
 
     initAABB(aabbOffset, app) {
-        this._aabb = new AABB({ x: this._bodyWall.x, y: this._bodyWall.y }, { x: this._bodyWall.x + this._width/2, y: this._bodyWall.y + this._height/2 }, app);
-        this._aabb.move('x', aabbOffset?.x || 0);
-        this._aabb.move('y', aabbOffset?.y || 0);
+        this._pos = { x: this._bodyWall.x, y: this._bodyWall.y };
+        this._half = { x: this._width/2, y: this._height/2 };
+        this.move('x', aabbOffset?.x || 0);
+        this.move('y', aabbOffset?.y || 0);
+
+        this.addApp(app);
     }
 
-    display(app) {
-        app.stage.addChild(this._bodyWall);
+    display() {
+        this._app.stage.addChild(this._bodyWall);
     }
 
     testForAABB(tank) {
-        return this._aabb.intersectsAABB(tank._wallAABB);
+        return this.intersectsAABB(tank._AABBforWalls);
     }
 
     resolveCollision(tank, intersection) {
         tank.move(intersection._axis, intersection._delta[intersection._axis] * intersection._normal[intersection._axis]);
-
-        /*
-        const bounds = tank._tankBody.getBounds();
-        const wallBounds = this._bodyWall.getBounds();
-
-        let dx = 0;
-        let dy = 0;
-
-        if (bounds.x < wallBounds.x) {
-            dx = wallBounds.x - (bounds.x + bounds.width);
-        } else if (bounds.x + bounds.width > wallBounds.x + wallBounds.width) {
-            dx = wallBounds.x + wallBounds.width - bounds.x;
-        }
-
-        if (bounds.y < wallBounds.y) {
-            dy = wallBounds.y - (bounds.y + bounds.height);
-        } else if (bounds.y + bounds.height > wallBounds.y + wallBounds.height) {
-            dy = wallBounds.y + wallBounds.height - bounds.y;
-        }
-
-        if (Math.abs(dx) < Math.abs(dy)) {
-            tank._tankBody.x += dx;
-        } else {
-            tank._tankBody.y += dy;
-        }*/
     }
 
     getBodyWall(){
