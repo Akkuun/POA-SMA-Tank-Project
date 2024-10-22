@@ -55,7 +55,7 @@ const MainPage = ({settings}) => {
         const stadium = new Stadium(stadiumWidth, stadiumHeight, app);
         app.stage.addChild(stadium._bodyStadium);
 
-        stadium.generateStadiumFromFile('maps/testSpawn.txt'); // Stadium Wall generation from file
+        stadium.generateStadiumFromFile('maps/testwall.txt'); // Stadium Wall generation from file
 
         // Mouse positions
         let mouseX = 0;
@@ -106,8 +106,12 @@ const MainPage = ({settings}) => {
                 }
 
                 for (let wall of stadium._walls) {
-                    if (wall.testForAABB(tank)) {
-                        wall.resolveCollision(tank);
+                    console.log(wall._aabb.toString());
+                    console.log("tank", tank._wallAABB.toString());
+                    let intersection;
+                    if (intersection = wall.testForAABB(tank)) {
+                        console.log("collision", intersection, "tank", tank._wallAABB.toString(), "wall", wall._aabb.toString());
+                        wall.resolveCollision(tank, intersection);
                     }
                 }
 

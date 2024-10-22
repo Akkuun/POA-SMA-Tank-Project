@@ -1,6 +1,7 @@
 import * as PIXI from 'pixi.js';
 import {useState} from "react";
 import { ScaleFactor } from './ScaleFactor';
+import { AABB, Intersection } from './AABB';
 
 const scaleFactor = ScaleFactor;
 
@@ -42,7 +43,7 @@ export class Stadium {
     }
 
     addWall(x, y, width, height, canDestruct) {
-        const wall = new Wall(width, height, canDestruct);
+        const wall = new Wall(width, height, canDestruct, {x: this._bodyStadium.x, y: this._bodyStadium.y}, this._app);
         wall._bodyWall.position.set(x, y);
         this._bodyStadium.addChild(wall._bodyWall);
         if(canDestruct) this._destructiveWalls.push(wall);
@@ -153,8 +154,9 @@ export class Wall {
     _bodyWall;
     _destruct;
     _destructed;
+    _aabb;
 
-    constructor(width, height, canDestruct) {
+    constructor(width, height, canDestruct, aabbOffset, app) {
         this._width = width;
         this._height = height;
         this._destruct = canDestruct;
@@ -175,6 +177,10 @@ export class Wall {
         const centerX = (window.innerWidth - this._width) / 2;
         const centerY = (window.innerHeight - this._height) / 2;
         this._bodyWall.position.set(centerX, centerY);
+
+        this._aabb = new AABB({ x: this._bodyWall.x, y: this._bodyWall.y }, { x: this._bodyWall.x + this._width/2, y: this._bodyWall.y + this._height/2 }, app);
+        this._aabb.move('x', aabbOffset?.x || 0);
+        this._aabb.move('y', aabbOffset?.y || 0);
     }
 
     display(app) {
@@ -182,17 +188,13 @@ export class Wall {
     }
 
     testForAABB(tank) {
-        const bounds = tank._tankBody.getBounds();
-        const wallBounds = this._bodyWall.getBounds();
-        return (
-            bounds.x < wallBounds.x + wallBounds.width &&
-            bounds.x + bounds.width > wallBounds.x &&
-            bounds.y < wallBounds.y + wallBounds.height &&
-            bounds.y + bounds.height > wallBounds.y
-        );
+        return this._aabb.intersectsAABB(tank._wallAABB);
     }
 
-    resolveCollision(tank) {
+    resolveCollision(tank, intersection) {
+        tank.move(intersection._axis, intersection._delta[intersection._axis] * intersection._normal[intersection._axis]);
+
+        /*
         const bounds = tank._tankBody.getBounds();
         const wallBounds = this._bodyWall.getBounds();
 
@@ -215,7 +217,7 @@ export class Wall {
             tank._tankBody.x += dx;
         } else {
             tank._tankBody.y += dy;
-        }
+        }*/
     }
 
     getBodyWall(){

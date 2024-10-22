@@ -6,7 +6,7 @@ import ErrorPage from "./components/ErrorPage";
 
 const App = () => {
     // settings Array ==> 0: tankNumber, 1: isPlayerPlaying
-    const [settings, setSettings] = useState([2, false]); // Initialiser avec deux valeurs (nombre de tanks et booléen)
+    const [settings, setSettings] = useState([1, true]); // Initialiser avec deux valeurs (nombre de tanks et booléen)
 
 
     return (

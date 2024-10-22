@@ -2,6 +2,7 @@ import * as PIXI from "@pixi/graphics";
 import {Bullet} from "./Bullet";
 import {ScaleFactor} from "./ScaleFactor";
 import {Particle} from "./Particle";
+import { AABB } from "./AABB";
 
 const WindowWidth = window.innerWidth;
 const WindowHeight = window.innerHeight;
@@ -51,6 +52,7 @@ export class Tank {
     _player;
     _particles = [];
     _dangerousBullet;
+    _wallAABB;
 
     createParticle(x, y, typeOfParticle) {
         this._particles.push(new Particle(this._app, x, y, typeOfParticle));
@@ -126,9 +128,10 @@ export class Tank {
         this.displayBody();
         this.displayTracks();
         this.displayHead();
-
+        
         this._tankBody.x = this._coordinateSpawnX;
         this._tankBody.y = this._coordinateSpawnY;
+        this._wallAABB = new AABB({x: this._tankBody.x-this._tankBody.width/2, y: this._tankBody.y-this._tankBody.height/2}, {x: this._tankBody.x, y: this._tankBody.y}, this._app);
     }
 
     see() {
@@ -159,7 +162,10 @@ export class Tank {
 
     }
 
-
+    move(axis, value) {
+        this._tankBody[axis] += value;
+        this._wallAABB.move(axis, value);
+    }
 
     //function that return if the tank can shoot a static object ( wall or tank) based on his actual position, we use the tankHead and tankBody rotation to calculate the possible shoot and we do a 360° rotation
     //to check if the tank can shoot the object (tank or destructible wall)
@@ -572,19 +578,27 @@ export class Tank {
 
         if (overlapX > overlapY) {
             if (bounds.top < otherBounds.top) {
-                this._tankBody.y -= overlapY / 2;
-                otherTank._tankBody.y += overlapY / 2;
+                //this._tankBody.y -= overlapY / 2;
+                //otherTank._tankBody.y += overlapY / 2;
+                this.move("y", -overlapY / 2);
+                otherTank.move("y", overlapY / 2);
             } else {
-                this._tankBody.y += overlapY / 2;
-                otherTank._tankBody.y -= overlapY / 2;
+                //this._tankBody.y += overlapY / 2;
+                //otherTank._tankBody.y -= overlapY / 2;
+                this.move("y", overlapY / 2);
+                otherTank.move("y", -overlapY / 2);
             }
         } else {
             if (bounds.left < otherBounds.left) {
-                this._tankBody.x -= overlapX / 2;
-                otherTank._tankBody.x += overlapX / 2;
+                //this._tankBody.x -= overlapX / 2;
+                //otherTank._tankBody.x += overlapX / 2;
+                this.move("x", -overlapX / 2);
+                otherTank.move("x", overlapX / 2);
             } else {
-                this._tankBody.x += overlapX / 2;
-                otherTank._tankBody.x -= overlapX / 2;
+                //this._tankBody.x += overlapX / 2;
+                //otherTank._tankBody.x -= overlapX / 2;
+                this.move("x", overlapX / 2);
+                otherTank.move("x", -overlapX / 2);
             }
         }
     }
@@ -682,16 +696,20 @@ export class Tank {
     updatePositionPlayer(stadium, speed) {
         if (this._player) {
             if (this._keys[this._controls.up] && !this._shortCooldown) {
-                this._tankBody.y -= speed;
+                //this._tankBody.y -= speed;
+                this.move("y", -speed);
             }
             if (this._keys[this._controls.left] && !this._shortCooldown) {
-                this._tankBody.x -= speed;
+                //this._tankBody.x -= speed;
+                this.move("x", -speed);
             }
             if (this._keys[this._controls.down] && !this._shortCooldown) {
-                this._tankBody.y += speed;
+                //this._tankBody.y += speed;
+                this.move("y", speed);
             }
             if (this._keys[this._controls.right] && !this._shortCooldown) {
-                this._tankBody.x += speed;
+                //this._tankBody.x += speed;
+                this.move("x", speed);
             }
 
             if (this._keys[this._controls.shoot]) {
@@ -717,32 +735,44 @@ export class Tank {
     updatePositionIA(stadium, action, speed) {
         switch (action) {
             case Action.Up:
-                this._tankBody.y -= speed;
+                //this._tankBody.y -= speed;
+                this.move("y", -speed);
                 break;
             case Action.Left:
-                this._tankBody.x -= speed;
+                //this._tankBody.x -= speed;
+                this.move("x", -speed);
                 break;
             case Action.Down:
-                this._tankBody.y += speed;
+                //this._tankBody.y += speed;
+                this.move("y", speed);
                 break;
             case Action.Right:
-                this._tankBody.x += speed;
+                //this._tankBody.x += speed;
+                this.move("x", speed);
                 break;
             case Action.UpLeft:
-                this._tankBody.y -= speed;
-                this._tankBody.x -= speed;
+                //this._tankBody.y -= speed;
+                //this._tankBody.x -= speed;
+                this.move("y", -speed);
+                this.move("x", -speed);
                 break;
             case Action.UpRight:
-                this._tankBody.y -= speed;
-                this._tankBody.x += speed;
+                //this._tankBody.y -= speed;
+                //this._tankBody.x += speed;
+                this.move("y", -speed);
+                this.move("x", speed);
                 break;
             case Action.DownLeft:
-                this._tankBody.y += speed;
-                this._tankBody.x -= speed;
+                //this._tankBody.y += speed;
+                //this._tankBody.x -= speed;
+                this.move("y", speed);
+                this.move("x", -speed);
                 break;
             case Action.DownRight:
-                this._tankBody.y += speed;
-                this._tankBody.x += speed;
+                //this._tankBody.y += speed;
+                //this._tankBody.x += speed;
+                this.move("y", speed);
+                this.move("x", speed);
                 break;
             case Action.Shoot:
                 if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
@@ -799,15 +829,19 @@ export class Tank {
 
             if (tankBounds.x < stadiumBounds.x) {
                 this._tankBody.x += this._speed;
+                this._wallAABB.move("x", this._speed);
             }
             if (tankBounds.x + tankBounds.width > stadiumBounds.x + stadiumBounds.width) {
                 this._tankBody.x -= this._speed;
+                this._wallAABB.move("x", -this._speed);
             }
             if (tankBounds.y < stadiumBounds.y) {
                 this._tankBody.y += this._speed;
+                this._wallAABB.move("y", this._speed);
             }
             if (tankBounds.y + tankBounds.height > stadiumBounds.y + stadiumBounds.height) {
                 this._tankBody.y -= this._speed;
+                this._wallAABB.move("y", -this._speed);
             }
         }
 
