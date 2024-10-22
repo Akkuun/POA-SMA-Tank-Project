@@ -76,6 +76,7 @@ export class Tank {
     get x() {
         return this._tankBody.x;
     }
+
     get y() {
         return this._tankBody.y;
     }
@@ -135,25 +136,21 @@ export class Tank {
     }
 
     //function that return the closest bullet that can hit the tank, if there is none return null
-    safeMove() {
-        console.log("debut safeMove")
+    safeMove(bulletsArray) {
         let dangerousBullets = [];
-        for (let bullet in this._stadiumObject.bullets) {
-            console.log("bullets" + bullet);
-            if (bullet.willIntersect(this)) dangerousBullets.push(bullet);
-        }
-        console.log("dangerousBullets lenght : " + dangerousBullets.length);
-        if (dangerousBullets.length === 0) return null; // if no bullet incomming the tank is safe
 
-        let closest = dangerousBullets[0];
+        if (bulletsArray.length === 0) return null; // if there is no bullet in the stadium the tank is safe
+        for (let i = 0; i < bulletsArray.length; i++) {
+            if (bulletsArray[i].willIntersect(this)) dangerousBullets.push(bulletsArray[i]);
+        }
+        if (dangerousBullets.length === 0) return null; // if no bullet incomming the tank is safe
+        let closestBullet = dangerousBullets[0];
 
         for (let bullet in dangerousBullets) {
-            if (this.checkDistance(this, bullet) < this.checkDistance(this, closest)) closest = bullet; // we get the closest bullet incomming
-
+            if (this.checkDistance(this, bullet) < this.checkDistance(this, closestBullet)) closestBullet = bullet; // we get the closest bullet incomming
         }
-        console.log("closest bullet x : " + closest.x + " y : " + closest.y);
-        this._dangerousBullet = closest; // we save the closest bullet incomming
-        return {x: closest.x, y: closest.y};
+        this._dangerousBullet = closestBullet; // we save the closest bullet incomming
+        return closestBullet;
     }
 
     //change the cannon Rotation by x degree passed in parameter
@@ -164,44 +161,46 @@ export class Tank {
 
 
 
-
     //function that return if the tank can shoot a static object ( wall or tank) based on his actual position, we use the tankHead and tankBody rotation to calculate the possible shoot and we do a 360° rotation
     //to check if the tank can shoot the object (tank or destructible wall)
     canShootStaticObject(staticObject) {
+        this.changeCannonRotation(10); // 10 ° rotation
 
-
-        this.changeCannonRotation(10);
-
-      //  let bulletPath = new PIXI.Graphics();
-      //  bulletPath.lineStyle(2, 0xff0000);
-      //  bulletPath.moveTo(this._tankBody.x, this._tankBody.y);
+        //  let bulletPath = new PIXI.Graphics();
+        //  bulletPath.lineStyle(2, 0xff0000);
+        //  bulletPath.moveTo(this._tankBody.x, this._tankBody.y);
         let path = this.getBulletPathCurve();
 
         for (let segment of path) {
             //bulletPath.lineTo(segment.endX, segment.endY);
 
             if (this.isSegmentTouchingTank(staticObject, segment.startX, segment.startY, segment.endX, segment.endY)) {
-              //  this._app.stage.addChild(bulletPath);
+                //  this._app.stage.addChild(bulletPath);
                 return true;
             }
         }
         return false
     }
 
+    //function that return if the tank can shoot a moving object ( bullet) based on his actual position, we use the tankHead and tankBody rotation to calculate the possible shoot and we do a 360° rotation
     canShootMovingObject(bullet) {
-        //for now we use the following strategie : we're doing a cannon rotation +10 degree until a complete rotation is done and
 
-        for (let currentPosition = this._tankHead.rotation + this._tankBody.rotation; currentPosition < 2 * Math.PI; currentPosition += Math.PI / 18) {
-            let x = this._tankBody.x + Math.cos(currentPosition) * 50;
-            let y = this._tankBody.y + Math.sin(currentPosition) * 50;
-            if (bullet.willIntersect(x, y)) return true;
-        }
+
+        return bullet.willIntersect(this);
+
     }
 
     //shoot on the x,y Object position passed in parameter
-    shoot(Object_x, Object_y) {
-        this.performActionIA(Action.Shoot, Object_x, Object_y);
+    shoot() {
+        this.updatePositionIA(this._stadiumObject, Action.Shoot, this._speed);
 
+    }
+    //function that align the cannon to the incomming bullet and shoot
+    shootIncommingBullet(bullet) {
+         const bulletCoordinate = bullet.getBounds();
+
+         this.performActionIA(Action.Shoot,bulletCoordinate.x,bulletCoordinate.y);
+         this._dangerousBullet = null;
     }
 
     //function that perform the correct movement action based on x_positon,y_position
@@ -246,30 +245,57 @@ export class Tank {
           }
           return null;*/
 
-        let move= this.safeMove();
 
-        if (move != null) { //if the tank will be hit by a bullet, try to hit the bullet or dodge it
+        let move = this.safeMove(this._stadiumObject._bullets);
+
+        if (move != null) {
+
+            //console.log("move", move);
             if (this.canShootMovingObject(this._dangerousBullet)) {
-               // return this.shoot(this._dangerousBullet.x,this._dangerousBullet.y);
-            } else {
-                //return this.move(move.x, move.y);
-                //this.performActionIA(this.move(move.x,move.y),mouseX,mouseY);
+                console.log("true")
+                this.shootIncommingBullet(this._dangerousBullet);
             }
-        }
-
-        for (let i = 0; i < this._stadiumObject._tanks.length; i++) {
-            if (this === this._stadiumObject._tanks[i]) continue;
-            if(this.canShootStaticObject(this._stadiumObject._tanks[i])){
-               // return this.shoot(this._stadiumObject._tanks[i].x, this._stadiumObject._tanks[i].y);
-
-                 this.updatePositionIA(this._stadiumObject,Action.Shoot,this._speed);
-            }
-
-            // if (this.canShootStaticObject(this._stadiumObject._tanks[i])) { // shoot the tank without mooving
+            // return this.shoot(this._dangerousBullet.x,this._dangerousBullet.y);
             //
-            //     return this.shoot(this._stadiumObject._tanks[i].x, this._stadiumObject._tanks[i].y); // shoot otherTank x,y
+            // if (this.canShootStaticObject(this._dangerousBullet)) {
+            //     return this.shoot(this._dangerousBullet.x, this._dangerousBullet.y);
+            // } else {
+            //     return this.move(move.x, move.y);
             // }
+        } else {
+            for (let i = 0; i < this._stadiumObject._tanks.length; i++) {
+                if (this === this._stadiumObject._tanks[i]) continue;
+                if (this.canShootStaticObject(this._stadiumObject._tanks[i])) {
+                    // return this.shoot(this._stadiumObject._tanks[i].x, this._stadiumObject._tanks[i].y);
+
+                    this.shoot();
+                }
+
+                // if (this.canShootStaticObject(this._stadiumObject._tanks[i])) { // shoot the tank without mooving
+                //
+                //     return this.shoot(this._stadiumObject._tanks[i].x, this._stadiumObject._tanks[i].y); // shoot otherTank x,y
+                // }
+            }
         }
+
+        // if(move!=null) {
+        //     if (this.canShootMovingObject(this._dangerousBullet)) {
+        //         return this.shoot(this._dangerousBullet.x, this._dangerousBullet.y);
+        //     }
+        // }
+        // else{
+        //     return this.move(move.x,move.y);
+        // }
+        //
+        // if (move != null) { //if the tank will be hit by a bullet, try to hit the bullet or dodge it
+        //     if (this.canShootMovingObject(this._dangerousBullet)) {
+        //        // return this.shoot(this._dangerousBullet.x,this._dangerousBullet.y);
+        //     } else {
+        //         //return this.move(move.x, move.y);
+        //         //this.performActionIA(this.move(move.x,move.y),mouseX,mouseY);
+        //     }
+        // }
+
 
     }
 
@@ -399,8 +425,6 @@ export class Tank {
 
         return bulletPath;
     }
-
-
 
 
     // Pareil que getBulletPath mais retourne le début et la fin de chaque segment de la trajectoire au lieu d'afficher le chemin. Utilisé pour l'animation
@@ -823,14 +847,9 @@ export class Tank {
     }
 
     //function thar return if the endSegment is touching the tank
-    isTouchingTank(tank,x,y) {
+    isTouchingTank(tank, x, y) {
 
         const bounds = tank.getBoundsForCollision();
-
-        console.log("x>= bounds.left    : "+ x +"  " + bounds.left);
-        console.log("x<= bounds.right    : "+ x +"  " + bounds.right);
-        console.log("y>= bounds.top    : "+ y +"  " + bounds.top);
-        console.log("y<= bounds.bottom    : "+ y +"  " + bounds.bottom);
 
         return (
             x >= bounds.left &&
@@ -840,6 +859,7 @@ export class Tank {
 
         );
     }
+
     isSegmentTouchingTank(tank, startX, startY, endX, endY) {
         const bounds = tank.getBoundsForCollision();
 
@@ -850,10 +870,10 @@ export class Tank {
 
         // Check if the segment intersects any of the tank's edges
         const edges = [
-            { x1: bounds.left, y1: bounds.top, x2: bounds.right, y2: bounds.top },
-            { x1: bounds.right, y1: bounds.top, x2: bounds.right, y2: bounds.bottom },
-            { x1: bounds.right, y1: bounds.bottom, x2: bounds.left, y2: bounds.bottom },
-            { x1: bounds.left, y1: bounds.bottom, x2: bounds.left, y2: bounds.top }
+            {x1: bounds.left, y1: bounds.top, x2: bounds.right, y2: bounds.top},
+            {x1: bounds.right, y1: bounds.top, x2: bounds.right, y2: bounds.bottom},
+            {x1: bounds.right, y1: bounds.bottom, x2: bounds.left, y2: bounds.bottom},
+            {x1: bounds.left, y1: bounds.bottom, x2: bounds.left, y2: bounds.top}
         ];
 
         for (let edge of edges) {
@@ -874,6 +894,7 @@ export class Tank {
         return (ccw(x1, y1, x3, y3, x4, y4) !== ccw(x2, y2, x3, y3, x4, y4)) &&
             (ccw(x1, y1, x2, y2, x3, y3) !== ccw(x1, y1, x2, y2, x4, y4));
     }
+
 
 }
 

@@ -121,6 +121,14 @@ const MainPage = ({settings}) => {
                         app.stage.removeChild(tank);
                         continue;
                     }
+                    for (let otherBullet of stadium._bullets) {
+                        if (bullet !== otherBullet && bullet.collidesWith(otherBullet)) {
+                            bullet.remove();
+                            otherBullet.remove();
+                            app.stage.removeChild(bullet);
+                            app.stage.removeChild(otherBullet);
+                        }
+                    }
                 }
             }
         });

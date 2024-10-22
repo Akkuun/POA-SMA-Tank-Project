@@ -216,5 +216,9 @@ export class Bullet {
             this.isInside(bounds.x + bounds.width, bounds.y + bounds.height)
         );
     }
+
+    getBulletCoordinates(){
+        return {x: this._bodyBullet.x, y: this._bodyBullet.y};
+    }
 }
 
