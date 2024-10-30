@@ -1,13 +1,21 @@
 import '../styles/MenuComponent.css';
-import { useState } from 'react';
-import { TypeAnimation } from 'react-type-animation';
+import {useState} from 'react';
+import {TypeAnimation} from 'react-type-animation';
 import TankVideo from '../assets/Tank.mp4';
-import { useNavigate } from 'react-router-dom';
+import OST from '../assets/OST.mp3';
+import {useNavigate} from 'react-router-dom';
+import ReactAudioPlayer from 'react-audio-player';
 
-const MenuComponent = ({ settings, setSettings }) => {
+const MenuComponent = ({settings, setSettings}) => {
     const [showSettings, setShowSettings] = useState(false); // Suivi de l'état des options
     const [tankNumber, setTankNumber] = useState(settings[0]);
     const [isPlayerPlaying, setIsPlayerPlaying] = useState(settings[1]);
+    //musique
+    const audio = new Audio(OST);
+    audio.autoplay = true;
+    audio.loop = true;
+    audio.volume = 0.8;
+
 
     const onSettingsChange = (newSettings) => {
         setSettings(newSettings);
@@ -33,9 +41,10 @@ const MenuComponent = ({ settings, setSettings }) => {
         <div id="Menu">
             {/* Vidéo de fond */}
             <video id="background-video" autoPlay loop muted>
-                <source src={TankVideo} type="video/mp4" />
+                <source src={TankVideo} type="video/mp4"/>
                 Your browser does not support the video tag.
             </video>
+
 
             <div id="Bloc">
                 <TypeAnimation
@@ -45,9 +54,15 @@ const MenuComponent = ({ settings, setSettings }) => {
                     repeat={Infinity}
                     className="animated-title"
                 />
-                <button onClick={() => navigate('/game')}>Start</button>
-                <button onClick={handleClickOption}>Options</button>
+                <button onClick={() => {
+                    //lancement audio
+                    audio.play();
+                    navigate('/game');
 
+                }}
+                >Start
+                </button>
+                <button onClick={handleClickOption}>Options</button>
                 {/* Bloc de settings qui s'affiche quand on clique sur Options */}
                 {showSettings && (
                     <div id="SettingsPanel">
@@ -55,9 +70,13 @@ const MenuComponent = ({ settings, setSettings }) => {
                             <div className="form-group">
                                 <label htmlFor="tankNumber" className="form-label">Tank Number : </label>
                                 <div className="button-group">
-                                    <button type="button" onClick={decrementTankNumber} className="form-button-small">-</button>
+                                    <button type="button" onClick={decrementTankNumber}
+                                            className="form-button-small">-
+                                    </button>
                                     <span className="tank-number-display">{tankNumber}</span>
-                                    <button type="button" onClick={incrementTankNumber} className="form-button-small">+</button>
+                                    <button type="button" onClick={incrementTankNumber}
+                                            className="form-button-small">+
+                                    </button>
                                 </div>
                             </div>
                             <div className="form-group">
@@ -75,11 +94,11 @@ const MenuComponent = ({ settings, setSettings }) => {
                     </div>
                 )}
                 <div id="Option">
-                    <p>    Tank Number : {tankNumber}</p>
+                    <p> Tank Number : {tankNumber}</p>
                     {isPlayerPlaying ? (
-                        <p>   Player is playing</p>
+                        <p> Player is playing</p>
                     ) : (
-                        <p>   Player is not playing</p>
+                        <p> Player is not playing</p>
                     )}
                 </div>
             </div>
