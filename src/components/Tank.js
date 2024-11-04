@@ -218,21 +218,19 @@ export class Tank {
     dodge(bullet) {
         const bulletCoordinate = bullet.getBounds();
         let finalAction = null;
-        // if (this._tankBody.x < bulletCoordinate.x) {
-        //     if (this._tankBody.y < bulletCoordinate.y ) { // check if the bullet is on the right or left of the tank and the tank is not colliding with a wall
-        //         finalAction =  Action.UpRight;
-        //     } else {
-        //         finalAction = Action.DownRight;
-        //     }
-        // } else {
-        //     if (this._tankBody.y < bulletCoordinate.y) {
-        //         finalAction = Action.UpLeft;
-        //     } else {
-        //         finalAction = Action.DownLeft;
-        //     }
-        // }
-
-        finalAction = Action.Right;
+        if (this._tankBody.x < bulletCoordinate.x) {
+            if (this._tankBody.y < bulletCoordinate.y ) { // check if the bullet is on the right or left of the tank and the tank is not colliding with a wall
+                finalAction =  Action.UpRight;
+            } else {
+                finalAction = Action.DownRight;
+            }
+        } else {
+            if (this._tankBody.y < bulletCoordinate.y) {
+                finalAction = Action.UpLeft;
+            } else {
+                finalAction = Action.DownLeft;
+            }
+        }
 
         this.performActionIA(finalAction,bulletCoordinate.x,bulletCoordinate.y);
         console.log(finalAction)
@@ -300,6 +298,7 @@ export class Tank {
             } else {
               //  console.log("move");
                 this.dodge(this._dangerousBullet); // dodge the incoming bullet
+                return null;
 
             }
         }
@@ -308,12 +307,15 @@ export class Tank {
                 if (this === this._stadiumObject._tanks[i]) continue;
                 if (this.canShootStaticObject(this._stadiumObject._tanks[i])) {
                     this.shoot();
+                    return null;
                 }
             }
-
+            //if the tank is not in danger and there is no tank to shoot , try to shoot the destructible wall
             // for(let wall of this._stadiumObject._destructiveWalls) {
             //     if (this.canShootWall(wall)) {
-            //       //  this.shoot();
+            //       //  console.log("shoot wall");
+            //        this.shoot();
+            //        return null;
             //     }
             // }
         }

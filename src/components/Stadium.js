@@ -57,6 +57,19 @@ export class Stadium {
     destructWall(wallg) {
         // Supprimer le mur de la liste des murs
         const wallIndex = this._walls.indexOf(wallg);
+        //si le mur est destructible, on le supprime de la liste des murs destructibles
+        // if(wallg._destruct){
+        //     //retirer le mur de la liste des murs destructibles ._destructiveWalls
+        //     // recuperation de l'index du mur dans la liste des murs destructibles
+        //     // destruction du mur avec l'index recuperé
+        //     const wallDestructIndex = this._destructiveWalls.indexOf(wallg);
+        //     if (wallDestructIndex > -1) {
+        //         this._destructiveWalls.splice(wallDestructIndex, 1);
+        //     }
+        // }
+
+        //destuction du mur dans la liste des murs
+
         if (wallIndex > -1) {
             this._walls.splice(wallIndex, 1);
         }
