@@ -1,6 +1,7 @@
 import * as PIXI from 'pixi.js';
 import {useState} from "react";
 import { ScaleFactor } from './ScaleFactor';
+import { AABB, Intersection } from './AABB';
 
 const scaleFactor = ScaleFactor;
 
@@ -9,6 +10,7 @@ export class Stadium {
     _height;
     _bodyStadium;
     _walls = [];
+    _destructiveWalls = [];
     _bullets = [];
     _tanks = [];
     _tankSpawnPositions = [];
@@ -41,9 +43,10 @@ export class Stadium {
     }
 
     addWall(x, y, width, height, canDestruct) {
-        const wall = new Wall(width, height, canDestruct);
-        wall._bodyWall.position.set(x, y);
+        const wall = new Wall(x,y,width, height, canDestruct, {x: this._bodyStadium.x, y: this._bodyStadium.y}, this._app);
+        //wall.initAABB({x: this._bodyStadium.x, y: this._bodyStadium.y}, this._app);
         this._bodyStadium.addChild(wall._bodyWall);
+        if(canDestruct) this._destructiveWalls.push(wall);
         this._walls.push(wall);
     }
 
@@ -56,6 +59,13 @@ export class Stadium {
         const wallIndex = this._walls.indexOf(wallg);
         if (wallIndex > -1) {
             this._walls.splice(wallIndex, 1);
+        }
+        if (wallg._bodyAABB) {
+            // Retirer l'affichage de sa AABB
+            this._app.stage.removeChild(wallg._bodyAABB);
+    
+            // Détruire l'objet graphique de l'AABB du mur pour libérer les ressources
+            wallg._bodyAABB.destroy({ children: true, texture: true, baseTexture: true });
         }
 
         // Retirer le mur de la scène PIXI
@@ -103,7 +113,7 @@ export class Stadium {
     }
 
     generateStadiumFromFile(file) {
-        return fetch(file)
+        fetch(file)
             .then(response => response.text())
             .then(text => {
                 let map = text.split('\n').map(line => line.slice(0, -1).split(''));
@@ -114,9 +124,9 @@ export class Stadium {
                 for (let i = 0; i < rows; i++) {
                     for (let j = 0; j < cols; j++) {
                         if (map[i][j] === '1') {
-                            this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows, false);
+                            this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows, false, this._app);
                         }else if(map[i][j] === '2'){
-                            this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows, true);
+                            this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows, true, this._app);
                         }
                     }
                 }
@@ -130,6 +140,10 @@ export class Stadium {
         return this._bodyStadium.getBounds().y;
     }
 
+    get bullets(){
+        return this._bullets;
+    }
+
     isPointInsideAWall(x, y) {
         for (let wall of this._walls) {
             if (wall.isInside(x, y)) {
@@ -141,14 +155,17 @@ export class Stadium {
 }
 
 
-export class Wall {
+export class Wall extends AABB{
     _width;
     _height;
     _bodyWall;
     _destruct;
     _destructed;
 
-    constructor(width, height, canDestruct) {
+    constructor(x,y, width, height, canDestruct, aabboffset, app) {
+        super({x: x, y: y}, {x: x+width/2, y: y+height/2}, app);
+        super.move('x', aabboffset?.x || 0);
+        super.move('y', aabboffset?.y || 0);
         this._width = width;
         this._height = height;
         this._destruct = canDestruct;
@@ -168,48 +185,15 @@ export class Wall {
         // Calculer la position centrale
         const centerX = (window.innerWidth - this._width) / 2;
         const centerY = (window.innerHeight - this._height) / 2;
-        this._bodyWall.position.set(centerX, centerY);
-    }
-
-    display(app) {
-        app.stage.addChild(this._bodyWall);
+        this._bodyWall.position.set(x, y);
     }
 
     testForAABB(tank) {
-        const bounds = tank._tankBody.getBounds();
-        const wallBounds = this._bodyWall.getBounds();
-        return (
-            bounds.x < wallBounds.x + wallBounds.width &&
-            bounds.x + bounds.width > wallBounds.x &&
-            bounds.y < wallBounds.y + wallBounds.height &&
-            bounds.y + bounds.height > wallBounds.y
-        );
+        return this.intersectsAABB(tank._AABBforWalls);
     }
 
-    resolveCollision(tank) {
-        const bounds = tank._tankBody.getBounds();
-        const wallBounds = this._bodyWall.getBounds();
-
-        let dx = 0;
-        let dy = 0;
-
-        if (bounds.x < wallBounds.x) {
-            dx = wallBounds.x - (bounds.x + bounds.width);
-        } else if (bounds.x + bounds.width > wallBounds.x + wallBounds.width) {
-            dx = wallBounds.x + wallBounds.width - bounds.x;
-        }
-
-        if (bounds.y < wallBounds.y) {
-            dy = wallBounds.y - (bounds.y + bounds.height);
-        } else if (bounds.y + bounds.height > wallBounds.y + wallBounds.height) {
-            dy = wallBounds.y + wallBounds.height - bounds.y;
-        }
-
-        if (Math.abs(dx) < Math.abs(dy)) {
-            tank._tankBody.x += dx;
-        } else {
-            tank._tankBody.y += dy;
-        }
+    resolveCollision(tank, intersection) {
+        tank.move(intersection._axis, intersection._delta[intersection._axis] * intersection._normal[intersection._axis]);
     }
 
     getBodyWall(){
@@ -229,4 +213,13 @@ export class Wall {
             y <= bounds.y + bounds.height
         );
     }
+
+    //return x1, y1, x2, y2
+    getEdges(){
+
+        return [this._bodyWall.getBounds().x, this._bodyWall.getBounds().y, this._bodyWall.getBounds().x + this._width, this._bodyWall.getBounds().y + this._height];
+
+    }
+
+
 }

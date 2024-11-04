@@ -4,6 +4,10 @@ import {ScaleFactor} from './ScaleFactor';
 
 const scaleFactor = Math.sqrt(ScaleFactor);
 
+function distance(x1, y1, x2, y2) {
+    return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+}
+
 export class Bullet {
     _bodyBullet;
     _speed;
@@ -14,13 +18,14 @@ export class Bullet {
     _stadium;
     _ticker;
     _destroyed;
+    _wallDestructionPlan = {};
 
     constructor(app, stadium) {
         this._app = app;
         this._stadium = stadium;
         
         this._bodyBullet = new PIXI.Graphics();
-        this._speed = 4 * scaleFactor;
+        this._speed = 4 * scaleFactor; // base speed = 4
 
         this._destroyed = false;
 
@@ -61,12 +66,6 @@ export class Bullet {
         this._app.stage.addChild(this._bodyBullet);
     }
 
-    /*
-    update() {
-        this._bodyBullet.rotation += this._rotationSpeed;
-    }
-    */
-
     setDirection(rotation) {
         this._bodyBullet.rotation = rotation;
     }
@@ -97,7 +96,113 @@ export class Bullet {
         }
     }
 
+    rayCastNearestEmptySpace(startX, startY, angle) { // Retourne la distance jusqu'à l'espace hors mur le plus proche
+        let x = startX;
+        let y = startY;
+        let step = 1;
+        while (this._stadium.isPointInside(x, y) && this._stadium.isPointInsideAWall(x, y)) {
+            x = startX + Math.cos(angle) * step;
+            y = startY + Math.sin(angle) * step;
+            step++;
+        }
+        if (this._stadium.isPointInside(x, y)) {
+            return distance(startX, startY, x, y);
+        } else {
+            return Infinity;
+        }
+    }
+
+    computeBulletPath(start, orientation, maxBounces) {
+        let globalRotation = orientation;
+        let cannonX = start.x;
+        let cannonY = start.y;
+        let path = [{startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation}];
+
+        const stadiumBounds = this._stadium._bodyStadium.getBounds();
+        let bounces = 0;
+        let lineLength;
+        let accumulatedLength = 0;
+
+        while (bounces < maxBounces) {
+            lineLength = 0;
+            let collisionDetected = false;
+            let destructWallAtDistance = Infinity;
+            let destructWallFunction = () => {return false;};
+
+            // Continue à tracer la ligne jusqu'à ce qu'on touche un mur
+            while (!collisionDetected) {
+                lineLength += 0.5;
+                accumulatedLength += 0.5;
+                let endX = cannonX + Math.cos(globalRotation) * lineLength;
+                let endY = cannonY + Math.sin(globalRotation) * lineLength;
+
+                // Détection de collision avec les bords du stade
+                if (endX <= stadiumBounds.x || endX >= stadiumBounds.x + stadiumBounds.width) {
+                    // Rebond sur un mur vertical (gauche ou droite)
+                    globalRotation = Math.PI - globalRotation; // Inversion sur l'axe X
+                    collisionDetected = true;
+                    cannonX = endX;
+                    cannonY = endY;
+                } else if (endY <= stadiumBounds.y || endY >= stadiumBounds.y + stadiumBounds.height) {
+                    // Rebond sur un mur horizontal (haut ou bas)
+                    globalRotation = -globalRotation; // Inversion sur l'axe Y
+                    collisionDetected = true;
+                    cannonX = endX;
+                    cannonY = endY;
+                } else {
+                    for (let wall of this._stadium._walls) {
+                        if (wall.isInside(endX, endY) && !wall._destructed) {
+                            if (wall.getDestruct()) {
+                                destructWallAtDistance = accumulatedLength;
+                                destructWallFunction = () => {
+                                    if (!wall._destructed) {
+                                        wall._destructed = true; // Le mur a été détruit avec succès
+                                        this._stadium.destructWall(wall);
+                                        return true;
+                                    }
+                                    return false; // Le mur a déjà été détruit
+                                };
+                            }
+                            // Tester la distance jusqu'à l'espace vide le plus proche pour chaque rebond possible
+                            let rotations = [Math.PI - globalRotation, -globalRotation];
+                            let distances = rotations.map(rotation => this.rayCastNearestEmptySpace(endX, endY, rotation));
+                            // Trouver la distance minimale, et donc la rotation correspondante
+                            let minDistance = Math.min(...distances);
+                            let minIndex = distances.indexOf(minDistance);
+                            globalRotation = rotations[minIndex];
+                            collisionDetected = true;
+                            cannonX = endX;
+                            cannonY = endY;
+                            break;
+                        }
+                    }
+
+                }
+            }
+
+            // Incrémenter le nombre de rebonds
+            bounces += 1;
+
+            path[path.length - 1].endX = cannonX;
+            path[path.length - 1].endY = cannonY;
+            if (bounces < maxBounces) {
+                path.push({
+                    startX: cannonX,
+                    startY: cannonY,
+                    endX: cannonX,
+                    endY: cannonY,
+                    rotation: globalRotation,
+                    destructWallAtDistance: destructWallAtDistance,
+                    destructWall: destructWallFunction
+                });
+            }
+        }
+        return path;
+    }
+    
+
     getLineXYatDistanceFromStart( distance) {
+        
         // Stocker la longueur de chaque segment de la trajectoire
         let line = [];
         for (let i =0; i < this._path.length; i++){
@@ -124,6 +229,19 @@ export class Bullet {
             }
             return null; // Chemin terminé
         }
+        if (this._wallDestructionPlan) {
+            if (distance >= this._wallDestructionPlan.distance) {
+                let shouldRecomputePath = !this._wallDestructionPlan.function();
+                this._wallDestructionPlan = {};
+                if (shouldRecomputePath) {
+                    this._path = this.computeBulletPath(this.getPosition(), this._path[index-1].rotation, this._path.length - index + 1);
+                    this._distance = 0;
+                    return this.getLineXYatDistanceFromStart(this._distance);
+                } else {
+                    return null;
+                }
+            }
+        }
 
         // Trouver les coordonnées x et y à la distance donnée en fonction de l'index du segment de la trajectoire
         let X = this._path[index].startX;
@@ -138,6 +256,15 @@ export class Bullet {
         return ({x: X, y: Y, rotation: this._path[index].rotation});
     }
 
+    displayPath() {
+        let graphics = new PIXI.Graphics();
+        graphics.lineStyle(2, 0x0000FF, 1);
+        for (let i = 0; i < this._path.length; i++) {
+            graphics.moveTo(this._path[i].startX, this._path[i].startY);
+            graphics.lineTo(this._path[i].endX, this._path[i].endY);
+        }
+        this._app.stage.addChild(graphics);
+    }
 
     shoot(Tank){
         const cannonLength = 50;
@@ -148,7 +275,12 @@ export class Bullet {
         this.setPosition(cannonTipX, cannonTipY);
         this.setDirection(Tank._tankHead.rotation+Tank._tankBody.rotation);
 
-        this._path = Tank.getBulletPathCurve();
+        this._path = this.computeBulletPath(this.getPosition(), this._bodyBullet.rotation + Math.PI/2 , 3);
+        for (let i = 0; i < this._path.length; i++) {
+            if (this._path[i].destructWallAtDistance != Infinity) {
+                this._wallDestructionPlan = {distance : this._path[i].destructWallAtDistance, function: this._path[i].destructWall};
+            }
+        }
         this._tank = Tank;
         this._ticker = new PIXI.Ticker();
         this._ticker.add(() => {
@@ -215,6 +347,10 @@ export class Bullet {
             this.isInside(bounds.x, bounds.y + bounds.height) ||
             this.isInside(bounds.x + bounds.width, bounds.y + bounds.height)
         );
+    }
+
+    getBulletCoordinates(){
+        return {x: this._bodyBullet.x, y: this._bodyBullet.y};
     }
 }
 

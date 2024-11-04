@@ -1,7 +1,8 @@
 import * as PIXI from "@pixi/graphics";
 import {Bullet} from "./Bullet";
-import { ScaleFactor } from "./ScaleFactor";
+import {ScaleFactor} from "./ScaleFactor";
 import {Particle} from "./Particle";
+import { AABB } from "./AABB";
 
 const WindowWidth = window.innerWidth;
 const WindowHeight = window.innerHeight;
@@ -50,8 +51,10 @@ export class Tank {
     _bulletsCooldown = 0; // Nombre de balles tirées simultanément, toujours < maxBullets
     _player;
     _particles = [];
+    _dangerousBullet;
+    _AABBforWalls;
 
-    createParticle(x, y,typeOfParticle) {
+    createParticle(x, y, typeOfParticle) {
         this._particles.push(new Particle(this._app, x, y, typeOfParticle));
     }
 
@@ -65,12 +68,27 @@ export class Tank {
 
     }
 
-    constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX, spawnY, maxBullets=5, player) {
+    //function that return the distance between two objects
+    checkDistance(tank, object) {
+        //distance given by the formula  : sqrt((x2-x1)^2 + (y2-y1)^2
+        return Math.sqrt((tank.x - object.x) ** 2 + (tank.y - object.y) ** 2);
+    }
+
+
+    get x() {
+        return this._tankBody.x;
+    }
+
+    get y() {
+        return this._tankBody.y;
+    }
+
+    constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX, spawnY, maxBullets = 5, player) {
         this._coordinateSpawnX = spawnX;
         this._coordinateSpawnY = spawnY;
 
         this._player = player;
-        this._app=app;
+        this._app = app;
 
         this._color = color;
 
@@ -78,7 +96,7 @@ export class Tank {
 
         this._speed = 3 * fixSize * scaleFactor;
         this._speedWhileRotating = this._speed * 0.7;
-        this._rotationSpeed = 0.05*fixSize;
+        this._rotationSpeed = 0.05 * fixSize;
         this._keys = {};
 
         this._controls = controls;
@@ -96,12 +114,12 @@ export class Tank {
         this._previousY = 0;
         this._previousRotation = 0;
 
-        if(this._player) {
+        if (this._player) {
             // Listeners pour les touches
             window.addEventListener("keydown", (e) => {
                 this._keys[e.key] = true;
             });
-    
+
             window.addEventListener("keyup", (e) => {
                 this._keys[e.key] = false;
             });
@@ -110,66 +128,205 @@ export class Tank {
         this.displayBody();
         this.displayTracks();
         this.displayHead();
-
+        
         this._tankBody.x = this._coordinateSpawnX;
         this._tankBody.y = this._coordinateSpawnY;
+        this._AABBforWalls = new AABB({x: this._tankBody.x-this._tankBody.width/2, y: this._tankBody.y-this._tankBody.height/2}, {x: this._tankBody.x, y: this._tankBody.y}, this._app);
     }
 
     see() {
         return this._stadiumObject;
     }
-/*
-    safeMove() {
-        let dangerousBullets = [];
-        for (let bullet in this._stadiumObject._bullets) {
-            if (bullet.willIntersect(this)) dangerousBullets.push(bullet); 
-        }
-        if (dangerousBullets.length() == 0) return null;
-        let closest = dangerousBullets[0];
-        for (let bullet in dangerousBullets) {
-            if( distance entre this et bullet < closest distance) closest = bullet;
-        }
-        return {x: bullet.x - this.x, y: bullet.y - this.y}; 
-    }*/
 
-    canShootStaticObject(staticObject) {
+    //function that return the closest bullet that can hit the tank, if there is none return null
+    safeMove(bulletsArray) {
+        let dangerousBullets = [];
+
+        if (bulletsArray.length === 0) return null; // if there is no bullet in the stadium the tank is safe
+        for (let i = 0; i < bulletsArray.length; i++) {
+            if (bulletsArray[i].willIntersect(this)) dangerousBullets.push(bulletsArray[i]);
+        }
+        if (dangerousBullets.length === 0) return null; // if no bullet incomming the tank is safe
+        let closestBullet = dangerousBullets[0];
+
+        for (let bullet in dangerousBullets) {
+            if (this.checkDistance(this, bullet) < this.checkDistance(this, closestBullet)) closestBullet = bullet; // we get the closest bullet incomming
+        }
+        this._dangerousBullet = closestBullet; // we save the closest bullet incomming
+        return closestBullet;
+    }
+
+    //change the cannon Rotation by x degree passed in parameter
+    changeCannonRotation(degree) {
+        this._tankHead.rotation += degree * (Math.PI / 180);
 
     }
 
+    move(axis, value) {
+        this._tankBody[axis] += value;
+        this._AABBforWalls.move(axis, value);
+    }
+
+    //function that return if the tank can shoot a static object ( wall or tank) based on his actual position, we use the tankHead and tankBody rotation to calculate the possible shoot and we do a 360° rotation
+    //to check if the tank can shoot the object (tank or destructible wall)
+    canShootStaticObject(staticObject) {
+        this.changeCannonRotation(10); // 10 ° rotation
+
+        //  let bulletPath = new PIXI.Graphics();
+        //  bulletPath.lineStyle(2, 0xff0000);
+        //  bulletPath.moveTo(this._tankBody.x, this._tankBody.y);
+        let path = this.getBulletPathCurve();
+
+        for (let segment of path) {
+            //bulletPath.lineTo(segment.endX, segment.endY);
+
+            if (this.isSegmentTouchingTank(staticObject, segment.startX, segment.startY, segment.endX, segment.endY)) {
+                //  this._app.stage.addChild(bulletPath);
+                return true;
+            }
+        }
+        return false
+    }
+
+    //function that return if the tank can shoot a moving object ( bullet) based on his actual position, we use the tankHead and tankBody rotation to calculate the possible shoot and we do a 360° rotation
     canShootMovingObject(bullet) {
 
+        let result = bullet.willIntersect(this);
+
+       // console.log(result);
+        return result.distance >= 0 && result.distance <= this._tankBody.width;
+
+
+
     }
-/*
-    getActionBasedEnvironnement() {
-        let move
-        if (move = safeMove() != null) {
-            if (this.canShootMovingObject(this._dangerousBullet)) {
-                return shoot(this._dangerousBullet);
-            } else {
-                return move(move.x, move.y);
+
+    //shoot on the x,y Object position passed in parameter
+    shoot() {
+        this.updatePositionIA(this._stadiumObject, Action.Shoot, this._speed);
+
+    }
+    //function that align the cannon to the incomming bullet and shoot
+    shootIncommingBullet(bullet) {
+         const bulletCoordinate = bullet.getBounds();
+
+         this.performActionIA(Action.Shoot,bulletCoordinate.x,bulletCoordinate.y);
+         this._dangerousBullet = null;
+    }
+
+    //function that perform the correct movement action to dodge the incomming bullet
+    // the tank will dodge the bullet by moving to the opposite direction of the bullet, but will be blocked by the stadium walls
+    dodge(bullet) {
+        const bulletCoordinate = bullet.getBounds();
+        let finalAction = null;
+        // if (this._tankBody.x < bulletCoordinate.x) {
+        //     if (this._tankBody.y < bulletCoordinate.y ) { // check if the bullet is on the right or left of the tank and the tank is not colliding with a wall
+        //         finalAction =  Action.UpRight;
+        //     } else {
+        //         finalAction = Action.DownRight;
+        //     }
+        // } else {
+        //     if (this._tankBody.y < bulletCoordinate.y) {
+        //         finalAction = Action.UpLeft;
+        //     } else {
+        //         finalAction = Action.DownLeft;
+        //     }
+        // }
+
+        finalAction = Action.Right;
+
+        this.performActionIA(finalAction,bulletCoordinate.x,bulletCoordinate.y);
+        console.log(finalAction)
+        this._dangerousBullet = null;
+    }
+
+
+    canShootWall(wall) {
+        // Calculate the angle to the walls
+        const wallBounds = wall.getBodyWall().getBounds();
+        const wallCenterX = wallBounds.x + wallBounds.width / 2;
+        const wallCenterY = wallBounds.y + wallBounds.height / 2;
+        const angleToWall = Math.atan2(wallCenterY - this._tankBody.y, wallCenterX - this._tankBody.x);
+
+        // Set the tank head rotation to aim at the wall
+        this._tankHead.rotation = angleToWall - this._tankBody.rotation - Math.PI / 2;
+
+
+        let path = this.getBulletPathCurve();
+
+        for (let segment of path) {
+            if (this.isSegmentTouchingWall(wall, segment.startX, segment.startY, segment.endX, segment.endY)) {
+
+                return true;
             }
-        } else {
-            for (let otherTank in this._stadiumObject.tanks) {
-                if (this === otherTank) continue;
-                if (this.canShootStaticObject(otherTank)) {
-                    return shoot(otherTank.x, otherTank.y);
-                }
-            }
-            for (let wall in this._stadiumObject.walls) {
-                if (!wall._destruct) continue; // skip les non destructibles
-                if (this.canShootStaticObject(wall)) {
-                    return shoot(wall.x, wall.y);
-                }
-            }
-            return move(là où il peut tirer ?); // ou attendre changement de l'environnement
         }
-        return null;
+        return false;
     }
-*/
+
+    //function that return the action to do based on the environnement -> IA strategies
+    getActionBasedEnvironnement(mouseX, mouseY) {
+//PSEUDO CODE
+        /*  let move = this.safeMove(); // check if the tank is in danger -> null if the tank is safe or return the x,y position of the closest bullet
+          if (move != null) { //if the tank will be hit by a bullet, try to hit the bullet or dodge it
+              if (this.canShootMovingObject(this._dangerousBullet)) {
+                  return this.shoot(this._dangerousBullet.x,this._dangerousBullet.y);
+              } else {
+                  //return this.move(move.x, move.y);
+                  this.performActionIA(this.move(move.x,move.y),mouseX,mouseY);
+              }
+          } else { // if the tank is not in danger, try to hit a tank or a wall , tank is prioritized then destructible wall
+
+              for(let i = 0; i < this._stadiumObject._tanks.length; i++) {
+                  if (this === this._stadiumObject._tanks[i]) continue;
+                  if (this.canShootStaticObject(this._stadiumObject._tanks[i])) { // shoot the tank without mooving
+                      return this.shoot(this._stadiumObject._tanks[i].x,this._stadiumObject._tanks[i].y); // shoot otherTank x,y
+                  }
+              }
+              for (let wall in this._stadiumObject._walls) { //shoot the wall without mooving
+                  if (!wall._destruct) continue; // skip les non destructibles
+                  if (this.canShootStaticObject(wall)) {
+                      return this.shoot(wall.x,wall.y);
+                  }
+              }
+              return null; // ou attendre changement de l'environnement , no change
+          }
+          return null;*/
+
+
+        let move = this.safeMove(this._stadiumObject._bullets);
+
+        if (move != null) { // the tank is in danger , 1st priority is to shoot the bullet incoming , 2nd priority is to dodge the bullet
+            if (this.canShootMovingObject(this._dangerousBullet)) { // if the tank can shoot the bullet incoming
+                this.shootIncommingBullet(this._dangerousBullet); // align the cannon to the bullet and shoot
+            } else {
+              //  console.log("move");
+                this.dodge(this._dangerousBullet); // dodge the incoming bullet
+
+            }
+        }
+        else { // the tank is not in danger , 1st priority is to shoot the tank (if possible) , 2nd priority is to shoot the destructible wall
+            for (let i = 0; i < this._stadiumObject._tanks.length; i++) {
+                if (this === this._stadiumObject._tanks[i]) continue;
+                if (this.canShootStaticObject(this._stadiumObject._tanks[i])) {
+                    this.shoot();
+                }
+            }
+
+            // for(let wall of this._stadiumObject._destructiveWalls) {
+            //     if (this.canShootWall(wall)) {
+            //       //  this.shoot();
+            //     }
+            // }
+        }
+
+        return null
+
+
+    }
+
 
     // do a specific action base on the tank's action
     performActionIA(action, mouseX, mouseY) {
-        if(mouseX && mouseY) {
+        if (mouseX && mouseY) {
             this.updateCannonPosition(mouseX, mouseY);
         }
         this.updatePosition(this._stadiumObject, action);
@@ -206,7 +363,7 @@ export class Tank {
 
     //put the bullet path in the tank attribute
     updateBulletPath() {
-        while(this._bulletPath.children[0]) {
+        while (this._bulletPath.children[0]) {
             this._bulletPath.removeChild(this._bulletPath.children[0])
         }
         const path = this.getBulletPath();
@@ -266,11 +423,11 @@ export class Tank {
                 } else {
                     for (let wall of this._stadiumObject._walls) {
                         if (wall.isInside(endX, endY)) {
-                            if(wall.getDestruct()){
+                            if (wall.getDestruct()) {
                                 return bulletPath;
                             }
                             // Tester la distance jusqu'à l'espace vide le plus proche pour chaque rebond possible
-                            let rotations = [Math.PI - globalRotation, -globalRotation]; 
+                            let rotations = [Math.PI - globalRotation, -globalRotation];
                             let distances = rotations.map(rotation => this.rayCastNearestEmptySpace(endX, endY, rotation));
                             // Trouver la distance minimale, et donc la rotation correspondante
                             let minDistance = Math.min(...distances);
@@ -293,6 +450,7 @@ export class Tank {
         return bulletPath;
     }
 
+
     // Pareil que getBulletPath mais retourne le début et la fin de chaque segment de la trajectoire au lieu d'afficher le chemin. Utilisé pour l'animation
     getBulletPathCurve() {
         const bodyCenterX = this._tankBody.x;
@@ -307,20 +465,24 @@ export class Tank {
         let cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
         let cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
 
-        let path = [{startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation}]; 
+        let path = [{startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation}];
 
         const stadiumBounds = this._stadiumObject._bodyStadium.getBounds();
         let lineLength = 0;
+        let acumulatedLength = 0;
         let maxBounces = 3; // Nombre maximum de rebonds
         let bounces = 0;
 
         while (bounces < maxBounces) {
             lineLength = 0;
             let collisionDetected = false;
+            let destructWallAtDistance = Infinity;
+            let destructWallFunction = () => {return false;};
 
             // Continue à tracer la ligne jusqu'à ce qu'on touche un mur
             while (!collisionDetected) {
                 lineLength += 0.5;
+                acumulatedLength += 0.5;
                 let endX = cannonX + Math.cos(globalRotation) * lineLength;
                 let endY = cannonY + Math.sin(globalRotation) * lineLength;
 
@@ -340,26 +502,44 @@ export class Tank {
                 } else {
                     for (let wall of this._stadiumObject._walls) {
                         if (wall.isInside(endX, endY) && !wall._destructed) {
-                            if(wall.getDestruct()){
-                                path[path.length - 1].endX = endX;
-                                path[path.length - 1].endY = endY;
-                                if (bounces < maxBounces) {
-                                    wall._destructed = true;
-                                    path.push({
-                                        startX: cannonX,
-                                        startY: cannonY,
-                                        endX: cannonX,
-                                        endY: cannonY,
-                                        rotation: globalRotation,
-                                        destructWallAtSegment: true,
-                                        destructWall: () => {
-                                            this._stadiumObject.destructWall(wall);
-                                        }
-                                    });
-                                }
-                                return path;
 
+                            if (wall.getDestruct()) {
+                                destructWallAtDistance = acumulatedLength;
+                                destructWallFunction = () => {
+                                    if (!wall._destructed) {
+                                        wall._destructed = true;
+                                        this._stadiumObject.destructWall(wall);
+                                        return true;
+                                    }
+                                    return false;
+                                };
                             }
+                            // if (wall.getDestruct()) {
+                            //     path[path.length - 1].endX = endX;
+                            //     path[path.length - 1].endY = endY;
+                            //     if (bounces < maxBounces) {
+                            //         path.push({
+                            //             startX: cannonX,
+                            //             startY: cannonY,
+                            //             endX: cannonX,
+                            //             endY: cannonY,
+                            //             rotation: globalRotation,
+                            //             destructWallAtSegment: true,
+                            //             destructWall: () => {
+                            //                 if (!wall._destructed) {
+                            //                     wall._destructed = true;
+                            //                     this._stadiumObject.destructWall(wall);
+                            //                     return true;
+                            //                 }
+                            //                 return false;
+                            //             }
+                            //         });
+                            //     }
+                            //     return path;
+
+                            // }
+
+
                             // Tester la distance jusqu'à l'espace vide le plus proche pour chaque rebond possible
                             let rotations = [Math.PI - globalRotation, -globalRotation];
                             let distances = rotations.map(rotation => this.rayCastNearestEmptySpace(endX, endY, rotation));
@@ -376,20 +556,27 @@ export class Tank {
 
                 }
             }
-            
+
             // Incrémenter le nombre de rebonds
             bounces += 1;
-            
+
             path[path.length - 1].endX = cannonX;
             path[path.length - 1].endY = cannonY;
             if (bounces < maxBounces) {
-                path.push({startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation, shouldDestructWall: false, destructWall: () => {}});
+                path.push({
+                    startX: cannonX,
+                    startY: cannonY,
+                    endX: cannonX,
+                    endY: cannonY,
+                    rotation: globalRotation,
+                    destructWallAtDistance: destructWallAtDistance,
+                    destructWall: destructWallFunction
+                });
             }
         }
 
         return path;
     }
-
 
 
     checkCollision(otherTank) {
@@ -412,19 +599,27 @@ export class Tank {
 
         if (overlapX > overlapY) {
             if (bounds.top < otherBounds.top) {
-                this._tankBody.y -= overlapY / 2;
-                otherTank._tankBody.y += overlapY / 2;
+                //this._tankBody.y -= overlapY / 2;
+                //otherTank._tankBody.y += overlapY / 2;
+                this.move("y", -overlapY / 2);
+                otherTank.move("y", overlapY / 2);
             } else {
-                this._tankBody.y += overlapY / 2;
-                otherTank._tankBody.y -= overlapY / 2;
+                //this._tankBody.y += overlapY / 2;
+                //otherTank._tankBody.y -= overlapY / 2;
+                this.move("y", overlapY / 2);
+                otherTank.move("y", -overlapY / 2);
             }
         } else {
             if (bounds.left < otherBounds.left) {
-                this._tankBody.x -= overlapX / 2;
-                otherTank._tankBody.x += overlapX / 2;
+                //this._tankBody.x -= overlapX / 2;
+                //otherTank._tankBody.x += overlapX / 2;
+                this.move("x", -overlapX / 2);
+                otherTank.move("x", overlapX / 2);
             } else {
-                this._tankBody.x += overlapX / 2;
-                otherTank._tankBody.x -= overlapX / 2;
+                //this._tankBody.x += overlapX / 2;
+                //otherTank._tankBody.x -= overlapX / 2;
+                this.move("x", overlapX / 2);
+                otherTank.move("x", -overlapX / 2);
             }
         }
     }
@@ -522,67 +717,83 @@ export class Tank {
     updatePositionPlayer(stadium, speed) {
         if (this._player) {
             if (this._keys[this._controls.up] && !this._shortCooldown) {
-                this._tankBody.y -= speed;
+                //this._tankBody.y -= speed;
+                this.move("y", -speed);
             }
             if (this._keys[this._controls.left] && !this._shortCooldown) {
-                this._tankBody.x -= speed;
+                //this._tankBody.x -= speed;
+                this.move("x", -speed);
             }
             if (this._keys[this._controls.down] && !this._shortCooldown) {
-                this._tankBody.y += speed;
+                //this._tankBody.y += speed;
+                this.move("y", speed);
             }
             if (this._keys[this._controls.right] && !this._shortCooldown) {
-                this._tankBody.x += speed;
+                //this._tankBody.x += speed;
+                this.move("x", speed);
             }
 
-            if(this._keys[this._controls.shoot]){
+            if (this._keys[this._controls.shoot]) {
                 if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
                     let bullet = new Bullet(this._app, this._stadiumObject);
-    
+
                     bullet.display();
                     bullet.shoot(this);
-    
+
                     // Cooldown entre chaque tir et +1 balle tirée actuellement
-                    this._shortCooldown = true; 
+                    this._shortCooldown = true;
                     this._bulletsCooldown++;
                     setTimeout(() => {
                         this._shortCooldown = false;
                     }, 350);
-                    
-    
+
+
                 }
             }
         }
     }
 
     updatePositionIA(stadium, action, speed) {
-        switch(action) {
+        switch (action) {
             case Action.Up:
-                this._tankBody.y -= speed;
+                //this._tankBody.y -= speed;
+                this.move("y", -speed);
                 break;
             case Action.Left:
-                this._tankBody.x -= speed;
+                //this._tankBody.x -= speed;
+                this.move("x", -speed);
                 break;
             case Action.Down:
-                this._tankBody.y += speed;
+                //this._tankBody.y += speed;
+                this.move("y", speed);
                 break;
             case Action.Right:
-                this._tankBody.x += speed;
+                //this._tankBody.x += speed;
+                this.move("x", speed);
                 break;
             case Action.UpLeft:
-                this._tankBody.y -= speed;
-                this._tankBody.x -= speed;
+                //this._tankBody.y -= speed;
+                //this._tankBody.x -= speed;
+                this.move("y", -speed);
+                this.move("x", -speed);
                 break;
             case Action.UpRight:
-                this._tankBody.y -= speed;
-                this._tankBody.x += speed;
+                //this._tankBody.y -= speed;
+                //this._tankBody.x += speed;
+                this.move("y", -speed);
+                this.move("x", speed);
                 break;
             case Action.DownLeft:
-                this._tankBody.y += speed;
-                this._tankBody.x -= speed;
+                //this._tankBody.y += speed;
+                //this._tankBody.x -= speed;
+                this.move("y", speed);
+                this.move("x", -speed);
                 break;
             case Action.DownRight:
-                this._tankBody.y += speed;
-                this._tankBody.x += speed;
+                //this._tankBody.y += speed;
+                //this._tankBody.x += speed;
+                this.move("y", speed);
+                this.move("x", speed);
                 break;
             case Action.Shoot:
                 if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
@@ -601,8 +812,8 @@ export class Tank {
                     let cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
                     let cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
                     //particule for shooting
-                    if(this._app.stage){
-                        this.createParticle(cannonX, cannonY,1);
+                    if (this._app.stage) {
+                        this.createParticle(cannonX, cannonY, 1);
 
                     }
 
@@ -625,8 +836,8 @@ export class Tank {
 
         const hasMoved = this._previousX !== this._tankBody.x || this._previousY !== this._tankBody.y;
         const hasRotated = this._previousRotation !== (this._tankHead.rotation + this._tankBody.rotation);
-       
-        if(this._player) {
+
+        if (this._player) {
             this.updatePositionPlayer(stadium, speed);
         } else {
             this.updatePositionIA(stadium, action, speed);
@@ -639,23 +850,27 @@ export class Tank {
 
             if (tankBounds.x < stadiumBounds.x) {
                 this._tankBody.x += this._speed;
+                this._AABBforWalls.move("x", this._speed);
             }
             if (tankBounds.x + tankBounds.width > stadiumBounds.x + stadiumBounds.width) {
                 this._tankBody.x -= this._speed;
+                this._AABBforWalls.move("x", -this._speed);
             }
             if (tankBounds.y < stadiumBounds.y) {
                 this._tankBody.y += this._speed;
+                this._AABBforWalls.move("y", this._speed);
             }
             if (tankBounds.y + tankBounds.height > stadiumBounds.y + stadiumBounds.height) {
                 this._tankBody.y -= this._speed;
+                this._AABBforWalls.move("y", -this._speed);
             }
         }
-        
+
         //if the tank posititons has changed, we update the bullet path to avoid too much computation
         if ((hasMoved || hasRotated) && stadium.isTankInside(this) && (this._keys[this._controls.up] || this._keys[this._controls.down] || this._keys[this._controls.left] || this._keys[this._controls.right])) {
             // temporary fix to avoid multiple bullet path at the beginning, true fix is using spawn position to not move the tank at the beginning
-        //    console.log("the tanks has moved and we update the bullet path");
-           // this.performAction('getBulletPath');   uncomment to see the bullet path line
+            //    console.log("the tanks has moved and we update the bullet path");
+            // this.performAction('getBulletPath');   uncomment to see the bullet path line
             this._previousX = this._tankBody.x;
             this._previousY = this._tankBody.y;
             this._previousRotation = this._tankHead.rotation + this._tankBody.rotation;
@@ -694,7 +909,7 @@ export class Tank {
         this._tankHead.rotation = Math.atan2(mouseY - this._tankBody.y, mouseX - this._tankBody.x) - Math.PI / 2 - this._tankBody.rotation;
     }
 
-    isInside (x, y) {
+    isInside(x, y) {
         const bounds = this._tankBody.getBounds();
         return (
             x >= bounds.x &&
@@ -702,6 +917,75 @@ export class Tank {
             y >= bounds.y &&
             y <= bounds.y + bounds.height
         );
+    }
+
+    //function thar return if the endSegment is touching the tank
+    isTouchingTank(tank, x, y) {
+
+        const bounds = tank.getBoundsForCollision();
+
+        return (
+            x >= bounds.left &&
+            x <= bounds.right &&
+            y >= bounds.top &&
+            y <= bounds.bottom
+
+        );
+    }
+
+    isSegmentTouchingTank(tank, startX, startY, endX, endY) {
+        const bounds = tank.getBoundsForCollision();
+
+        // Check if either end of the segment is inside the tank
+        if (this.isTouchingTank(tank, startX, startY) || this.isTouchingTank(tank, endX, endY)) {
+            return true;
+        }
+
+        // Check if the segment intersects any of the tank's edges
+        const edges = [
+            {x1: bounds.left, y1: bounds.top, x2: bounds.right, y2: bounds.top},
+            {x1: bounds.right, y1: bounds.top, x2: bounds.right, y2: bounds.bottom},
+            {x1: bounds.right, y1: bounds.bottom, x2: bounds.left, y2: bounds.bottom},
+            {x1: bounds.left, y1: bounds.bottom, x2: bounds.left, y2: bounds.top}
+        ];
+
+        for (let edge of edges) {
+            if (this.doSegmentsIntersect(startX, startY, endX, endY, edge.x1, edge.y1, edge.x2, edge.y2)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+// Helper function to check if two segments intersect
+    doSegmentsIntersect(x1, y1, x2, y2, x3, y3, x4, y4) {
+        function ccw(ax, ay, bx, by, cx, cy) {
+            return (cy - ay) * (bx - ax) > (by - ay) * (cx - ax);
+        }
+
+        return (ccw(x1, y1, x3, y3, x4, y4) !== ccw(x2, y2, x3, y3, x4, y4)) &&
+            (ccw(x1, y1, x2, y2, x3, y3) !== ccw(x1, y1, x2, y2, x4, y4));
+    }
+
+
+    isSegmentTouchingWall(wall, startX, startY, endX, endY) {
+
+        // Check if either end of the segment is inside the wall
+        if (wall.isInside(startX, startY) || wall.isInside(endX, endY)) {
+            return true;
+        }
+
+        // Check if the segment intersects any of the wall's edges
+        const edges = wall.getEdges();
+
+        for (let edge of edges) {
+            if (this.doSegmentsIntersect(startX, startY, endX, endY, edge.x1, edge.y1, edge.x2, edge.y2)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
 
