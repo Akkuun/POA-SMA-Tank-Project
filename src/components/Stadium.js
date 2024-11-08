@@ -22,11 +22,14 @@ export class Stadium {
         this._height = height;
         this._app = app;
 
+
+
         this._bodyStadium = new PIXI.Graphics();
         this._bodyStadium.beginFill(0xc0a36a);
         this._bodyStadium.lineStyle(2, 0x30271a);
         this._bodyStadium.drawRect(0, 0, this._width, this._height);
         this._bodyStadium.endFill();
+
 
         // Calculer la position centrale
         const centerX = (window.innerWidth - this._width) / 2;
@@ -184,6 +187,8 @@ export class Wall extends AABB{
         this._destruct = canDestruct;
         this._destructed = false;
         this._bodyWall = new PIXI.Graphics();
+
+
 
 
         if(canDestruct){
