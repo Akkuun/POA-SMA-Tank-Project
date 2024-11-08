@@ -93,7 +93,7 @@ const MainPage = ({settings}) => {
                     tank.updatePosition(stadium);
                 } else {
                     // tank.performActionIA(Action.UpRight, 500, 500); // IA action
-                    tank.getActionBasedEnvironnement(mouseX, mouseY);
+                    tank.choseAgentAction(mouseX, mouseY);
                 }
 
                 // Mettre à jour les particules

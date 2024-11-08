@@ -19,11 +19,11 @@ export class Agent {
         throw new Error("Method 'display()' must be implemented.");
     }
 
-    performAction(action) {
+    performAgentAction(action) {
         throw new Error("Method 'performAction()' must be implemented.");
     }
 
-    choseAction() {
+    choseAgentAction() {
         throw new Error("Method 'choseAction()' must be implemented.");
     }
 }

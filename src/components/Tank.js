@@ -226,7 +226,7 @@ export class Tank extends Agent{
     shootIncommingBullet(bullet) {
          const bulletCoordinate = bullet.getBounds();
 
-         this.performActionIA(Action.Shoot,bulletCoordinate.x,bulletCoordinate.y);
+         this.performAgentAction(Action.Shoot,bulletCoordinate.x,bulletCoordinate.y);
          this._dangerousBullet = null;
     }
 
@@ -249,7 +249,7 @@ export class Tank extends Agent{
             }
         }
 
-        this.performActionIA(finalAction,bulletCoordinate.x,bulletCoordinate.y);
+        this.performAgentAction(finalAction,bulletCoordinate.x,bulletCoordinate.y);
         console.log(finalAction)
         this._dangerousBullet = null;
     }
@@ -278,7 +278,7 @@ export class Tank extends Agent{
     }
 
     //function that return the action to do based on the environnement -> IA strategies
-    getActionBasedEnvironnement(mouseX, mouseY) {
+    choseAgentAction(mouseX, mouseY) {
 //PSEUDO CODE
         /*  let move = this.safeMove(); // check if the tank is in danger -> null if the tank is safe or return the x,y position of the closest bullet
           if (move != null) { //if the tank will be hit by a bullet, try to hit the bullet or dodge it
@@ -345,7 +345,7 @@ export class Tank extends Agent{
 
 
     // do a specific action base on the tank's action
-    performActionIA(action, mouseX, mouseY) {
+    performAgentAction(action, mouseX, mouseY) {
         if (mouseX && mouseY) {
             this.updateCannonPosition(mouseX, mouseY);
         }
