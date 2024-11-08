@@ -87,6 +87,7 @@ export class Bullet {
 
     remove(){
         this._destroyed = true;
+        this._wallDestructionPlan = null;
         this._ticker.destroy(true);
         this._app.stage.removeChild(this._bodyBullet);
         if (this._tank !== null) {
