@@ -571,19 +571,18 @@ export class Tank {
 
             path[path.length - 1].endX = cannonX;
             path[path.length - 1].endY = cannonY;
+            path[path.length - 1].destructWallAtSegment = destructWallAtDistance;
+            path[path.length - 1].destructWall = destructWallFunction;
             if (bounces < maxBounces) {
                 path.push({
                     startX: cannonX,
                     startY: cannonY,
                     endX: cannonX,
                     endY: cannonY,
-                    rotation: globalRotation,
-                    destructWallAtDistance: destructWallAtDistance,
-                    destructWall: destructWallFunction
+                    rotation: globalRotation
                 });
             }
         }
-
         return path;
     }
 
