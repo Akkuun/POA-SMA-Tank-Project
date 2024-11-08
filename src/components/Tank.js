@@ -177,7 +177,7 @@ export class Tank {
     //function that return if the tank can shoot a static object ( wall or tank) based on his actual position, we use the tankHead and tankBody rotation to calculate the possible shoot and we do a 360° rotation
     //to check if the tank can shoot the object (tank or destructible wall)
     canShootStaticObject(staticObject) {
-        this.changeCannonRotation(10); // 10 ° rotation
+        this.changeCannonRotation(9); // 10 ° rotation
 
         //  let bulletPath = new PIXI.Graphics();
         //  bulletPath.lineStyle(2, 0xff0000);
@@ -306,6 +306,7 @@ export class Tank {
               //  console.log("move");
                 this.dodge(this._dangerousBullet); // dodge the incoming bullet
                 return null;
+
 
             }
         }
@@ -753,7 +754,7 @@ export class Tank {
         setTimeout(() => {
             this._trackMarks.removeChild(trackMark);
             this._trackMarks.removeChild(leftTrackMark);
-        }, 1000); // Remove after 1 second
+        }, 1000*30); // Remove after 1 second
     }
 
     displayBody() {
