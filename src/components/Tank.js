@@ -53,6 +53,10 @@ export class Tank {
     _particles = [];
     _dangerousBullet;
     _AABBforWalls;
+    _tankTracks;
+    _trackMarks;
+    _trackMarkCounter = 0;
+    _trackMarkThreshold = 10;
 
     createParticle(x, y, typeOfParticle) {
         this._particles.push(new Particle(this._app, x, y, typeOfParticle));
@@ -101,6 +105,9 @@ export class Tank {
 
         this._controls = controls;
         this._tankBody = new PIXI.Graphics();
+        this._tankTracks = new PIXI.Graphics();
+        this._trackMarks = new PIXI.Graphics();
+        app.stage.addChild(this._trackMarks);
         this._tankHead = new PIXI.Graphics();
 
         this._stadiumWidth = stadiumWidth;
@@ -680,24 +687,78 @@ export class Tank {
         const metalPlateSpacing = 9 * fixSize * scaleFactor;
 
         // Right Track
-        this._tankBody.beginFill(0x000000); // Contour
-        this._tankBody.drawRoundedRect(trackOffsetX, trackOffsetY, trackWidth, trackHeight, trackCornerRadius);
-        this._tankBody.endFill();
+        this._tankTracks.beginFill(0x000000); // Contour
+        this._tankTracks.drawRoundedRect(trackOffsetX, trackOffsetY, trackWidth, trackHeight, trackCornerRadius);
+        this._tankTracks.endFill();
         for (let i = 0; i < 6; i++) {
-            this._tankBody.beginFill(0xC0c0c0); // Metal plates
-            this._tankBody.drawRect(trackOffsetX + fixSize * scaleFactor, i * metalPlateSpacing, metalPlateWidth, metalPlateHeight);
-            this._tankBody.endFill();
+            this._tankTracks.beginFill(0xC0c0c0); // Metal plates
+            this._tankTracks.drawRect(trackOffsetX + fixSize * scaleFactor, i * metalPlateSpacing, metalPlateWidth, metalPlateHeight);
+            this._tankTracks.endFill();
         }
 
         // Left Track
-        this._tankBody.beginFill(0x000000); // Contour
-        this._tankBody.drawRoundedRect(-2 * fixSize * scaleFactor, trackOffsetY, trackWidth, trackHeight, trackCornerRadius);
-        this._tankBody.endFill();
+        this._tankTracks.beginFill(0x000000); // Contour
+        this._tankTracks.drawRoundedRect(-2 * fixSize * scaleFactor, trackOffsetY, trackWidth, trackHeight, trackCornerRadius);
+        this._tankTracks.endFill();
         for (let i = 0; i < 6; i++) {
-            this._tankBody.beginFill(0xC0c0c0); // Metal plates
-            this._tankBody.drawRect(-1 * fixSize * scaleFactor, i * metalPlateSpacing, metalPlateWidth, metalPlateHeight);
-            this._tankBody.endFill();
+            this._tankTracks.beginFill(0xC0c0c0); // Metal plates
+            this._tankTracks.drawRect(-1 * fixSize * scaleFactor, i * metalPlateSpacing, metalPlateWidth, metalPlateHeight);
+            this._tankTracks.endFill();
         }
+
+        this._tankBody.addChild(this._tankTracks);
+
+    }
+
+    isMoving() {
+        return this._previousX !== this._tankBody.x || this._previousY !== this._tankBody.y;
+    }
+
+    leaveTrackMark() {
+        const trackMark = new PIXI.Graphics();
+        const trackWidth = 5 * fixSize * scaleFactor;
+        const trackHeight = 7 * fixSize * scaleFactor; // Height of each metal plate
+        const trackCornerRadius = 2 * fixSize * scaleFactor; // Smaller corner radius for metal plates
+        const trackOffsetX = (48 - 2) / 2 * fixSize * scaleFactor; // Horizontal offset
+        const trackOffsetY = (-2 * 13) - 3 * fixSize * scaleFactor; // Vertical offset
+        const metalPlateSpacing = 9 * fixSize * scaleFactor; // Spacing between metal plates
+
+        // Calculate the rotated positions
+        const cosRotation = Math.cos(this._tankBody.rotation);
+        const sinRotation = Math.sin(this._tankBody.rotation);
+
+        const rightTrackX = this._tankBody.x + trackOffsetX * cosRotation - trackOffsetY * sinRotation;
+        const rightTrackY = this._tankBody.y + trackOffsetX * sinRotation + trackOffsetY * cosRotation;
+
+        const leftTrackX = this._tankBody.x - trackOffsetX * cosRotation - trackOffsetY * sinRotation;
+        const leftTrackY = this._tankBody.y - trackOffsetX * sinRotation + trackOffsetY * cosRotation;
+
+        // Right Track Mark
+        for (let i = 0; i < 6; i++) {
+            trackMark.beginFill(0x000000, 0.5); // Semi-transparent metal color
+            trackMark.drawRoundedRect(0, i * metalPlateSpacing, trackWidth, trackHeight, trackCornerRadius);
+            trackMark.endFill();
+        }
+        trackMark.position.set(rightTrackX, rightTrackY);
+        trackMark.rotation = this._tankBody.rotation;
+
+        // Left Track Mark
+        const leftTrackMark = new PIXI.Graphics();
+        for (let i = 0; i < 6; i++) {
+            leftTrackMark.beginFill(0x000000, 0.5); // Semi-transparent metal color
+            leftTrackMark.drawRoundedRect(0, i * metalPlateSpacing, trackWidth, trackHeight, trackCornerRadius);
+            leftTrackMark.endFill();
+        }
+        leftTrackMark.position.set(leftTrackX, leftTrackY);
+        leftTrackMark.rotation = this._tankBody.rotation;
+
+        this._trackMarks.addChild(trackMark);
+        this._trackMarks.addChild(leftTrackMark);
+
+        setTimeout(() => {
+            this._trackMarks.removeChild(trackMark);
+            this._trackMarks.removeChild(leftTrackMark);
+        }, 1000); // Remove after 1 second
     }
 
     displayBody() {
@@ -833,7 +894,8 @@ export class Tank {
     }
 
     updatePosition(stadium, action = null) {
-
+        this._previousX = this._tankBody.x;
+        this._previousY = this._tankBody.y;
         let speed = this._targetRotation === this._tankBody.rotation ? this._speed : this._speedWhileRotating;
 
         const hasMoved = this._previousX !== this._tankBody.x || this._previousY !== this._tankBody.y;
@@ -843,6 +905,14 @@ export class Tank {
             this.updatePositionPlayer(stadium, speed);
         } else {
             this.updatePositionIA(stadium, action, speed);
+        }
+
+        if (this.isMoving()) {
+            this._trackMarkCounter++;
+            if (this._trackMarkCounter >= this._trackMarkThreshold) {
+                this.leaveTrackMark();
+                this._trackMarkCounter = 0;
+            }
         }
 
         let tankBounds = this._tankBody.getBounds();
