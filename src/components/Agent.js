@@ -10,7 +10,7 @@ export class Agent {
     constructor(x, y, width, height, app, gameManager, actions) {
         this._pos = {x: x, y: y};
         this._app = app;
-        this._aabb = new AABB({x: x, y: y}, {x: x+width, y: y+height}, app, false);
+        this._aabb = new AABB({x: x, y: y}, {x: x+width, y: y+height}, app, true);
         this._gameManager = gameManager;
         this._actions = actions;
     }

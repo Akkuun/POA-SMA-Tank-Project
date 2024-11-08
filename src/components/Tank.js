@@ -45,7 +45,6 @@ export class Tank extends Agent{
     _previousX;
     _previousY;
     _previousRotation;
-    _app;
     _shortCooldown = false; // Cooldown entre chaque tir
     _maxBullets;
     _bulletsCooldown = 0; // Nombre de balles tirées simultanément, toujours < maxBullets
@@ -87,7 +86,7 @@ export class Tank extends Agent{
     }
 
     constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX, spawnY, maxBullets = 5, player) {
-        super(spawnX, spawnY, 50 * fixSize * scaleFactor / 2, 50 * fixSize * scaleFactor / 2, app, stadiumObject,
+        super((spawnX-(50 * fixSize * scaleFactor)/2), (spawnY-(50 * fixSize * scaleFactor)/2), 50 * fixSize * scaleFactor / 2, 50 * fixSize * scaleFactor / 2, app, stadiumObject,
             {
                 Up: 'Up',
                 Down: 'Down',
@@ -149,7 +148,6 @@ export class Tank extends Agent{
         
         this._tankBody.x = this._coordinateSpawnX;
         this._tankBody.y = this._coordinateSpawnY;
-        this._aabb = new AABB({x: this._tankBody.x-this._tankBody.width/2, y: this._tankBody.y-this._tankBody.height/2}, {x: this._tankBody.x, y: this._tankBody.y}, this._app);
     }
 
     see() {
