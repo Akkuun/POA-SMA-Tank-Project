@@ -44,6 +44,7 @@ const MainPage = ({settings}) => {
     }, []);
 
     useEffect(() => {
+        let firstActionDone = false;
         if (tankSpawnPositions.length === 0) return; // wait for tankSpawnPositions to be set
 
         const app = new PIXI.Application({width: WindowWidth, height: WindowHeight, backgroundColor: 0x463928});
@@ -80,7 +81,7 @@ const MainPage = ({settings}) => {
                     5, settings[1]
                 );
                 stadium.addTank(tank);
-                app.stage.addChild(tank._tankBody); // tanks added to the stage
+                app.stage.addChild(tank._body); // tanks added to the stage
             }
         }
 
@@ -93,7 +94,12 @@ const MainPage = ({settings}) => {
                     tank.updatePosition(stadium);
                 } else {
                     // tank.performActionIA(Action.UpRight, 500, 500); // IA action
-                    tank.getActionBasedEnvironnement(mouseX, mouseY);
+                    if(!firstActionDone){
+                        setTimeout(() => {
+                            tank.choseAgentAction(mouseX, mouseY);
+
+                        },1000);
+                    }
                 }
 
                 // Mettre à jour les particules
@@ -113,14 +119,14 @@ const MainPage = ({settings}) => {
                 }
 
                 for (let bullet of stadium._bullets) {
-                    if (bullet._distance > tank._tankBody.width && tank.isInside(bullet._bodyBullet.x, bullet._bodyBullet.y)) {
-                        if (tank._AABBforWalls) {
-                            tank._AABBforWalls.removeDisplay();
+                    if (bullet._distance > tank._body.width && tank.isInside(bullet._bodyBullet.x, bullet._bodyBullet.y)) {
+                        if (tank._aabb) {
+                            tank._aabb.removeDisplay();
                         }
                         tank.remove();
                         tank._destroyed = true;
-                        tank._tankBody.x = -1000000;
-                        tank._tankBody.y = -1000000;
+                        tank._body.x = -1000000;
+                        tank._body.y = -1000000;
                         app.stage.removeChild(tank);
                         continue;
                     }

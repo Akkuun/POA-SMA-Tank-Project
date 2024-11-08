@@ -3,6 +3,7 @@ import {Bullet} from "./Bullet";
 import {ScaleFactor} from "./ScaleFactor";
 import {Particle} from "./Particle";
 import { AABB } from "./AABB";
+import {Agent} from "./Agent";
 
 const WindowWidth = window.innerWidth;
 const WindowHeight = window.innerHeight;
@@ -25,7 +26,7 @@ export const Action = {
     Shoot: 'Shoot'
 };
 
-export class Tank {
+export class Tank extends Agent{
     _destroyed = false;
     _coordinateSpawnY;
     _coordinateSpawnX;
@@ -33,7 +34,6 @@ export class Tank {
     _speed;
     _keys;
     _controls;
-    _tankBody;
     _tankHead;
     _rotationSpeed;
     _speedWhileRotating;
@@ -44,15 +44,12 @@ export class Tank {
     _previousX;
     _previousY;
     _previousRotation;
-    _stadiumObject;
-    _app;
     _shortCooldown = false; // Cooldown entre chaque tir
     _maxBullets;
     _bulletsCooldown = 0; // Nombre de balles tirées simultanément, toujours < maxBullets
     _player;
     _particles = [];
     _dangerousBullet;
-    _AABBforWalls;
     _tankTracks;
     _trackMarks;
     _trackMarkCounter = 0;
@@ -80,19 +77,19 @@ export class Tank {
 
 
     get x() {
-        return this._tankBody.x;
+        return this._body.x;
     }
 
     get y() {
-        return this._tankBody.y;
+        return this._body.y;
     }
 
     constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX, spawnY, maxBullets = 5, player) {
+        super((spawnX-(50 * fixSize * scaleFactor)/2), (spawnY-(50 * fixSize * scaleFactor)/2), 50 * fixSize * scaleFactor / 2, 50 * fixSize * scaleFactor / 2, app, stadiumObject);
         this._coordinateSpawnX = spawnX;
         this._coordinateSpawnY = spawnY;
 
         this._player = player;
-        this._app = app;
 
         this._color = color;
 
@@ -104,7 +101,7 @@ export class Tank {
         this._keys = {};
 
         this._controls = controls;
-        this._tankBody = new PIXI.Graphics();
+        this._body = new PIXI.Graphics();
         this._tankTracks = new PIXI.Graphics();
         this._trackMarks = new PIXI.Graphics();
         app.stage.addChild(this._trackMarks);
@@ -112,7 +109,7 @@ export class Tank {
 
         this._stadiumWidth = stadiumWidth;
         this._stadiumHeight = stadiumHeight;
-        this._stadiumObject = stadiumObject;
+        this._gameManager = stadiumObject;
 
         this._bulletPath = new PIXI.Graphics();
         this._bulletPath.visible = false; // Masquez-le par défaut
@@ -131,18 +128,20 @@ export class Tank {
                 this._keys[e.key] = false;
             });
         }
-
-        this.displayBody();
-        this.displayTracks();
-        this.displayHead();
+        this.display();
         
-        this._tankBody.x = this._coordinateSpawnX;
-        this._tankBody.y = this._coordinateSpawnY;
-        this._AABBforWalls = new AABB({x: this._tankBody.x-this._tankBody.width/2, y: this._tankBody.y-this._tankBody.height/2}, {x: this._tankBody.x, y: this._tankBody.y}, this._app);
+        this._body.x = this._coordinateSpawnX;
+        this._body.y = this._coordinateSpawnY;
     }
 
     see() {
-        return this._stadiumObject;
+        return this._gameManager;
+    }
+
+    display(){
+        this.displayBody();
+        this.displayTracks();
+        this.displayHead();
     }
 
     //function that return the closest bullet that can hit the tank, if there is none return null
@@ -170,14 +169,14 @@ export class Tank {
     }
 
     move(axis, value) {
-        this._tankBody[axis] += value;
-        this._AABBforWalls.move(axis, value);
+        this._body[axis] += value;
+        this._aabb.move(axis, value);
     }
 
     //function that return if the tank can shoot a static object ( wall or tank) based on his actual position, we use the tankHead and tankBody rotation to calculate the possible shoot and we do a 360° rotation
     //to check if the tank can shoot the object (tank or destructible wall)
     canShootStaticObject(staticObject) {
-        this.changeCannonRotation(10); // 10 ° rotation
+        this.changeCannonRotation(9); // 10 ° rotation
 
         //  let bulletPath = new PIXI.Graphics();
         //  bulletPath.lineStyle(2, 0xff0000);
@@ -201,7 +200,7 @@ export class Tank {
         let result = bullet.willIntersect(this);
 
        // console.log(result);
-        return result.distance >= 0 && result.distance <= this._tankBody.width;
+        return result.distance >= 0 && result.distance <= this._body.width;
 
 
 
@@ -209,14 +208,14 @@ export class Tank {
 
     //shoot on the x,y Object position passed in parameter
     shoot() {
-        this.updatePositionIA(this._stadiumObject, Action.Shoot, this._speed);
+        this.updatePositionIA(this._gameManager, Action.Shoot, this._speed);
 
     }
     //function that align the cannon to the incomming bullet and shoot
     shootIncommingBullet(bullet) {
          const bulletCoordinate = bullet.getBounds();
 
-         this.performActionIA(Action.Shoot,bulletCoordinate.x,bulletCoordinate.y);
+         this.performAgentAction(Action.Shoot,bulletCoordinate.x,bulletCoordinate.y);
          this._dangerousBullet = null;
     }
 
@@ -225,21 +224,21 @@ export class Tank {
     dodge(bullet) {
         const bulletCoordinate = bullet.getBounds();
         let finalAction = null;
-        if (this._tankBody.x < bulletCoordinate.x) {
-            if (this._tankBody.y < bulletCoordinate.y ) { // check if the bullet is on the right or left of the tank and the tank is not colliding with a wall
+        if (this._body.x < bulletCoordinate.x) {
+            if (this._body.y < bulletCoordinate.y ) { // check if the bullet is on the right or left of the tank and the tank is not colliding with a wall
                 finalAction =  Action.UpRight;
             } else {
                 finalAction = Action.DownRight;
             }
         } else {
-            if (this._tankBody.y < bulletCoordinate.y) {
+            if (this._body.y < bulletCoordinate.y) {
                 finalAction = Action.UpLeft;
             } else {
                 finalAction = Action.DownLeft;
             }
         }
 
-        this.performActionIA(finalAction,bulletCoordinate.x,bulletCoordinate.y);
+        this.performAgentAction(finalAction,bulletCoordinate.x,bulletCoordinate.y);
         console.log(finalAction)
         this._dangerousBullet = null;
     }
@@ -250,10 +249,10 @@ export class Tank {
         const wallBounds = wall.getBodyWall().getBounds();
         const wallCenterX = wallBounds.x + wallBounds.width / 2;
         const wallCenterY = wallBounds.y + wallBounds.height / 2;
-        const angleToWall = Math.atan2(wallCenterY - this._tankBody.y, wallCenterX - this._tankBody.x);
+        const angleToWall = Math.atan2(wallCenterY - this._body.y, wallCenterX - this._body.x);
 
         // Set the tank head rotation to aim at the wall
-        this._tankHead.rotation = angleToWall - this._tankBody.rotation - Math.PI / 2;
+        this._tankHead.rotation = angleToWall - this._body.rotation - Math.PI / 2;
 
 
         let path = this.getBulletPathCurve();
@@ -268,7 +267,7 @@ export class Tank {
     }
 
     //function that return the action to do based on the environnement -> IA strategies
-    getActionBasedEnvironnement(mouseX, mouseY) {
+    choseAgentAction(mouseX, mouseY) {
 //PSEUDO CODE
         /*  let move = this.safeMove(); // check if the tank is in danger -> null if the tank is safe or return the x,y position of the closest bullet
           if (move != null) { //if the tank will be hit by a bullet, try to hit the bullet or dodge it
@@ -297,7 +296,7 @@ export class Tank {
           return null;*/
 
 
-        let move = this.safeMove(this._stadiumObject._bullets);
+        let move = this.safeMove(this._gameManager._bullets);
 
         if (move != null) { // the tank is in danger , 1st priority is to shoot the bullet incoming , 2nd priority is to dodge the bullet
             if (this.canShootMovingObject(this._dangerousBullet)) { // if the tank can shoot the bullet incoming
@@ -307,12 +306,13 @@ export class Tank {
                 this.dodge(this._dangerousBullet); // dodge the incoming bullet
                 return null;
 
+
             }
         }
         else { // the tank is not in danger , 1st priority is to shoot the tank (if possible) , 2nd priority is to shoot the destructible wall
-            for (let i = 0; i < this._stadiumObject._tanks.length; i++) {
-                if (this === this._stadiumObject._tanks[i]) continue;
-                if (this.canShootStaticObject(this._stadiumObject._tanks[i])) {
+            for (let i = 0; i < this._gameManager._tanks.length; i++) {
+                if (this === this._gameManager._tanks[i]) continue;
+                if (this.canShootStaticObject(this._gameManager._tanks[i])) {
                     this.shoot();
                     return null;
                 }
@@ -334,23 +334,23 @@ export class Tank {
 
 
     // do a specific action base on the tank's action
-    performActionIA(action, mouseX, mouseY) {
+    performAgentAction(action, mouseX, mouseY) {
         if (mouseX && mouseY) {
             this.updateCannonPosition(mouseX, mouseY);
         }
-        this.updatePosition(this._stadiumObject, action);
+        this.updatePosition(this._gameManager, action);
     }
 
     remove() {
-        this._stadiumObject._tanks.splice(this._stadiumObject._tanks.indexOf(this), 1);
+        this._gameManager._tanks.splice(this._gameManager._tanks.indexOf(this), 1);
     }
 
     getBoundsForCollision() {
         return {
-            left: this._tankBody.x,
-            right: this._tankBody.x + this._tankBody.width,
-            top: this._tankBody.y,
-            bottom: this._tankBody.y + this._tankBody.height
+            left: this._body.x,
+            right: this._body.x + this._body.width,
+            top: this._body.y,
+            bottom: this._body.y + this._body.height
         }
     }
 
@@ -358,12 +358,12 @@ export class Tank {
         let x = startX;
         let y = startY;
         let step = 1;
-        while (this._stadiumObject.isPointInside(x, y) && this._stadiumObject.isPointInsideAWall(x, y)) {
+        while (this._gameManager.isPointInside(x, y) && this._gameManager.isPointInsideAWall(x, y)) {
             x = startX + Math.cos(angle) * step;
             y = startY + Math.sin(angle) * step;
             step++;
         }
-        if (this._stadiumObject.isPointInside(x, y)) {
+        if (this._gameManager.isPointInside(x, y)) {
             return distance(startX, startY, x, y);
         } else {
             return Infinity;
@@ -386,21 +386,21 @@ export class Tank {
         const bulletPath = new PIXI.Graphics();
         bulletPath.lineStyle(2, 0xff0000);
 
-        const bodyCenterX = this._tankBody.x;
-        const bodyCenterY = this._tankBody.y;
+        const bodyCenterX = this._body.x;
+        const bodyCenterY = this._body.y;
 
         //const cannonOffset = 25 * scaleFactor;  // Distance entre le centre du tank et l'extrémité du canon
         const cannonLength = 25 * fixSize * scaleFactor;  // Longueur du canon
 
         // Calcule la rotation globale avec un ajustement de +PI
-        let globalRotation = this._tankBody.rotation + this._tankHead.rotation + Math.PI / 2;
+        let globalRotation = this._body.rotation + this._tankHead.rotation + Math.PI / 2;
 
         let cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
         let cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
 
         bulletPath.moveTo(cannonX, cannonY);
 
-        const stadiumBounds = this._stadiumObject._bodyStadium.getBounds();
+        const stadiumBounds = this._gameManager._bodyStadium.getBounds();
         let lineLength = 0;
         let maxBounces = 3; // Nombre maximum de rebonds
         let bounces = 0;
@@ -430,7 +430,7 @@ export class Tank {
                     cannonX = endX;
                     cannonY = endY;
                 } else {
-                    for (let wall of this._stadiumObject._walls) {
+                    for (let wall of this._gameManager._walls) {
                         if (wall.isInside(endX, endY)) {
                             if (wall.getDestruct()) {
                                 return bulletPath;
@@ -462,21 +462,21 @@ export class Tank {
 
     // Pareil que getBulletPath mais retourne le début et la fin de chaque segment de la trajectoire au lieu d'afficher le chemin. Utilisé pour l'animation
     getBulletPathCurve() {
-        const bodyCenterX = this._tankBody.x;
-        const bodyCenterY = this._tankBody.y;
+        const bodyCenterX = this._body.x;
+        const bodyCenterY = this._body.y;
 
         //const cannonOffset = 25 * fixSize * scaleFactor;  // Distance entre le centre du tank et l'extrémité du canon
         const cannonLength = 25 * fixSize * scaleFactor;  // Longueur du canon
 
         // Calcule la rotation globale avec un ajustement de +PI
-        let globalRotation = this._tankBody.rotation + this._tankHead.rotation + Math.PI / 2;
+        let globalRotation = this._body.rotation + this._tankHead.rotation + Math.PI / 2;
 
         let cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
         let cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
 
         let path = [{startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation}];
 
-        const stadiumBounds = this._stadiumObject._bodyStadium.getBounds();
+        const stadiumBounds = this._gameManager._bodyStadium.getBounds();
         let lineLength = 0;
         let acumulatedLength = 0;
         let maxBounces = 3; // Nombre maximum de rebonds
@@ -509,7 +509,7 @@ export class Tank {
                     cannonX = endX;
                     cannonY = endY;
                 } else {
-                    for (let wall of this._stadiumObject._walls) {
+                    for (let wall of this._gameManager._walls) {
                         if (wall.isInside(endX, endY) && !wall._destructed) {
 
                             if (wall.getDestruct()) {
@@ -517,7 +517,7 @@ export class Tank {
                                 destructWallFunction = () => {
                                     if (!wall._destructed) {
                                         wall._destructed = true;
-                                        this._stadiumObject.destructWall(wall);
+                                        this._gameManager.destructWall(wall);
                                         return true;
                                     }
                                     return false;
@@ -669,10 +669,10 @@ export class Tank {
 
         // Attach point for the head to the body to rotate
         this._tankHead.pivot.set(headCenter, headCenter);
-        this._tankHead.x = this._tankBody.x + 25 * fixSize * scaleFactor;
-        this._tankHead.y = this._tankBody.y + 25 * fixSize * scaleFactor;
+        this._tankHead.x = this._body.x + 25 * fixSize * scaleFactor;
+        this._tankHead.y = this._body.y + 25 * fixSize * scaleFactor;
 
-        this._tankBody.addChild(this._tankHead);
+        this._body.addChild(this._tankHead);
     }
 
     displayTracks() {
@@ -706,12 +706,12 @@ export class Tank {
             this._tankTracks.endFill();
         }
 
-        this._tankBody.addChild(this._tankTracks);
+        this._body.addChild(this._tankTracks);
 
     }
 
     isMoving() {
-        return this._previousX !== this._tankBody.x || this._previousY !== this._tankBody.y;
+        return this._previousX !== this._body.x || this._previousY !== this._body.y;
     }
 
     leaveTrackMark() {
@@ -723,21 +723,21 @@ export class Tank {
         const trackOffsetY = (-2 * 13) - 3 * fixSize * scaleFactor; // Vertical offset
         const metalPlateSpacing = 9 * fixSize * scaleFactor; // Spacing between metal plates
 
-        const cosRotation = Math.cos(this._tankBody.rotation)
-        const sinRotation = Math.sin(this._tankBody.rotation);
+        const cosRotation = Math.cos(this._body.rotation)
+        const sinRotation = Math.sin(this._body.rotation);
 
-        const rightTrackX = this._tankBody.x + trackOffsetX * cosRotation - trackOffsetY * sinRotation;
-        const rightTrackY = this._tankBody.y + trackOffsetX * sinRotation + trackOffsetY * cosRotation;
+        const rightTrackX = this._body.x + trackOffsetX * cosRotation - trackOffsetY * sinRotation;
+        const rightTrackY = this._body.y + trackOffsetX * sinRotation + trackOffsetY * cosRotation;
 
-        const leftTrackX = this._tankBody.x - trackOffsetX * cosRotation - trackOffsetY * sinRotation;
-        const leftTrackY = this._tankBody.y - trackOffsetX * sinRotation + trackOffsetY * cosRotation;
+        const leftTrackX = this._body.x - trackOffsetX * cosRotation - trackOffsetY * sinRotation;
+        const leftTrackY = this._body.y - trackOffsetX * sinRotation + trackOffsetY * cosRotation;
 
         // Right Track Mark
             trackMark.beginFill(0x000000, 0.5); // Semi-transparent metal color
             trackMark.drawRoundedRect(0, metalPlateSpacing, trackWidth, trackHeight, trackCornerRadius);
             trackMark.endFill();
         trackMark.position.set(rightTrackX, rightTrackY);
-        trackMark.rotation = this._tankBody.rotation;
+        trackMark.rotation = this._body.rotation;
 
         // Left Track Mark
         const leftTrackMark = new PIXI.Graphics();
@@ -745,7 +745,7 @@ export class Tank {
             leftTrackMark.drawRoundedRect(0, metalPlateSpacing, trackWidth, trackHeight, trackCornerRadius);
             leftTrackMark.endFill();
         leftTrackMark.position.set(leftTrackX, leftTrackY);
-        leftTrackMark.rotation = this._tankBody.rotation;
+        leftTrackMark.rotation = this._body.rotation;
 
         this._trackMarks.addChild(trackMark);
         this._trackMarks.addChild(leftTrackMark);
@@ -753,7 +753,7 @@ export class Tank {
         setTimeout(() => {
             this._trackMarks.removeChild(trackMark);
             this._trackMarks.removeChild(leftTrackMark);
-        }, 1000); // Remove after 1 second
+        }, 1000*30); // Remove after 1 second
     }
 
     displayBody() {
@@ -764,12 +764,12 @@ export class Tank {
         const bodyY = 0;  // Y body position (centered or adjusted if necessary)
 
         // Body draw
-        this._tankBody.beginFill(this._color);
-        this._tankBody.drawRect(bodyX, bodyY, bodyWidth, bodyHeight);
-        this._tankBody.endFill();
+        this._body.beginFill(this._color);
+        this._body.drawRect(bodyX, bodyY, bodyWidth, bodyHeight);
+        this._body.endFill();
 
         // Pivot point for the body to rotate
-        this._tankBody.pivot.set(this._tankBody.width / 2, this._tankBody.height / 2);
+        this._body.pivot.set(this._body.width / 2, this._body.height / 2);
     }
 
     updatePositionPlayer(stadium, speed) {
@@ -793,7 +793,7 @@ export class Tank {
 
             if (this._keys[this._controls.shoot]) {
                 if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
-                    let bullet = new Bullet(this._app, this._stadiumObject);
+                    let bullet = new Bullet(this._app, this._gameManager);
 
                     bullet.display();
                     bullet.shoot(this);
@@ -855,17 +855,17 @@ export class Tank {
                 break;
             case Action.Shoot:
                 if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
-                    let bullet = new Bullet(this._app, this._stadiumObject);
+                    let bullet = new Bullet(this._app, this._gameManager);
                     bullet.display();
                     bullet.shoot(this);
 
 
-                    const bodyCenterX = this._tankBody.x;
-                    const bodyCenterY = this._tankBody.y;
+                    const bodyCenterX = this._body.x;
+                    const bodyCenterY = this._body.y;
 
                     const cannonLength = 25 * scaleFactor;  // Longueur du canon
 
-                    let globalRotation = this._tankBody.rotation + this._tankHead.rotation + Math.PI / 2;
+                    let globalRotation = this._body.rotation + this._tankHead.rotation + Math.PI / 2;
 
                     let cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
                     let cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
@@ -889,12 +889,12 @@ export class Tank {
     }
 
     updatePosition(stadium, action = null) {
-        this._previousX = this._tankBody.x;
-        this._previousY = this._tankBody.y;
-        let speed = this._targetRotation === this._tankBody.rotation ? this._speed : this._speedWhileRotating;
+        this._previousX = this._body.x;
+        this._previousY = this._body.y;
+        let speed = this._targetRotation === this._body.rotation ? this._speed : this._speedWhileRotating;
 
-        const hasMoved = this._previousX !== this._tankBody.x || this._previousY !== this._tankBody.y;
-        const hasRotated = this._previousRotation !== (this._tankHead.rotation + this._tankBody.rotation);
+        const hasMoved = this._previousX !== this._body.x || this._previousY !== this._body.y;
+        const hasRotated = this._previousRotation !== (this._tankHead.rotation + this._body.rotation);
 
         if (this._player) {
             this.updatePositionPlayer(stadium, speed);
@@ -910,26 +910,26 @@ export class Tank {
             }
         }
 
-        let tankBounds = this._tankBody.getBounds();
+        let tankBounds = this._body.getBounds();
         let stadiumBounds = stadium._bodyStadium.getBounds();
 
         if (!stadium.isTankInside(this)) { // Check if the tank is outside the stadium
 
             if (tankBounds.x < stadiumBounds.x) {
-                this._tankBody.x += this._speed;
-                this._AABBforWalls.move("x", this._speed);
+                this._body.x += this._speed;
+                this._aabb.move("x", this._speed);
             }
             if (tankBounds.x + tankBounds.width > stadiumBounds.x + stadiumBounds.width) {
-                this._tankBody.x -= this._speed;
-                this._AABBforWalls.move("x", -this._speed);
+                this._body.x -= this._speed;
+                this._aabb.move("x", -this._speed);
             }
             if (tankBounds.y < stadiumBounds.y) {
-                this._tankBody.y += this._speed;
-                this._AABBforWalls.move("y", this._speed);
+                this._body.y += this._speed;
+                this._aabb.move("y", this._speed);
             }
             if (tankBounds.y + tankBounds.height > stadiumBounds.y + stadiumBounds.height) {
-                this._tankBody.y -= this._speed;
-                this._AABBforWalls.move("y", -this._speed);
+                this._body.y -= this._speed;
+                this._aabb.move("y", -this._speed);
             }
         }
 
@@ -938,9 +938,9 @@ export class Tank {
             // temporary fix to avoid multiple bullet path at the beginning, true fix is using spawn position to not move the tank at the beginning
             //    console.log("the tanks has moved and we update the bullet path");
             // this.performAction('getBulletPath');   uncomment to see the bullet path line
-            this._previousX = this._tankBody.x;
-            this._previousY = this._tankBody.y;
-            this._previousRotation = this._tankHead.rotation + this._tankBody.rotation;
+            this._previousX = this._body.x;
+            this._previousY = this._body.y;
+            this._previousRotation = this._tankHead.rotation + this._body.rotation;
         }
     }
 
@@ -956,7 +956,7 @@ export class Tank {
             return;
         }
         this._targetRotation = Math.atan2(dY, dX) - Math.PI / 2;
-        let delta = this._targetRotation - this._tankBody.rotation;
+        let delta = this._targetRotation - this._body.rotation;
         // Keep the delta between -PI and PI
         while (delta > Math.PI) {
             delta -= Math.PI * 2;
@@ -966,18 +966,18 @@ export class Tank {
         }
         // Rotate the body
         if (Math.abs(delta) < this._rotationSpeed) {
-            this._tankBody.rotation = this._targetRotation;
+            this._body.rotation = this._targetRotation;
         } else {
-            this._tankBody.rotation += this._rotationSpeed * Math.sign(delta);
+            this._body.rotation += this._rotationSpeed * Math.sign(delta);
         }
     }
 
     updateCannonPosition(mouseX, mouseY) {
-        this._tankHead.rotation = Math.atan2(mouseY - this._tankBody.y, mouseX - this._tankBody.x) - Math.PI / 2 - this._tankBody.rotation;
+        this._tankHead.rotation = Math.atan2(mouseY - this._body.y, mouseX - this._body.x) - Math.PI / 2 - this._body.rotation;
     }
 
     isInside(x, y) {
-        const bounds = this._tankBody.getBounds();
+        const bounds = this._body.getBounds();
         return (
             x >= bounds.x &&
             x <= bounds.x + bounds.width &&
