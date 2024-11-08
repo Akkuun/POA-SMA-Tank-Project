@@ -80,7 +80,7 @@ const MainPage = ({settings}) => {
                     5, settings[1]
                 );
                 stadium.addTank(tank);
-                app.stage.addChild(tank._tankBody); // tanks added to the stage
+                app.stage.addChild(tank._body); // tanks added to the stage
             }
         }
 
@@ -113,14 +113,14 @@ const MainPage = ({settings}) => {
                 }
 
                 for (let bullet of stadium._bullets) {
-                    if (bullet._distance > tank._tankBody.width && tank.isInside(bullet._bodyBullet.x, bullet._bodyBullet.y)) {
+                    if (bullet._distance > tank._body.width && tank.isInside(bullet._bodyBullet.x, bullet._bodyBullet.y)) {
                         if (tank._aabb) {
                             tank._aabb.removeDisplay();
                         }
                         tank.remove();
                         tank._destroyed = true;
-                        tank._tankBody.x = -1000000;
-                        tank._tankBody.y = -1000000;
+                        tank._body.x = -1000000;
+                        tank._body.y = -1000000;
                         app.stage.removeChild(tank);
                         continue;
                     }

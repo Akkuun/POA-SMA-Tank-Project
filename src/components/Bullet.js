@@ -270,10 +270,10 @@ export class Bullet {
         const cannonLength = 50;
         const offsetX = 0;
         const offsetY = 0;
-        const cannonTipX = Tank._tankBody.x + offsetX + cannonLength * Math.sin(-Tank._tankHead.rotation-Tank._tankBody.rotation);
-        const cannonTipY = Tank._tankBody.y + offsetY + cannonLength * Math.cos(Tank._tankHead.rotation + Tank._tankBody.rotation);
+        const cannonTipX = Tank._body.x + offsetX + cannonLength * Math.sin(-Tank._tankHead.rotation-Tank._body.rotation);
+        const cannonTipY = Tank._body.y + offsetY + cannonLength * Math.cos(Tank._tankHead.rotation + Tank._body.rotation);
         this.setPosition(cannonTipX, cannonTipY);
-        this.setDirection(Tank._tankHead.rotation+Tank._tankBody.rotation);
+        this.setDirection(Tank._tankHead.rotation+Tank._body.rotation);
 
         this._path = this.computeBulletPath(this.getPosition(), this._bodyBullet.rotation + Math.PI/2 , 3);
         for (let i = 0; i < this._path.length; i++) {

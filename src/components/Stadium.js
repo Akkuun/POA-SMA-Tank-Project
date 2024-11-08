@@ -101,7 +101,7 @@ export class Stadium {
     }
 
     isTankInside(tank) {
-        const bounds = tank._tankBody.getBounds();
+        const bounds = tank._body.getBounds();
         const stadiumBounds = this._bodyStadium.getBounds();
         return (
             bounds.x >= stadiumBounds.x && //si le x du tank est supérieur ou égal au x du stade
