@@ -202,7 +202,7 @@ export class Wall extends AABB{
     }
 
     testForAABB(tank) {
-        return this.intersectsAABB(tank._AABBforWalls);
+        return this.intersectsAABB(tank._aabb);
     }
 
     resolveCollision(tank, intersection) {

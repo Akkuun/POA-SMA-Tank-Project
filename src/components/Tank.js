@@ -52,7 +52,6 @@ export class Tank extends Agent{
     _player;
     _particles = [];
     _dangerousBullet;
-    _AABBforWalls;
     _tankTracks;
     _trackMarks;
     _trackMarkCounter = 0;
@@ -150,7 +149,7 @@ export class Tank extends Agent{
         
         this._tankBody.x = this._coordinateSpawnX;
         this._tankBody.y = this._coordinateSpawnY;
-        this._AABBforWalls = new AABB({x: this._tankBody.x-this._tankBody.width/2, y: this._tankBody.y-this._tankBody.height/2}, {x: this._tankBody.x, y: this._tankBody.y}, this._app);
+        this._aabb = new AABB({x: this._tankBody.x-this._tankBody.width/2, y: this._tankBody.y-this._tankBody.height/2}, {x: this._tankBody.x, y: this._tankBody.y}, this._app);
     }
 
     see() {
@@ -183,7 +182,7 @@ export class Tank extends Agent{
 
     move(axis, value) {
         this._tankBody[axis] += value;
-        this._AABBforWalls.move(axis, value);
+        this._aabb.move(axis, value);
     }
 
     //function that return if the tank can shoot a static object ( wall or tank) based on his actual position, we use the tankHead and tankBody rotation to calculate the possible shoot and we do a 360° rotation
@@ -930,19 +929,19 @@ export class Tank extends Agent{
 
             if (tankBounds.x < stadiumBounds.x) {
                 this._tankBody.x += this._speed;
-                this._AABBforWalls.move("x", this._speed);
+                this._aabb.move("x", this._speed);
             }
             if (tankBounds.x + tankBounds.width > stadiumBounds.x + stadiumBounds.width) {
                 this._tankBody.x -= this._speed;
-                this._AABBforWalls.move("x", -this._speed);
+                this._aabb.move("x", -this._speed);
             }
             if (tankBounds.y < stadiumBounds.y) {
                 this._tankBody.y += this._speed;
-                this._AABBforWalls.move("y", this._speed);
+                this._aabb.move("y", this._speed);
             }
             if (tankBounds.y + tankBounds.height > stadiumBounds.y + stadiumBounds.height) {
                 this._tankBody.y -= this._speed;
-                this._AABBforWalls.move("y", -this._speed);
+                this._aabb.move("y", -this._speed);
             }
         }
 
