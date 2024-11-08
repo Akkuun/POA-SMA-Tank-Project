@@ -44,6 +44,7 @@ const MainPage = ({settings}) => {
     }, []);
 
     useEffect(() => {
+        let firstActionDone = false;
         if (tankSpawnPositions.length === 0) return; // wait for tankSpawnPositions to be set
 
         const app = new PIXI.Application({width: WindowWidth, height: WindowHeight, backgroundColor: 0x463928});
@@ -93,7 +94,12 @@ const MainPage = ({settings}) => {
                     tank.updatePosition(stadium);
                 } else {
                     // tank.performActionIA(Action.UpRight, 500, 500); // IA action
-                    tank.choseAgentAction(mouseX, mouseY);
+                    if(!firstActionDone){
+                        setTimeout(() => {
+                            tank.choseAgentAction(mouseX, mouseY);
+
+                        },1000);
+                    }
                 }
 
                 // Mettre à jour les particules

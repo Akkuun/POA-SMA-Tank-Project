@@ -85,18 +85,7 @@ export class Tank extends Agent{
     }
 
     constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX, spawnY, maxBullets = 5, player) {
-        super((spawnX-(50 * fixSize * scaleFactor)/2), (spawnY-(50 * fixSize * scaleFactor)/2), 50 * fixSize * scaleFactor / 2, 50 * fixSize * scaleFactor / 2, app, stadiumObject,
-            {
-                Up: 'Up',
-                Down: 'Down',
-                Left: 'Left',
-                Right: 'Right',
-                UpLeft: 'UpLeft',
-                UpRight: 'UpRight',
-                DownLeft: 'DownLeft',
-                DownRight: 'DownRight',
-                Shoot: 'Space'
-            });
+        super((spawnX-(50 * fixSize * scaleFactor)/2), (spawnY-(50 * fixSize * scaleFactor)/2), 50 * fixSize * scaleFactor / 2, 50 * fixSize * scaleFactor / 2, app, stadiumObject);
         this._coordinateSpawnX = spawnX;
         this._coordinateSpawnY = spawnY;
 

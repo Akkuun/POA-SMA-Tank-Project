@@ -5,14 +5,12 @@ export class Agent {
     _aabb;
     _app;
     _gameManager;
-    _actions;
 
-    constructor(x, y, width, height, app, gameManager, actions) {
+    constructor(x, y, width, height, app, gameManager) {
         this._body = null;
         this._app = app;
         this._aabb = new AABB({x: x, y: y}, {x: x+width, y: y+height}, app, true);
         this._gameManager = gameManager;
-        this._actions = actions;
     }
 
     display() {
