@@ -64,6 +64,14 @@ const MainPage = ({settings}) => {
         const stadium = new Stadium(stadiumWidth, stadiumHeight, app);
         app.stage.addChild(stadium._bodyStadium);
 
+        //create a pixi graphic that show the centre of the stadium
+        /*const centre = new PIXI.Graphics();
+        centre.beginFill(0x00FF00);
+        centre.drawCircle(stadiumWidth/2, stadiumHeight/2, 5);
+        centre.endFill();
+        app.stage.addChild(centre);*/
+
+
         stadium.generateStadiumFromFile(filePath); // Stadium Wall generation from file
 
         // Mouse positions
