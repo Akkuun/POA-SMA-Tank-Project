@@ -4,10 +4,12 @@ import {Tank} from './Tank';
 import {Stadium} from './Stadium';
 import {Action} from './Tank';
 import {stadiumWidth, stadiumHeight, ScaleFactor} from './ScaleFactor';
-import {useLocation} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
+import EndComponent from "./EndComponent";
 
 
 const MainPage = ({settings}) => {
+
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const nbTank = parseInt(queryParams.get('nbTank'), 10) || 2;
@@ -146,6 +148,11 @@ const MainPage = ({settings}) => {
                     }
                 }
             }
+            const remainingTanks = stadium._tanks.filter(tank => !tank._destroyed);
+            if (remainingTanks.length === 1) {
+                //setIsGameEnded(true);
+                app.ticker.stop();
+            }
         });
 
 
@@ -163,7 +170,9 @@ const MainPage = ({settings}) => {
     }, [tankSpawnPositions, WindowHeight, WindowWidth, settings]);
 
     return (
-        <div ref={pixiContainerRef}></div>
+        <div ref={pixiContainerRef}>
+
+        </div>
     );
 };
 
