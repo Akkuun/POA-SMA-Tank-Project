@@ -9,6 +9,7 @@ const App = () => {
     const [settings, setSettings] = useState([2, false]); // Initialiser avec deux valeurs (nombre de tanks et booléen)
 
 
+
     return (
         <Routes>
             <Route path="/" element={<MenuComponent settings={settings} setSettings={setSettings} />} />

@@ -4,9 +4,15 @@ import {Tank} from './Tank';
 import {Stadium} from './Stadium';
 import {Action} from './Tank';
 import {stadiumWidth, stadiumHeight, ScaleFactor} from './ScaleFactor';
+import {useLocation} from "react-router-dom";
 
 
 const MainPage = ({settings}) => {
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+    const nbTank = parseInt(queryParams.get('nbTank'), 10) || 2;
+    const isPlayerPlaying = queryParams.get('isPlayerPlaying') === 'true';
+
     const pixiContainerRef = useRef(null);
     const [tankSpawnPositions, setTankSpawnPositions] = useState([]);
     const WindowWidth = window.innerWidth;
@@ -68,7 +74,7 @@ const MainPage = ({settings}) => {
 
 
         //tanks generation
-        for (let i = 0; i < settings[0] + 1; i++) {
+        for (let i = 0; i < nbTank + 1; i++) {
             let tankSpawnPosition = tankSpawnPositions[i];
             // Tank object creation
             if (tankSpawnPosition) {
@@ -78,7 +84,7 @@ const MainPage = ({settings}) => {
                     {up: "z", left: "q", down: "s", right: "d", shoot: " "},
                     stadiumWidth, stadiumHeight, stadium, app,
                     tankSpawnPosition.x, tankSpawnPosition.y,
-                    5, settings[1]
+                    5, isPlayerPlaying
                 );
                 stadium.addTank(tank);
                 app.stage.addChild(tank._body); // tanks added to the stage
