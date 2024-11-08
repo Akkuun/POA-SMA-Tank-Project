@@ -3,6 +3,7 @@ import {Bullet} from "./Bullet";
 import {ScaleFactor} from "./ScaleFactor";
 import {Particle} from "./Particle";
 import { AABB } from "./AABB";
+import {Agent} from "./Agent";
 
 const WindowWidth = window.innerWidth;
 const WindowHeight = window.innerHeight;
@@ -25,7 +26,7 @@ export const Action = {
     Shoot: 'Shoot'
 };
 
-export class Tank {
+export class Tank extends Agent{
     _destroyed = false;
     _coordinateSpawnY;
     _coordinateSpawnX;
@@ -44,7 +45,6 @@ export class Tank {
     _previousX;
     _previousY;
     _previousRotation;
-    _stadiumObject;
     _app;
     _shortCooldown = false; // Cooldown entre chaque tir
     _maxBullets;
@@ -88,6 +88,18 @@ export class Tank {
     }
 
     constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX, spawnY, maxBullets = 5, player) {
+        super(spawnX, spawnY, 50 * fixSize * scaleFactor / 2, 50 * fixSize * scaleFactor / 2, app, stadiumObject,
+            {
+                Up: 'Up',
+                Down: 'Down',
+                Left: 'Left',
+                Right: 'Right',
+                UpLeft: 'UpLeft',
+                UpRight: 'UpRight',
+                DownLeft: 'DownLeft',
+                DownRight: 'DownRight',
+                Shoot: 'Space'
+            });
         this._coordinateSpawnX = spawnX;
         this._coordinateSpawnY = spawnY;
 
@@ -112,7 +124,7 @@ export class Tank {
 
         this._stadiumWidth = stadiumWidth;
         this._stadiumHeight = stadiumHeight;
-        this._stadiumObject = stadiumObject;
+        this._gameManager = stadiumObject;
 
         this._bulletPath = new PIXI.Graphics();
         this._bulletPath.visible = false; // Masquez-le par défaut
@@ -142,7 +154,7 @@ export class Tank {
     }
 
     see() {
-        return this._stadiumObject;
+        return this._gameManager;
     }
 
     //function that return the closest bullet that can hit the tank, if there is none return null
@@ -209,7 +221,7 @@ export class Tank {
 
     //shoot on the x,y Object position passed in parameter
     shoot() {
-        this.updatePositionIA(this._stadiumObject, Action.Shoot, this._speed);
+        this.updatePositionIA(this._gameManager, Action.Shoot, this._speed);
 
     }
     //function that align the cannon to the incomming bullet and shoot
@@ -297,7 +309,7 @@ export class Tank {
           return null;*/
 
 
-        let move = this.safeMove(this._stadiumObject._bullets);
+        let move = this.safeMove(this._gameManager._bullets);
 
         if (move != null) { // the tank is in danger , 1st priority is to shoot the bullet incoming , 2nd priority is to dodge the bullet
             if (this.canShootMovingObject(this._dangerousBullet)) { // if the tank can shoot the bullet incoming
@@ -311,9 +323,9 @@ export class Tank {
             }
         }
         else { // the tank is not in danger , 1st priority is to shoot the tank (if possible) , 2nd priority is to shoot the destructible wall
-            for (let i = 0; i < this._stadiumObject._tanks.length; i++) {
-                if (this === this._stadiumObject._tanks[i]) continue;
-                if (this.canShootStaticObject(this._stadiumObject._tanks[i])) {
+            for (let i = 0; i < this._gameManager._tanks.length; i++) {
+                if (this === this._gameManager._tanks[i]) continue;
+                if (this.canShootStaticObject(this._gameManager._tanks[i])) {
                     this.shoot();
                     return null;
                 }
@@ -339,11 +351,11 @@ export class Tank {
         if (mouseX && mouseY) {
             this.updateCannonPosition(mouseX, mouseY);
         }
-        this.updatePosition(this._stadiumObject, action);
+        this.updatePosition(this._gameManager, action);
     }
 
     remove() {
-        this._stadiumObject._tanks.splice(this._stadiumObject._tanks.indexOf(this), 1);
+        this._gameManager._tanks.splice(this._gameManager._tanks.indexOf(this), 1);
     }
 
     getBoundsForCollision() {
@@ -359,12 +371,12 @@ export class Tank {
         let x = startX;
         let y = startY;
         let step = 1;
-        while (this._stadiumObject.isPointInside(x, y) && this._stadiumObject.isPointInsideAWall(x, y)) {
+        while (this._gameManager.isPointInside(x, y) && this._gameManager.isPointInsideAWall(x, y)) {
             x = startX + Math.cos(angle) * step;
             y = startY + Math.sin(angle) * step;
             step++;
         }
-        if (this._stadiumObject.isPointInside(x, y)) {
+        if (this._gameManager.isPointInside(x, y)) {
             return distance(startX, startY, x, y);
         } else {
             return Infinity;
@@ -401,7 +413,7 @@ export class Tank {
 
         bulletPath.moveTo(cannonX, cannonY);
 
-        const stadiumBounds = this._stadiumObject._bodyStadium.getBounds();
+        const stadiumBounds = this._gameManager._bodyStadium.getBounds();
         let lineLength = 0;
         let maxBounces = 3; // Nombre maximum de rebonds
         let bounces = 0;
@@ -431,7 +443,7 @@ export class Tank {
                     cannonX = endX;
                     cannonY = endY;
                 } else {
-                    for (let wall of this._stadiumObject._walls) {
+                    for (let wall of this._gameManager._walls) {
                         if (wall.isInside(endX, endY)) {
                             if (wall.getDestruct()) {
                                 return bulletPath;
@@ -477,7 +489,7 @@ export class Tank {
 
         let path = [{startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation}];
 
-        const stadiumBounds = this._stadiumObject._bodyStadium.getBounds();
+        const stadiumBounds = this._gameManager._bodyStadium.getBounds();
         let lineLength = 0;
         let acumulatedLength = 0;
         let maxBounces = 3; // Nombre maximum de rebonds
@@ -510,7 +522,7 @@ export class Tank {
                     cannonX = endX;
                     cannonY = endY;
                 } else {
-                    for (let wall of this._stadiumObject._walls) {
+                    for (let wall of this._gameManager._walls) {
                         if (wall.isInside(endX, endY) && !wall._destructed) {
 
                             if (wall.getDestruct()) {
@@ -518,7 +530,7 @@ export class Tank {
                                 destructWallFunction = () => {
                                     if (!wall._destructed) {
                                         wall._destructed = true;
-                                        this._stadiumObject.destructWall(wall);
+                                        this._gameManager.destructWall(wall);
                                         return true;
                                     }
                                     return false;
@@ -794,7 +806,7 @@ export class Tank {
 
             if (this._keys[this._controls.shoot]) {
                 if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
-                    let bullet = new Bullet(this._app, this._stadiumObject);
+                    let bullet = new Bullet(this._app, this._gameManager);
 
                     bullet.display();
                     bullet.shoot(this);
@@ -856,7 +868,7 @@ export class Tank {
                 break;
             case Action.Shoot:
                 if (!this._shortCooldown && this._bulletsCooldown < this._maxBullets) {
-                    let bullet = new Bullet(this._app, this._stadiumObject);
+                    let bullet = new Bullet(this._app, this._gameManager);
                     bullet.display();
                     bullet.shoot(this);
 
