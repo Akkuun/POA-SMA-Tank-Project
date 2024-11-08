@@ -56,7 +56,7 @@ export class Tank {
     _tankTracks;
     _trackMarks;
     _trackMarkCounter = 0;
-    _trackMarkThreshold = 10;
+    _trackMarkThreshold = 3 ;
 
     createParticle(x, y, typeOfParticle) {
         this._particles.push(new Particle(this._app, x, y, typeOfParticle));
@@ -723,8 +723,7 @@ export class Tank {
         const trackOffsetY = (-2 * 13) - 3 * fixSize * scaleFactor; // Vertical offset
         const metalPlateSpacing = 9 * fixSize * scaleFactor; // Spacing between metal plates
 
-        // Calculate the rotated positions
-        const cosRotation = Math.cos(this._tankBody.rotation);
+        const cosRotation = Math.cos(this._tankBody.rotation)
         const sinRotation = Math.sin(this._tankBody.rotation);
 
         const rightTrackX = this._tankBody.x + trackOffsetX * cosRotation - trackOffsetY * sinRotation;
@@ -734,21 +733,17 @@ export class Tank {
         const leftTrackY = this._tankBody.y - trackOffsetX * sinRotation + trackOffsetY * cosRotation;
 
         // Right Track Mark
-        for (let i = 0; i < 6; i++) {
             trackMark.beginFill(0x000000, 0.5); // Semi-transparent metal color
-            trackMark.drawRoundedRect(0, i * metalPlateSpacing, trackWidth, trackHeight, trackCornerRadius);
+            trackMark.drawRoundedRect(0, metalPlateSpacing, trackWidth, trackHeight, trackCornerRadius);
             trackMark.endFill();
-        }
         trackMark.position.set(rightTrackX, rightTrackY);
         trackMark.rotation = this._tankBody.rotation;
 
         // Left Track Mark
         const leftTrackMark = new PIXI.Graphics();
-        for (let i = 0; i < 6; i++) {
             leftTrackMark.beginFill(0x000000, 0.5); // Semi-transparent metal color
-            leftTrackMark.drawRoundedRect(0, i * metalPlateSpacing, trackWidth, trackHeight, trackCornerRadius);
+            leftTrackMark.drawRoundedRect(0, metalPlateSpacing, trackWidth, trackHeight, trackCornerRadius);
             leftTrackMark.endFill();
-        }
         leftTrackMark.position.set(leftTrackX, leftTrackY);
         leftTrackMark.rotation = this._tankBody.rotation;
 
