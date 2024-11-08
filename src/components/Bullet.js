@@ -186,15 +186,15 @@ export class Bullet {
 
             path[path.length - 1].endX = cannonX;
             path[path.length - 1].endY = cannonY;
+            path[path.length - 1].destructWallAtDistance = destructWallAtDistance;
+            path[path.length - 1].destructWall = destructWallFunction;
             if (bounces < maxBounces) {
                 path.push({
                     startX: cannonX,
                     startY: cannonY,
                     endX: cannonX,
                     endY: cannonY,
-                    rotation: globalRotation,
-                    destructWallAtDistance: destructWallAtDistance,
-                    destructWall: destructWallFunction
+                    rotation: globalRotation
                 });
             }
         }
@@ -231,7 +231,7 @@ export class Bullet {
             return null; // Chemin terminé
         }
         if (this._wallDestructionPlan) {
-            if (distance >= this._wallDestructionPlan.distance) {
+            if (distance+this._speed >= this._wallDestructionPlan.distance) {
                 let shouldRecomputePath = !this._wallDestructionPlan.function();
                 this._wallDestructionPlan = {};
                 if (shouldRecomputePath) {
