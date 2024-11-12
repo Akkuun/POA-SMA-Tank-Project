@@ -791,6 +791,48 @@ export class Tank extends Agent{
         }, 1000*30); // Remove after 1 second
     }
 
+    leaveTrackMark2() {
+        const trackMark = new PIXI.Graphics();
+        const trackWidth = 5 * fixSize * scaleFactor;
+        const trackHeight = 7 * fixSize * scaleFactor; // Height of each metal plate
+        const trackCornerRadius = 2 * fixSize * scaleFactor; // Smaller corner radius for metal plates
+        const trackOffsetX = (48 - 2) / 2 * fixSize * scaleFactor; // Horizontal offset
+        const trackOffsetY = (-2 * 13) - 3 * fixSize * scaleFactor; // Vertical offset
+        const metalPlateSpacing = 9 * fixSize * scaleFactor; // Spacing between metal plates
+
+        const cosRotation = Math.cos(this._body.rotation)
+        const sinRotation = Math.sin(this._body.rotation);
+
+        const rightTrackX = this._body.x + trackOffsetX * cosRotation - trackOffsetY * sinRotation;
+        const rightTrackY = this._body.y + trackOffsetX * sinRotation + trackOffsetY * cosRotation;
+
+        const leftTrackX = this._body.x - trackOffsetX * cosRotation - trackOffsetY * sinRotation;
+        const leftTrackY = this._body.y - trackOffsetX * sinRotation + trackOffsetY * cosRotation;
+
+        // Right Track Mark
+        trackMark.beginFill(0x000000, 0.5); // Semi-transparent metal color
+        trackMark.drawRoundedRect(0, metalPlateSpacing, trackWidth, trackHeight, trackCornerRadius);
+        trackMark.endFill();
+        trackMark.position.set(rightTrackX, rightTrackY);
+        trackMark.rotation = this._body.rotation;
+
+        // Left Track Mark
+        const leftTrackMark = new PIXI.Graphics();
+        leftTrackMark.beginFill(0x000000, 0.5); // Semi-transparent metal color
+        leftTrackMark.drawRoundedRect(0, metalPlateSpacing, trackWidth, trackHeight, trackCornerRadius);
+        leftTrackMark.endFill();
+        leftTrackMark.position.set(leftTrackX, leftTrackY);
+        leftTrackMark.rotation = this._body.rotation;
+
+        this._trackMarksContainer.addChild(trackMark);
+        this._trackMarksContainer.addChild(leftTrackMark);
+
+        setTimeout(() => {
+            this._trackMarksContainer.removeChild(trackMark);
+            this._trackMarksContainer.removeChild(leftTrackMark);
+        }, 1000*30); // Remove after 1 second
+    }
+
     displayBody() {
         // Body dimensions
         const bodyWidth = 50 * fixSize * scaleFactor;
