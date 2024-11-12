@@ -64,6 +64,10 @@ const MainPage = ({settings}) => {
         const stadium = new Stadium(stadiumWidth, stadiumHeight, app);
         app.stage.addChild(stadium._bodyStadium);
 
+        //we need to put here the track marks container so that it is displayed behind the tanks (because z-index doesn't work on pixis objects)
+        const trackMarksContainer = new PIXI.Container();
+        app.stage.addChild(trackMarksContainer);
+
         //create a pixi graphic that show the centre of the stadium
         /*const centre = new PIXI.Graphics();
         centre.beginFill(0x00FF00);
@@ -96,6 +100,7 @@ const MainPage = ({settings}) => {
                     tankSpawnPosition.x, tankSpawnPosition.y,
                     5, isPlayerPlaying
                 );
+                tank.setTrackMarksContainer(trackMarksContainer); // set the track marks container to the right one
                 stadium.addTank(tank);
                 app.stage.addChild(tank._body); // tanks added to the stage
             }
