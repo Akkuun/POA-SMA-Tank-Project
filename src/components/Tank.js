@@ -833,6 +833,10 @@ export class Tank extends Agent{
         }, 1000*30); // Remove after 1 second
     }
 
+    setTrackMarksContainer(container) {
+        this._trackMarksContainer = container;
+    }
+
     displayBody() {
         // Body dimensions
         const bodyWidth = 50 * fixSize * scaleFactor;
