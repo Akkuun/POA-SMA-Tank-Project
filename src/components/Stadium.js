@@ -14,6 +14,7 @@ export class Stadium {
     _bullets = [];
     _tanks = [];
     _tankSpawnPositions = [];
+    _zone;
 
     _app;
 
@@ -31,6 +32,8 @@ export class Stadium {
         this._bodyStadium.endFill();
 
 
+
+
         // Calculer la position centrale
         const centerX = (window.innerWidth - this._width) / 2;
         const centerY = (window.innerHeight - this._height) / 2;
@@ -39,6 +42,10 @@ export class Stadium {
 
     addBullet(bullet) {
         this._bullets.push(bullet);
+    }
+
+    getZone(){
+        return this._zone;
     }
 
     addTank(tank) {
@@ -122,6 +129,21 @@ export class Stadium {
             y >= bounds.y &&
             y <= bounds.y + bounds.height
         );
+    }
+
+    findValidPoint() {
+        let centerx = this._bodyStadium.x + this._bodyStadium.width / 2;
+        let centery = this._bodyStadium.y + this._bodyStadium.height / 2;
+        if (this.isPointInsideAWall(centerx, centery) && this.isPointInside(centerx, centery)) {
+            // Take a random point in the stadium and recheck if the point is in a wall
+            centerx = Math.random() * this._bodyStadium.width + this._bodyStadium.x;
+            centery = Math.random() * this._bodyStadium.height + this._bodyStadium.y;
+            while (this.isPointInsideAWall(centerx, centery) && this.isPointInside(centerx, centery)) {
+                centerx = Math.random() * this._bodyStadium.width + this._bodyStadium.x;
+                centery = Math.random() * this._bodyStadium.height + this._bodyStadium.y;
+            }
+        }
+        this._zone= { x: centerx, y: centery };
     }
     
     display(app) {

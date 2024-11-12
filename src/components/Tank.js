@@ -326,9 +326,17 @@ export class Tank extends Agent{
             //     }
             // }
 
-            //if the tank is not in danger and there is no tank to shoot , try to find another tank to shoot in the center of the stadium
-            let centerx = this._gameManager._bodyStadium.x + this._gameManager._bodyStadium.width / 2;
-            let centery = this._gameManager._bodyStadium.y + this._gameManager._bodyStadium.height / 2;
+            //if the tank is not in danger and there is no tank to shoot , try to find another tank to shoot by going on zone coordinates, so tanks will meat each other on this point
+            // let centerx = this._gameManager._bodyStadium.x + this._gameManager._bodyStadium.width / 2;
+            //let centery = this._gameManager._bodyStadium.y + this._gameManager._bodyStadium.height / 2;
+            //we need to find a good point to meet the other tank, so we will try to go to the center of the stadium
+            //the point need to be free of wall, so we will try to go to the right or left depending on the signe of the difference, and do the same for y
+
+            //find a point withouth being in a wall and still in the stadium
+            let zone = this._gameManager.getZone();
+            let centerx = zone.x;
+            let centery = zone.y;
+
             //if x is the closet to the center of the stadium, try to go to the right or left depending on the signe of the difference, and do the same for y
             //also need to save the last input of this part, cause if the tank is blocked by a wall, it will then go in the other part of the "if" cases
             let x = this._body.x;

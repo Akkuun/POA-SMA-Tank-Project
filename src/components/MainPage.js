@@ -64,6 +64,7 @@ const MainPage = ({settings}) => {
         const stadium = new Stadium(stadiumWidth, stadiumHeight, app);
         app.stage.addChild(stadium._bodyStadium);
 
+
         //create a pixi graphic that show the centre of the stadium
         /*const centre = new PIXI.Graphics();
         centre.beginFill(0x00FF00);
@@ -81,6 +82,14 @@ const MainPage = ({settings}) => {
             mouseX = event.data.global.x;
             mouseY = event.data.global.y;
         });
+
+        stadium.findValidPoint();
+        //debug point
+        const point = new PIXI.Graphics();
+        point.beginFill(0x00FF00);
+        point.drawCircle(stadium.getZone().x, stadium.getZone().y, 5);
+        point.endFill();
+        app.stage.addChild(point);
 
 
         //tanks generation
