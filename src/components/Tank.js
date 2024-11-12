@@ -718,6 +718,8 @@ export class Tank extends Agent{
 
         const metalPlateSpacing = 9 * fixSize * scaleFactor;
 
+
+
         // Right Track
         this._tankTracks.beginFill(0x000000); // Contour
         this._tankTracks.drawRoundedRect(trackOffsetX, trackOffsetY, trackWidth, trackHeight, trackCornerRadius);
@@ -730,11 +732,11 @@ export class Tank extends Agent{
 
         // Left Track
         this._tankTracks.beginFill(0x000000); // Contour
-        this._tankTracks.drawRoundedRect(-2 * fixSize * scaleFactor, trackOffsetY, trackWidth, trackHeight, trackCornerRadius);
+        this._tankTracks.drawRoundedRect(trackOffsetY, trackOffsetY, trackWidth, trackHeight, trackCornerRadius);
         this._tankTracks.endFill();
         for (let i = 0; i < 6; i++) {
             this._tankTracks.beginFill(0xC0c0c0); // Metal plates
-            this._tankTracks.drawRect(-1 * fixSize * scaleFactor, i * metalPlateSpacing, metalPlateWidth, metalPlateHeight);
+            this._tankTracks.drawRect(trackOffsetY+1, i * metalPlateSpacing, metalPlateWidth, metalPlateHeight);
             this._tankTracks.endFill();
         }
 
