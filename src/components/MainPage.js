@@ -63,8 +63,10 @@ const MainPage = ({settings}) => {
 
         const stadium = new Stadium(stadiumWidth, stadiumHeight, app);
         app.stage.addChild(stadium._bodyStadium);
+        app.stage.sortableChildren = true; // to make z-index "work"
 
-        //we need to put here the track marks container so that it is displayed behind the tanks (because z-index doesn't work on pixis objects)
+
+        //we need to put here the track marks container so that it is displayed behind the tanks (because z-index doesn't work on pixis objects if the container is not set up before the objects)
         const trackMarksContainer = new PIXI.Container();
         app.stage.addChild(trackMarksContainer);
 

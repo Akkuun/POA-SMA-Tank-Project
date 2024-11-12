@@ -44,9 +44,9 @@ export class Tank extends Agent{
     _previousX;
     _previousY;
     _previousRotation;
-    _shortCooldown = false; // Cooldown entre chaque tir
+    _shortCooldown = false; // Cooldown between each bullet
     _maxBullets;
-    _bulletsCooldown = 0; // Nombre de balles tirées simultanément, toujours < maxBullets
+    _bulletsCooldown = 0; // number of bullet shoot simultaneously < maxBullets
     _player;
     _particles = [];
     _dangerousBullet;
@@ -104,6 +104,7 @@ export class Tank extends Agent{
         this._body = new PIXI.Graphics();
         this._tankTracks = new PIXI.Graphics();
         this._trackMarks = new PIXI.Graphics();
+        this._trackMarks.zIndex = 4;
         app.stage.addChild(this._trackMarks);
         this._tankHead = new PIXI.Graphics();
 
@@ -128,6 +129,7 @@ export class Tank extends Agent{
                 this._keys[e.key] = false;
             });
         }
+        this._body.zIndex = 15;
         this.display();
         
         this._body.x = this._coordinateSpawnX;
@@ -161,12 +163,12 @@ export class Tank extends Agent{
         this._dangerousBullet = closestBullet; // we save the closest bullet incomming
         return closestBullet;
     }
-
     //change the cannon Rotation by x degree passed in parameter
     changeCannonRotation(degree) {
         this._tankHead.rotation += degree * (Math.PI / 180);
 
     }
+
 
     move(axis, value) {
         this._body[axis] += value;
@@ -174,20 +176,13 @@ export class Tank extends Agent{
     }
 
     //function that return if the tank can shoot a static object ( wall or tank) based on his actual position, we use the tankHead and tankBody rotation to calculate the possible shoot and we do a 360° rotation
-    //to check if the tank can shoot the object (tank or destructible wall)
     canShootStaticObject(staticObject) {
         this.changeCannonRotation(9); // 10 ° rotation
-
-        //  let bulletPath = new PIXI.Graphics();
-        //  bulletPath.lineStyle(2, 0xff0000);
-        //  bulletPath.moveTo(this._tankBody.x, this._tankBody.y);
         let path = this.getBulletPathCurve();
 
         for (let segment of path) {
-            //bulletPath.lineTo(segment.endX, segment.endY);
 
             if (this.isSegmentTouchingTank(staticObject, segment.startX, segment.startY, segment.endX, segment.endY)) {
-                //  this._app.stage.addChild(bulletPath);
                 return true;
             }
         }
@@ -286,12 +281,12 @@ export class Tank extends Agent{
                   }
               }
               for (let wall in this._stadiumObject._walls) { //shoot the wall without mooving
-                  if (!wall._destruct) continue; // skip les non destructibles
+                  if (!wall._destruct) continue; // skip non destructible wall
                   if (this.canShootStaticObject(wall)) {
                       return this.shoot(wall.x,wall.y);
                   }
               }
-              return null; // ou attendre changement de l'environnement , no change
+              return null; // or wait environmment to change
           }
           return null;*/
 
@@ -381,14 +376,6 @@ export class Tank extends Agent{
         this._gameManager._tanks.splice(this._gameManager._tanks.indexOf(this), 1);
     }
 
-    getBoundsForCollision() {
-        return {
-            left: this._body.x,
-            right: this._body.x + this._body.width,
-            top: this._body.y,
-            bottom: this._body.y + this._body.height
-        }
-    }
 
     rayCastNearestEmptySpace(startX, startY, angle) { // Retourne la distance jusqu'à l'espace hors mur le plus proche
         let x = startX;
@@ -418,6 +405,15 @@ export class Tank extends Agent{
         }, 1000);
     }
 
+    getBoundsForCollision() {
+        return {
+            left: this._body.x,
+            right: this._body.x + this._body.width,
+            top: this._body.y,
+            bottom: this._body.y + this._body.height
+        }
+    }
+
     getBulletPath() {
         const bulletPath = new PIXI.Graphics();
         bulletPath.lineStyle(2, 0xff0000);
@@ -425,10 +421,10 @@ export class Tank extends Agent{
         const bodyCenterX = this._body.x;
         const bodyCenterY = this._body.y;
 
-        //const cannonOffset = 25 * scaleFactor;  // Distance entre le centre du tank et l'extrémité du canon
-        const cannonLength = 25 * fixSize * scaleFactor;  // Longueur du canon
+        //const cannonOffset = 25 * scaleFactor;  // length between center of the tank and the edge of canon
+        const cannonLength = 25 * fixSize * scaleFactor;  // length of the canon
 
-        // Calcule la rotation globale avec un ajustement de +PI
+        // calculation of the global rotation withe adjustment of +PI
         let globalRotation = this._body.rotation + this._tankHead.rotation + Math.PI / 2;
 
         let cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
@@ -438,30 +434,30 @@ export class Tank extends Agent{
 
         const stadiumBounds = this._gameManager._bodyStadium.getBounds();
         let lineLength = 0;
-        let maxBounces = 3; // Nombre maximum de rebonds
+        let maxBounces = 3; // maximum number of bounces
         let bounces = 0;
 
         while (bounces < maxBounces) {
             lineLength = 0;
             let collisionDetected = false;
 
-            // Continue à tracer la ligne jusqu'à ce qu'on touche un mur
+            // Continue to draw the line until we hit a wall
             while (!collisionDetected) {
                 lineLength += 0.5;
                 let endX = cannonX + Math.cos(globalRotation) * lineLength;
                 let endY = cannonY + Math.sin(globalRotation) * lineLength;
                 bulletPath.lineTo(endX, endY);
 
-                // Détection de collision avec les bords du stade
+                // Detection of collision with the edges of the stadium
                 if (endX <= stadiumBounds.x || endX >= stadiumBounds.x + stadiumBounds.width) {
-                    // Rebond sur un mur vertical (gauche ou droite)
-                    globalRotation = Math.PI - globalRotation; // Inversion sur l'axe X
+                    // Rebound on a vertical wall (left or right)
+                    globalRotation = Math.PI - globalRotation; // Inversion on the X axis
                     collisionDetected = true;
                     cannonX = endX;
                     cannonY = endY;
                 } else if (endY <= stadiumBounds.y || endY >= stadiumBounds.y + stadiumBounds.height) {
-                    // Rebond sur un mur horizontal (haut ou bas)
-                    globalRotation = -globalRotation; // Inversion sur l'axe Y
+                    // Rebound on a horizontal wall (top or bottom)
+                    globalRotation = -globalRotation; // Inversion on the Y axis
                     collisionDetected = true;
                     cannonX = endX;
                     cannonY = endY;
@@ -471,10 +467,10 @@ export class Tank extends Agent{
                             if (wall.getDestruct()) {
                                 return bulletPath;
                             }
-                            // Tester la distance jusqu'à l'espace vide le plus proche pour chaque rebond possible
+                            // Test the distance to the nearest empty space for each possible rebound
                             let rotations = [Math.PI - globalRotation, -globalRotation];
                             let distances = rotations.map(rotation => this.rayCastNearestEmptySpace(endX, endY, rotation));
-                            // Trouver la distance minimale, et donc la rotation correspondante
+                            // Find the minimum distance, and thus the corresponding rotation
                             let minDistance = Math.min(...distances);
                             let minIndex = distances.indexOf(minDistance);
                             globalRotation = rotations[minIndex];
@@ -488,7 +484,7 @@ export class Tank extends Agent{
                 }
             }
 
-            // Incrémenter le nombre de rebonds
+            // Increment the number of rebounds
             bounces += 1;
         }
 
@@ -719,6 +715,7 @@ export class Tank extends Agent{
         const trackOffsetY = -2 * fixSize * scaleFactor; // Vertical offset
         const metalPlateWidth = 3 * fixSize * scaleFactor;
         const metalPlateHeight = 7 * fixSize * scaleFactor;
+
         const metalPlateSpacing = 9 * fixSize * scaleFactor;
 
         // Right Track
@@ -791,51 +788,7 @@ export class Tank extends Agent{
         }, 1000*30); // Remove after 1 second
     }
 
-    leaveTrackMark2() {
-        const trackMark = new PIXI.Graphics();
-        const trackWidth = 5 * fixSize * scaleFactor;
-        const trackHeight = 7 * fixSize * scaleFactor; // Height of each metal plate
-        const trackCornerRadius = 2 * fixSize * scaleFactor; // Smaller corner radius for metal plates
-        const trackOffsetX = (48 - 2) / 2 * fixSize * scaleFactor; // Horizontal offset
-        const trackOffsetY = (-2 * 13) - 3 * fixSize * scaleFactor; // Vertical offset
-        const metalPlateSpacing = 9 * fixSize * scaleFactor; // Spacing between metal plates
 
-        const cosRotation = Math.cos(this._body.rotation)
-        const sinRotation = Math.sin(this._body.rotation);
-
-        const rightTrackX = this._body.x + trackOffsetX * cosRotation - trackOffsetY * sinRotation;
-        const rightTrackY = this._body.y + trackOffsetX * sinRotation + trackOffsetY * cosRotation;
-
-        const leftTrackX = this._body.x - trackOffsetX * cosRotation - trackOffsetY * sinRotation;
-        const leftTrackY = this._body.y - trackOffsetX * sinRotation + trackOffsetY * cosRotation;
-
-        // Right Track Mark
-        trackMark.beginFill(0x000000, 0.5); // Semi-transparent metal color
-        trackMark.drawRoundedRect(0, metalPlateSpacing, trackWidth, trackHeight, trackCornerRadius);
-        trackMark.endFill();
-        trackMark.position.set(rightTrackX, rightTrackY);
-        trackMark.rotation = this._body.rotation;
-
-        // Left Track Mark
-        const leftTrackMark = new PIXI.Graphics();
-        leftTrackMark.beginFill(0x000000, 0.5); // Semi-transparent metal color
-        leftTrackMark.drawRoundedRect(0, metalPlateSpacing, trackWidth, trackHeight, trackCornerRadius);
-        leftTrackMark.endFill();
-        leftTrackMark.position.set(leftTrackX, leftTrackY);
-        leftTrackMark.rotation = this._body.rotation;
-
-        this._trackMarksContainer.addChild(trackMark);
-        this._trackMarksContainer.addChild(leftTrackMark);
-
-        setTimeout(() => {
-            this._trackMarksContainer.removeChild(trackMark);
-            this._trackMarksContainer.removeChild(leftTrackMark);
-        }, 1000*30); // Remove after 1 second
-    }
-
-    setTrackMarksContainer(container) {
-        this._trackMarksContainer = container;
-    }
 
     displayBody() {
         // Body dimensions
@@ -986,7 +939,7 @@ export class Tank extends Agent{
         if (this.isMoving()) {
             this._trackMarkCounter++;
             if (this._trackMarkCounter >= this._trackMarkThreshold) {
-                this.leaveTrackMark();
+                this.leaveTrackMark2();
                 this._trackMarkCounter = 0;
             }
         }
@@ -1134,6 +1087,52 @@ export class Tank extends Agent{
         }
 
         return false;
+    }
+
+    leaveTrackMark2() {
+        const trackMark = new PIXI.Graphics();
+        const trackWidth = 5 * fixSize * scaleFactor;
+        const trackHeight = 7 * fixSize * scaleFactor; // Height of each metal plate
+        const trackCornerRadius = 2 * fixSize * scaleFactor; // Smaller corner radius for metal plates
+        const trackOffsetX = (48 - 2) / 2 * fixSize * scaleFactor; // Horizontal offset
+        const trackOffsetY = (-2 * 13) - 3 * fixSize * scaleFactor; // Vertical offset
+        const metalPlateSpacing = 9 * fixSize * scaleFactor; // Spacing between metal plates
+
+        const cosRotation = Math.cos(this._body.rotation)
+        const sinRotation = Math.sin(this._body.rotation);
+
+        const rightTrackX = this._body.x + trackOffsetX * cosRotation - trackOffsetY * sinRotation;
+        const rightTrackY = this._body.y + trackOffsetX * sinRotation + trackOffsetY * cosRotation;
+
+        const leftTrackX = this._body.x - trackOffsetX * cosRotation - trackOffsetY * sinRotation;
+        const leftTrackY = this._body.y - trackOffsetX * sinRotation + trackOffsetY * cosRotation;
+
+        // Right Track Mark
+        trackMark.beginFill(0x000000, 0.5); // Semi-transparent metal color
+        trackMark.drawRoundedRect(0, metalPlateSpacing, trackWidth, trackHeight, trackCornerRadius);
+        trackMark.endFill();
+        trackMark.position.set(rightTrackX, rightTrackY);
+        trackMark.rotation = this._body.rotation;
+
+        // Left Track Mark
+        const leftTrackMark = new PIXI.Graphics();
+        leftTrackMark.beginFill(0x000000, 0.5); // Semi-transparent metal color
+        leftTrackMark.drawRoundedRect(0, metalPlateSpacing, trackWidth, trackHeight, trackCornerRadius);
+        leftTrackMark.endFill();
+        leftTrackMark.position.set(leftTrackX, leftTrackY);
+        leftTrackMark.rotation = this._body.rotation;
+
+        this._trackMarksContainer.addChild(trackMark);
+        this._trackMarksContainer.addChild(leftTrackMark);
+
+        setTimeout(() => {
+            this._trackMarksContainer.removeChild(trackMark);
+            this._trackMarksContainer.removeChild(leftTrackMark);
+        }, 1000*30); // Remove after 1 second
+    }
+
+    setTrackMarksContainer(container) {
+        this._trackMarksContainer = container;
     }
 }
 
