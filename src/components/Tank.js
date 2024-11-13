@@ -189,6 +189,87 @@ export class Tank extends Agent{
         return false
     }
 
+    getBulletPathCurveOptimize(){
+        const bodyCenterX = this._body.x;
+        const bodyCenterY = this._body.y;
+        const cannonLength = 25 * fixSize * scaleFactor;  // Longueur du canon
+        let globalRotation = this._body.rotation + this._tankHead.rotation + Math.PI / 2;
+        let cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
+        let cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
+        let path = [{startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation}];
+        const stadiumBounds = this._gameManager._bodyStadium.getBounds();
+        let lineLength = 0;
+        let acumulatedLength = 0;
+        let maxBounces = 3; // Nombre maximum de rebonds
+        let bounces = 0;
+        while (bounces < maxBounces) {
+            lineLength = 0;
+            let collisionDetected = false;
+            let destructWallAtDistance = Infinity;
+            let destructWallFunction = () => {
+                return false;
+            };
+            while (!collisionDetected) {
+                lineLength += 0.5;
+                acumulatedLength += 0.5;
+                let endX = cannonX + Math.cos(globalRotation) * lineLength;
+                let endY = cannonY + Math.sin(globalRotation) * lineLength;
+                if (endX <= stadiumBounds.x || endX >= stadiumBounds.x + stadiumBounds.width) {
+                    globalRotation = Math.PI - globalRotation; // Inversion sur l'axe X
+                    collisionDetected = true;
+                    cannonX = endX;
+                    cannonY = endY;
+                } else if (endY <= stadiumBounds.y || endY >= stadiumBounds.y + stadiumBounds.height) {
+                    globalRotation = -globalRotation; // Inversion sur l'axe Y
+                    collisionDetected = true;
+                    cannonX = endX;
+                    cannonY = endY;
+                } else {
+                    for (let wall of this._gameManager._walls) {
+                        if (wall.isInside(endX, endY) && !wall._destructed) {
+                            if (wall.getDestruct()) {
+                                destructWallAtDistance = acumulatedLength;
+                                destructWallFunction = () => {
+                                    if (!wall._destructed) {
+                                        wall._destructed
+                                        this._gameManager.destructWall(wall);
+                                        return true;
+                                    }
+                                    return false;
+                                }
+                            }
+                            let rotations = [Math.PI - globalRotation, -globalRotation];
+                            let distances = rotations.map(rotation => this.rayCastNearestEmptySpace(endX, endY, rotation));
+                            let minDistance = Math.min(...distances);
+                            let minIndex = distances.indexOf(minDistance);
+                            globalRotation = rotations[minIndex];
+                            collisionDetected = true;
+                            cannonX = endX;
+                            cannonY = endY;
+                            break;
+                        }
+                    }
+
+                }
+            }
+            bounces += 1;
+            path[path.length - 1].endX = cannonX;
+            path[path.length - 1].endY = cannonY;
+            path[path.length - 1].destructWallAtSegment = destructWallAtDistance;
+            path[path.length - 1].destructWall = destructWallFunction;
+            if (bounces < maxBounces) {
+                path.push({
+                    startX: cannonX,
+                    startY: cannonY,
+                    endX: cannonX,
+                    endY: cannonY,
+                    rotation: globalRotation
+                });
+            }
+        }
+        return path;
+    }
+
     //function that return if the tank can shoot a moving object ( bullet) based on his actual position, we use the tankHead and tankBody rotation to calculate the possible shoot and we do a 360° rotation
     canShootMovingObject(bullet) {
 
