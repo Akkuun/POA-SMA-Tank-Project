@@ -178,7 +178,7 @@ export class Tank extends Agent{
     //function that return if the tank can shoot a static object ( wall or tank) based on his actual position, we use the tankHead and tankBody rotation to calculate the possible shoot and we do a 360° rotation
     canShootStaticObject(staticObject) {
         this.changeCannonRotation(9); // 10 ° rotation
-        let path = this.getBulletPathCurve();
+        let path = this.getBulletPathCurveOP();
 
         for (let segment of path) {
 
@@ -187,87 +187,6 @@ export class Tank extends Agent{
             }
         }
         return false
-    }
-
-    getBulletPathCurveOptimize(){
-        const bodyCenterX = this._body.x;
-        const bodyCenterY = this._body.y;
-        const cannonLength = 25 * fixSize * scaleFactor;  // Longueur du canon
-        let globalRotation = this._body.rotation + this._tankHead.rotation + Math.PI / 2;
-        let cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
-        let cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
-        let path = [{startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation}];
-        const stadiumBounds = this._gameManager._bodyStadium.getBounds();
-        let lineLength = 0;
-        let acumulatedLength = 0;
-        let maxBounces = 3; // Nombre maximum de rebonds
-        let bounces = 0;
-        while (bounces < maxBounces) {
-            lineLength = 0;
-            let collisionDetected = false;
-            let destructWallAtDistance = Infinity;
-            let destructWallFunction = () => {
-                return false;
-            };
-            while (!collisionDetected) {
-                lineLength += 0.5;
-                acumulatedLength += 0.5;
-                let endX = cannonX + Math.cos(globalRotation) * lineLength;
-                let endY = cannonY + Math.sin(globalRotation) * lineLength;
-                if (endX <= stadiumBounds.x || endX >= stadiumBounds.x + stadiumBounds.width) {
-                    globalRotation = Math.PI - globalRotation; // Inversion sur l'axe X
-                    collisionDetected = true;
-                    cannonX = endX;
-                    cannonY = endY;
-                } else if (endY <= stadiumBounds.y || endY >= stadiumBounds.y + stadiumBounds.height) {
-                    globalRotation = -globalRotation; // Inversion sur l'axe Y
-                    collisionDetected = true;
-                    cannonX = endX;
-                    cannonY = endY;
-                } else {
-                    for (let wall of this._gameManager._walls) {
-                        if (wall.isInside(endX, endY) && !wall._destructed) {
-                            if (wall.getDestruct()) {
-                                destructWallAtDistance = acumulatedLength;
-                                destructWallFunction = () => {
-                                    if (!wall._destructed) {
-                                        wall._destructed
-                                        this._gameManager.destructWall(wall);
-                                        return true;
-                                    }
-                                    return false;
-                                }
-                            }
-                            let rotations = [Math.PI - globalRotation, -globalRotation];
-                            let distances = rotations.map(rotation => this.rayCastNearestEmptySpace(endX, endY, rotation));
-                            let minDistance = Math.min(...distances);
-                            let minIndex = distances.indexOf(minDistance);
-                            globalRotation = rotations[minIndex];
-                            collisionDetected = true;
-                            cannonX = endX;
-                            cannonY = endY;
-                            break;
-                        }
-                    }
-
-                }
-            }
-            bounces += 1;
-            path[path.length - 1].endX = cannonX;
-            path[path.length - 1].endY = cannonY;
-            path[path.length - 1].destructWallAtSegment = destructWallAtDistance;
-            path[path.length - 1].destructWall = destructWallFunction;
-            if (bounces < maxBounces) {
-                path.push({
-                    startX: cannonX,
-                    startY: cannonY,
-                    endX: cannonX,
-                    endY: cannonY,
-                    rotation: globalRotation
-                });
-            }
-        }
-        return path;
     }
 
     //function that return if the tank can shoot a moving object ( bullet) based on his actual position, we use the tankHead and tankBody rotation to calculate the possible shoot and we do a 360° rotation
@@ -584,6 +503,95 @@ export class Tank extends Agent{
 
         return bulletPath;
     }
+
+
+
+
+
+
+    getBulletPathCurveOP() {
+        const bodyCenterX = this._body.x;
+        const bodyCenterY = this._body.y;
+        const cannonLength = 25 * fixSize * scaleFactor;
+        let globalRotation = this._body.rotation + this._tankHead.rotation + Math.PI / 2;
+
+        let cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
+        let cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
+
+        let path = [{ startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation }];
+
+        const stadiumBounds = this._gameManager._bodyStadium.getBounds();
+        const maxBounces = 3;
+        const step = 0.5;
+
+
+
+
+
+
+        let bounces = 0;
+
+        while (bounces < maxBounces) {
+            let collisionDetected = false;
+            let endX, endY;
+            let destructWallAtDistance = Infinity;
+            let destructWallFunction = () => false;
+
+            while (!collisionDetected) {
+                const cosRotation = Math.cos(globalRotation);
+                const sinRotation = Math.sin(globalRotation);
+                endX = cannonX + cosRotation * step;
+                endY = cannonY + sinRotation * step;
+
+                if (endX <= stadiumBounds.x || endX >= stadiumBounds.x + stadiumBounds.width) {
+                    globalRotation = Math.PI - globalRotation;
+                    collisionDetected = true;
+                } else if (endY <= stadiumBounds.y || endY >= stadiumBounds.y + stadiumBounds.height) {
+                    globalRotation = -globalRotation;
+                    collisionDetected = true;
+                } else {
+                    for (let wall of this._gameManager._walls) {
+                        if (wall.isInside(endX, endY) && !wall._destructed) {
+                            if (wall.getDestruct()) {
+                                destructWallAtDistance = path.length;
+                                destructWallFunction = () => {
+                                    if (!wall._destructed) {
+                                        wall._destructed = true;
+                                        this._gameManager.destructWall(wall);
+                                        return true;
+                                    }
+                                    return false;
+                                };
+                            }
+                            const rotations = [Math.PI - globalRotation, -globalRotation];
+                            const distances = rotations.map(rotation => this.rayCastNearestEmptySpace(endX, endY, rotation));
+                            globalRotation = rotations[distances.indexOf(Math.min(...distances))];
+                            collisionDetected = true;
+                            break;
+                        }
+                    }
+                }
+                cannonX = endX;
+                cannonY = endY;
+            }
+            ;
+            path[path.length - 1].endX = cannonX;
+            path[path.length - 1].endY = cannonY;
+            path[path.length - 1].destructWallAtSegment = destructWallAtDistance;
+            path[path.length - 1].destructWall = destructWallFunction;
+
+            if (bounces < maxBounces) {
+                path.push({ startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation });
+            }
+            bounces++;
+        }
+        return path;
+    }
+
+
+
+
+
 
 
     // Pareil que getBulletPath mais retourne le début et la fin de chaque segment de la trajectoire au lieu d'afficher le chemin. Utilisé pour l'animation
