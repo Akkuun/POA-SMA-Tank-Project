@@ -563,6 +563,12 @@ export class Tank extends Agent{
                                     return false;
                                 };
                             }
+
+
+
+
+
+
                             const rotations = [Math.PI - globalRotation, -globalRotation];
                             const distances = rotations.map(rotation => this.rayCastNearestEmptySpace(endX, endY, rotation));
                             globalRotation = rotations[distances.indexOf(Math.min(...distances))];
@@ -575,10 +581,12 @@ export class Tank extends Agent{
                 cannonY = endY;
             }
             ;
-            path[path.length - 1].endX = cannonX;
-            path[path.length - 1].endY = cannonY;
-            path[path.length - 1].destructWallAtSegment = destructWallAtDistance;
-            path[path.length - 1].destructWall = destructWallFunction;
+
+            const lastSegment = path[path.length - 1];
+            lastSegment.endX = cannonX;
+            lastSegment.endY = cannonY;
+            lastSegment.destructWallAtSegment = destructWallAtDistance;
+            lastSegment.destructWall = destructWallFunction;
 
             if (bounces < maxBounces) {
                 path.push({ startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation });
