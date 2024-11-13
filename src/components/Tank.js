@@ -320,63 +320,61 @@ export class Tank extends Agent{
                 return null;
             }
         }
-            //if the tank is not in danger and there is no tank to shoot , try to shoot the destructible wall
-            // for(let wall of this._stadiumObject._destructiveWalls) {
-            //     if (this.canShootWall(wall)) {
-            //       //  console.log("shoot wall");
-            //        this.shoot();
-            //        return null;
-            //     }
-            // }
+        //if the tank is not in danger and there is no tank to shoot , try to shoot the destructible wall
+        // for(let wall of this._stadiumObject._destructiveWalls) {
+        //     if (this.canShootWall(wall)) {
+        //       //  console.log("shoot wall");
+        //        this.shoot();
+        //        return null;
+        //     }
+        // }
 
-            //if the tank is not in danger and there is no tank to shoot , try to find another tank to shoot by going on zone coordinates, so tanks will meat each other on this point
-            // let centerx = this._gameManager._bodyStadium.x + this._gameManager._bodyStadium.width / 2;
-            //let centery = this._gameManager._bodyStadium.y + this._gameManager._bodyStadium.height / 2;
-            //we need to find a good point to meet the other tank, so we will try to go to the center of the stadium
-            //the point need to be free of wall, so we will try to go to the right or left depending on the signe of the difference, and do the same for y
+        //if the tank is not in danger and there is no tank to shoot , try to find another tank to shoot by going on zone coordinates, so tanks will meat each other on this point
+        // let centerx = this._gameManager._bodyStadium.x + this._gameManager._bodyStadium.width / 2;
+        //let centery = this._gameManager._bodyStadium.y + this._gameManager._bodyStadium.height / 2;
+        //we need to find a good point to meet the other tank, so we will try to go to the center of the stadium
+        //the point need to be free of wall, so we will try to go to the right or left depending on the signe of the difference, and do the same for y
 
-            //find a point withouth being in a wall and still in the stadium
-            let zone = this._gameManager.getZone();
-            let centerx = zone.x;
-            let centery = zone.y;
+        //find a point withouth being in a wall and still in the stadium
+        let zone = this._gameManager.getZone();
 
-            //if x is the closet to the center of the stadium, try to go to the right or left depending on the signe of the difference, and do the same for y
-            //also need to save the last input of this part, cause if the tank is blocked by a wall, it will then go in the other part of the "if" cases
-            let x = this._body.x;
-            let y = this._body.y;
+        //if x is the closet to the point "zone" of the stadium, try to go to the right or left depending on the signe of the difference, and do the same for y
+        //also we could save the last input of this part, cause if the tank is blocked by a wall, it will then go in the other part of the "if" cases
+        let x = this._body.x;
+        let y = this._body.y;
 
-            // Calculate the direction to move towards the center
-            let moveX = centerx > x ? Action.Right : Action.Left;
-            let moveY = centery > y ? Action.Down : Action.Up;
+        // Compute the direction to move towards the center
+        let moveX = zone.x > x ? Action.Right : Action.Left;
+        let moveY = zone.y > y ? Action.Down : Action.Up;
 
-            // Check if the tank is closer to the center horizontally or vertically
-            if (Math.abs(centerx - x) > Math.abs(centery - y)) {
-                // Try to move horizontally first
-                if (!this._gameManager.isPointInsideAWall(x + (moveX === Action.Right ? this._speed : -this._speed), y)) {
-                    this.performAgentAction(moveX);
-                    this._lastInput = moveX;
-                } else if (!this._gameManager.isPointInsideAWall(x, y + (moveY === Action.Down ? this._speed : -this._speed))) {
-                    // If horizontal move is blocked, try to move vertically
-                    this.performAgentAction(moveY);
-                    this._lastInput = moveY;
-                }
-            } else {
-                // Try to move vertically first
-                if (!this._gameManager.isPointInsideAWall(x, y + (moveY === Action.Down ? this._speed : -this._speed))) {
-                    this.performAgentAction(moveY);
-                    this._lastInput = moveY;
-                } else if (!this._gameManager.isPointInsideAWall(x + (moveX === Action.Right ? this._speed : -this._speed), y)) {
-                    // If vertical move is blocked, try to move horizontally
-                    this.performAgentAction(moveX);
-                    this._lastInput = moveX;
-                }
+        // Check if the tank is closer to the center horizontally or vertically
+
+        if (Math.abs(zone.x - x) > Math.abs(zone.y - y)) {
+            // Try to move horizontally first
+
+            if (!this._gameManager.isPointInsideAWall(x + (moveX === Action.Right ? this._speed : -this._speed), y)) {
+                this.performAgentAction(moveX);
+            } else if (!this._gameManager.isPointInsideAWall(x, y + (moveY === Action.Down ? this._speed : -this._speed))) {
+                // If horizontal move is blocked, try to move vertically
+
+                this.performAgentAction(moveY);
             }
+        } else {
+            // Try to move vertically first
 
-        return null
+            if (!this._gameManager.isPointInsideAWall(x, y + (moveY === Action.Down ? this._speed : -this._speed))) {
+                this.performAgentAction(moveY);
+            } else if (!this._gameManager.isPointInsideAWall(x + (moveX === Action.Right ? this._speed : -this._speed), y)) {
+                // If vertical move is blocked, try to move horizontally
+
+                this.performAgentAction(moveX);
+            }
+        }
+
+        return null;
 
 
     }
-    _lastInput;
 
 
     // do a specific action base on the tank's action
