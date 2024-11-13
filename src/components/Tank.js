@@ -239,6 +239,16 @@ export class Tank extends Agent{
     }
 
 
+
+
+
+
+
+
+
+
+
+
     canShootWall(wall) {
         // Calculate the angle to the walls
         const wallBounds = wall.getBodyWall().getBounds();
@@ -297,14 +307,13 @@ export class Tank extends Agent{
             if (this.canShootMovingObject(this._dangerousBullet)) { // if the tank can shoot the bullet incoming
                 this.shootIncommingBullet(this._dangerousBullet); // align the cannon to the bullet and shoot
             } else {
-              //  console.log("move");
+                //  console.log("move");
                 this.dodge(this._dangerousBullet); // dodge the incoming bullet
-                return null;
-
-
             }
+            return null;
         }
-        else { // the tank is not in danger , 1st priority is to shoot the tank (if possible) , 2nd priority is to shoot the destructible wall
+
+         // the tank is not in danger , 1st priority is to shoot the tank (if possible) , 2nd priority is to shoot the destructible wall
             for (let i = 0; i < this._gameManager._tanks.length; i++) {
                 if (this === this._gameManager._tanks[i]) continue;
                 if (this.canShootStaticObject(this._gameManager._tanks[i])) {
@@ -363,7 +372,6 @@ export class Tank extends Agent{
                     this._lastInput = moveX;
                 }
             }
-        }
 
         return null
 
