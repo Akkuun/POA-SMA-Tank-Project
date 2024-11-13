@@ -70,6 +70,7 @@ const MainPage = ({settings}) => {
         const trackMarksContainer = new PIXI.Container();
         app.stage.addChild(trackMarksContainer);
 
+
         //create a pixi graphic that show the centre of the stadium
         /*const centre = new PIXI.Graphics();
         centre.beginFill(0x00FF00);
@@ -87,6 +88,19 @@ const MainPage = ({settings}) => {
             mouseX = event.data.global.x;
             mouseY = event.data.global.y;
         });
+
+        stadium.findValidPoint();
+        let debug = true;
+        //debug point
+        if(debug){
+            const point = new PIXI.Graphics();
+            point.beginFill(0x00FF00);
+            point.drawCircle(stadium.getZone().x, stadium.getZone().y, 5);
+            point.endFill();
+            console.log(stadium.getZone());
+            app.stage.addChild(point);
+        }
+
 
 
         //tanks generation

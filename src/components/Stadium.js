@@ -14,6 +14,7 @@ export class Stadium {
     _bullets = [];
     _tanks = [];
     _tankSpawnPositions = [];
+    _zone;
 
     _app;
 
@@ -31,7 +32,9 @@ export class Stadium {
         this._bodyStadium.endFill();
 
 
-        // Calculer la position centrale
+
+
+        // compute the center of the screen
         const centerX = (window.innerWidth - this._width) / 2;
         const centerY = (window.innerHeight - this._height) / 2;
         this._bodyStadium.position.set(centerX, centerY);
@@ -41,9 +44,15 @@ export class Stadium {
         this._bullets.push(bullet);
     }
 
+    getZone(){
+        return this._zone;
+    }
+
     addTank(tank) {
         this._tanks.push(tank);
     }
+
+
 
     addWall(x, y, width, height, canDestruct) {
         const wall = new Wall(x,y,width, height, canDestruct, {x: this._bodyStadium.x, y: this._bodyStadium.y}, this._app);
@@ -103,6 +112,9 @@ export class Stadium {
         );
     }
 
+
+
+    //function to check if a tank is inside the stadium
     isTankInside(tank) {
         const bounds = tank._body.getBounds();
         const stadiumBounds = this._bodyStadium.getBounds();
@@ -114,6 +126,9 @@ export class Stadium {
         ); //alors le tank est bien dans le stade
     }
 
+
+
+    //function to check if a point is inside the stadium
     isPointInside(x, y) {
         const bounds = this._bodyStadium.getBounds();
         return (
@@ -122,6 +137,28 @@ export class Stadium {
             y >= bounds.y &&
             y <= bounds.y + bounds.height
         );
+    }
+
+
+
+
+
+    //this funciton find a point in the stadium that is not in a wall, and set it as the zone.
+    //it helps to set the zone where the tank (not the player) will go if they do not have a target so they will meet each other and fight again
+
+    findValidPoint() {
+        let centerxz = this._bodyStadium.x + this._bodyStadium.width / 2;
+        let centeryz = this._bodyStadium.y + this._bodyStadium.height / 2;
+
+        // Check if the initial point is valid
+        if (this.isPointInside(centerxz, centeryz) || this.isPointInsideAWall(centerxz, centeryz)) {
+            // Take a random point in the stadium and recheck if the point is in a wall
+            do {
+                centerxz = Math.random() * this._bodyStadium.width + this._bodyStadium.x;
+                centeryz = Math.random() * this._bodyStadium.height + this._bodyStadium.y;
+            } while (!this.isPointInside(centerxz, centeryz) || this.isPointInsideAWall(centerxz, centeryz));
+        }
+        this._zone = { x: centerxz, y: centeryz };
     }
     
     display(app) {
@@ -191,6 +228,8 @@ export class Wall extends AABB{
 
 
 
+
+
         if(canDestruct){
             this._bodyWall.beginFill(0xff8000);
         }else{
@@ -222,6 +261,8 @@ export class Wall extends AABB{
         return this._destruct;
     }
 
+
+
     isInside (x, y) {
         const bounds = this._bodyWall.getBounds();
         return (
@@ -231,6 +272,8 @@ export class Wall extends AABB{
             y <= bounds.y + bounds.height
         );
     }
+
+
 
     //return x1, y1, x2, y2
     getEdges(){

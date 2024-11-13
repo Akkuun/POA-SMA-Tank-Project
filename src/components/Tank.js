@@ -234,7 +234,7 @@ export class Tank extends Agent{
         }
 
         this.performAgentAction(finalAction,bulletCoordinate.x,bulletCoordinate.y);
-        console.log(finalAction)
+        //console.log(finalAction)
         this._dangerousBullet = null;
     }
 
@@ -321,9 +321,17 @@ export class Tank extends Agent{
             //     }
             // }
 
-            //if the tank is not in danger and there is no tank to shoot , try to find another tank to shoot in the center of the stadium
-            let centerx = this._gameManager._bodyStadium.x + this._gameManager._bodyStadium.width / 2;
-            let centery = this._gameManager._bodyStadium.y + this._gameManager._bodyStadium.height / 2;
+            //if the tank is not in danger and there is no tank to shoot , try to find another tank to shoot by going on zone coordinates, so tanks will meat each other on this point
+            // let centerx = this._gameManager._bodyStadium.x + this._gameManager._bodyStadium.width / 2;
+            //let centery = this._gameManager._bodyStadium.y + this._gameManager._bodyStadium.height / 2;
+            //we need to find a good point to meet the other tank, so we will try to go to the center of the stadium
+            //the point need to be free of wall, so we will try to go to the right or left depending on the signe of the difference, and do the same for y
+
+            //find a point withouth being in a wall and still in the stadium
+            let zone = this._gameManager.getZone();
+            let centerx = zone.x;
+            let centery = zone.y;
+
             //if x is the closet to the center of the stadium, try to go to the right or left depending on the signe of the difference, and do the same for y
             //also need to save the last input of this part, cause if the tank is blocked by a wall, it will then go in the other part of the "if" cases
             let x = this._body.x;
@@ -1107,10 +1115,7 @@ export class Tank extends Agent{
         const rightTrackY = this._body.y + trackOffsetX * sinRotation + trackOffsetY * cosRotation;
         const leftTrackX = this._body.x - trackOffsetX * cosRotation - trackOffsetY * sinRotation;
         const leftTrackY = this._body.y - trackOffsetX * sinRotation + trackOffsetY * cosRotation; // Right Track Mark
-        console.log("rightTrackX", rightTrackX);
-        console.log("rightTrackY", rightTrackY);
-        console.log("leftTrackX", leftTrackX);
-        console.log("leftTrackY", leftTrackY);
+
         trackMark.beginFill(0x000000, 0.5); // Semi-transparent metal color
         trackMark.drawRoundedRect(0, metalPlateSpacing, trackWidth, trackHeight, trackCornerRadius);
         trackMark.endFill();

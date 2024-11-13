@@ -59,7 +59,7 @@ export class AABB {
         let py = (other._half.y + this._half.y) - Math.abs(dy);
         if (py <= 0) return false;
 
-        console.log("px", px, "py", py, "dx", dx, "dy", dy, "px <= 0", px <= 0, "py <= 0", py <= 0);    
+        //console.log("px", px, "py", py, "dx", dx, "dy", dy, "px <= 0", px <= 0, "py <= 0", py <= 0);
 
         const intersection = new Intersection();
         if (px < py) {
