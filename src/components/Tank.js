@@ -313,14 +313,13 @@ export class Tank extends Agent{
             return null;
         }
 
-         // the tank is not in danger , 1st priority is to shoot the tank (if possible) , 2nd priority is to shoot the destructible wall
-            for (let i = 0; i < this._gameManager._tanks.length; i++) {
-                if (this === this._gameManager._tanks[i]) continue;
-                if (this.canShootStaticObject(this._gameManager._tanks[i])) {
-                    this.shoot();
-                    return null;
-                }
+        // the tank is not in danger , 1st priority is to shoot the tank (if possible) , 2nd priority is to shoot the destructible wall
+        for (let tank of this._gameManager._tanks) {
+            if (this !== tank && this.canShootStaticObject(tank)) {
+                this.shoot();
+                return null;
             }
+        }
             //if the tank is not in danger and there is no tank to shoot , try to shoot the destructible wall
             // for(let wall of this._stadiumObject._destructiveWalls) {
             //     if (this.canShootWall(wall)) {
