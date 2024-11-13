@@ -90,12 +90,17 @@ const MainPage = ({settings}) => {
         });
 
         stadium.findValidPoint();
+        let debug = true;
         //debug point
-        //const point = new PIXI.Graphics();
-        //point.beginFill(0x00FF00);
-        //point.drawCircle(stadium.getZone().x, stadium.getZone().y, 5);
-        //point.endFill();
-        //app.stage.addChild(point);
+        if(debug){
+            const point = new PIXI.Graphics();
+            point.beginFill(0x00FF00);
+            point.drawCircle(stadium.getZone().x, stadium.getZone().y, 5);
+            point.endFill();
+            console.log(stadium.getZone());
+            app.stage.addChild(point);
+        }
+
 
 
         //tanks generation

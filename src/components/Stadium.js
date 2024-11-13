@@ -216,18 +216,18 @@ export class Stadium {
     //it helps to set the zone where the tank (not the player) will go if they do not have a target so they will meet each other and fight again
 
     findValidPoint() {
-        let centerx = this._bodyStadium.x + this._bodyStadium.width / 2;
-        let centery = this._bodyStadium.y + this._bodyStadium.height / 2;
-        if (this.isPointInsideAWall(centerx, centery) && this.isPointInside(centerx, centery)) {
+        let centerxz = this._bodyStadium.x + this._bodyStadium.width / 2;
+        let centeryz = this._bodyStadium.y + this._bodyStadium.height / 2;
+
+        // Check if the initial point is valid
+        if (!this.isPointInside(centerxz, centeryz) || this.isPointInsideAWall(centerxz, centeryz)) {
             // Take a random point in the stadium and recheck if the point is in a wall
-            centerx = Math.random() * this._bodyStadium.width + this._bodyStadium.x;
-            centery = Math.random() * this._bodyStadium.height + this._bodyStadium.y;
-            while (this.isPointInsideAWall(centerx, centery) && this.isPointInside(centerx, centery)) {
-                centerx = Math.random() * this._bodyStadium.width + this._bodyStadium.x;
-                centery = Math.random() * this._bodyStadium.height + this._bodyStadium.y;
-            }
+            do {
+                centerxz = Math.random() * this._bodyStadium.width + this._bodyStadium.x;
+                centeryz = Math.random() * this._bodyStadium.height + this._bodyStadium.y;
+            } while (!this.isPointInside(centerxz, centeryz) || this.isPointInsideAWall(centerxz, centeryz));
         }
-        this._zone= { x: centerx, y: centery };
+        this._zone = { x: centerxz, y: centeryz };
     }
     
     display(app) {

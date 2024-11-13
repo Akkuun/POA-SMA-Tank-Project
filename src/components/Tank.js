@@ -234,7 +234,7 @@ export class Tank extends Agent{
         }
 
         this.performAgentAction(finalAction,bulletCoordinate.x,bulletCoordinate.y);
-        console.log(finalAction)
+        //console.log(finalAction)
         this._dangerousBullet = null;
     }
 
@@ -1115,10 +1115,7 @@ export class Tank extends Agent{
         const rightTrackY = this._body.y + trackOffsetX * sinRotation + trackOffsetY * cosRotation;
         const leftTrackX = this._body.x - trackOffsetX * cosRotation - trackOffsetY * sinRotation;
         const leftTrackY = this._body.y - trackOffsetX * sinRotation + trackOffsetY * cosRotation; // Right Track Mark
-        console.log("rightTrackX", rightTrackX);
-        console.log("rightTrackY", rightTrackY);
-        console.log("leftTrackX", leftTrackX);
-        console.log("leftTrackY", leftTrackY);
+
         trackMark.beginFill(0x000000, 0.5); // Semi-transparent metal color
         trackMark.drawRoundedRect(0, metalPlateSpacing, trackWidth, trackHeight, trackCornerRadius);
         trackMark.endFill();
