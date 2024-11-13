@@ -513,7 +513,8 @@ export class Tank extends Agent{
         const bodyCenterX = this._body.x;
         const bodyCenterY = this._body.y;
         const cannonLength = 25 * fixSize * scaleFactor;
-        let globalRotation = this._body.rotation + this._tankHead.rotation + Math.PI / 2;
+        const pi = Math.PI;
+        let globalRotation = this._body.rotation + this._tankHead.rotation + pi / 2;
 
         let cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
         let cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
@@ -523,12 +524,6 @@ export class Tank extends Agent{
         const stadiumBounds = this._gameManager._bodyStadium.getBounds();
         const maxBounces = 3;
         const step = 0.5;
-
-
-
-
-
-
         let bounces = 0;
 
         while (bounces < maxBounces) {
@@ -544,7 +539,7 @@ export class Tank extends Agent{
                 endY = cannonY + sinRotation * step;
 
                 if (endX <= stadiumBounds.x || endX >= stadiumBounds.x + stadiumBounds.width) {
-                    globalRotation = Math.PI - globalRotation;
+                    globalRotation = pi - globalRotation;
                     collisionDetected = true;
                 } else if (endY <= stadiumBounds.y || endY >= stadiumBounds.y + stadiumBounds.height) {
                     globalRotation = -globalRotation;
@@ -563,13 +558,7 @@ export class Tank extends Agent{
                                     return false;
                                 };
                             }
-
-
-
-
-
-
-                            const rotations = [Math.PI - globalRotation, -globalRotation];
+                            const rotations = [pi - globalRotation, -globalRotation];
                             const distances = rotations.map(rotation => this.rayCastNearestEmptySpace(endX, endY, rotation));
                             globalRotation = rotations[distances.indexOf(Math.min(...distances))];
                             collisionDetected = true;
@@ -580,7 +569,6 @@ export class Tank extends Agent{
                 cannonX = endX;
                 cannonY = endY;
             }
-            ;
 
             const lastSegment = path[path.length - 1];
             lastSegment.endX = cannonX;
