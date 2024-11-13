@@ -52,6 +52,8 @@ export class Stadium {
         this._tanks.push(tank);
     }
 
+
+
     addWall(x, y, width, height, canDestruct) {
         const wall = new Wall(x,y,width, height, canDestruct, {x: this._bodyStadium.x, y: this._bodyStadium.y}, this._app);
         //wall.initAABB({x: this._bodyStadium.x, y: this._bodyStadium.y}, this._app);
@@ -112,39 +114,6 @@ export class Stadium {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     //function to check if a tank is inside the stadium
     isTankInside(tank) {
         const bounds = tank._body.getBounds();
@@ -156,8 +125,6 @@ export class Stadium {
             bounds.y + bounds.height <= stadiumBounds.y + stadiumBounds.height // si le y du tank + sa hauteur est inférieur ou égal au y du stade + sa hauteur
         ); //alors le tank est bien dans le stade
     }
-
-
 
 
 
@@ -176,42 +143,6 @@ export class Stadium {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     //this funciton find a point in the stadium that is not in a wall, and set it as the zone.
     //it helps to set the zone where the tank (not the player) will go if they do not have a target so they will meet each other and fight again
 
@@ -220,7 +151,7 @@ export class Stadium {
         let centeryz = this._bodyStadium.y + this._bodyStadium.height / 2;
 
         // Check if the initial point is valid
-        if (!this.isPointInside(centerxz, centeryz) || this.isPointInsideAWall(centerxz, centeryz)) {
+        if (this.isPointInside(centerxz, centeryz) || this.isPointInsideAWall(centerxz, centeryz)) {
             // Take a random point in the stadium and recheck if the point is in a wall
             do {
                 centerxz = Math.random() * this._bodyStadium.width + this._bodyStadium.x;
@@ -332,9 +263,6 @@ export class Wall extends AABB{
 
 
 
-
-
-
     isInside (x, y) {
         const bounds = this._bodyWall.getBounds();
         return (
@@ -344,8 +272,6 @@ export class Wall extends AABB{
             y <= bounds.y + bounds.height
         );
     }
-
-
 
 
 
