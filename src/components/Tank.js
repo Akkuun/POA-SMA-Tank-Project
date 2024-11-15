@@ -519,14 +519,12 @@ export class Tank extends Agent{
         let cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
         let cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
 
-        let path = [{ startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation }];
-
+        const path = [{ startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation }];
         const stadiumBounds = this._gameManager._bodyStadium.getBounds();
         const maxBounces = 3;
         const step = 0.5;
-        let bounces = 0;
 
-        while (bounces < maxBounces) {
+        for (let bounces = 0; bounces < maxBounces; bounces++) {
             let collisionDetected = false;
             let endX, endY;
             let destructWallAtDistance = Infinity;
@@ -576,10 +574,9 @@ export class Tank extends Agent{
             lastSegment.destructWallAtSegment = destructWallAtDistance;
             lastSegment.destructWall = destructWallFunction;
 
-            if (bounces < maxBounces) {
+            if (bounces < maxBounces - 1) {
                 path.push({ startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation });
             }
-            bounces++;
         }
         return path;
     }
