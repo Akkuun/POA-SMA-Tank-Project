@@ -3,24 +3,27 @@ import * as PIXI from 'pixi.js';
 import {Tank} from './Tank';
 import {Stadium} from './Stadium';
 import {Action} from './Tank';
-import {stadiumHeight, stadiumWidth, ScaleFactor, ScaledWidth, ScaledHeight} from './ScaleFactor';
+import {stadiumWidth, stadiumHeight, ScaleFactor} from './ScaleFactor';
+import {useLocation, useNavigate} from "react-router-dom";
+import EndComponent from "./EndComponent";
 
-const WindowWidth = window.innerWidth;
-const WindowHeight = window.innerHeight;
 
 const MainPage = ({settings}) => {
+
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+    const nbTank = parseInt(queryParams.get('nbTank'), 10) || 2;
+    const isPlayerPlaying = queryParams.get('isPlayerPlaying') === 'true';
+
     const pixiContainerRef = useRef(null);
     const [tankSpawnPositions, setTankSpawnPositions] = useState([]);
     const WindowWidth = window.innerWidth;
     const WindowHeight = window.innerHeight;
     const tanksColor = [0x00FF00, 0xFF0000, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF]; // tank's color available
+    const filePath = 'maps/testSpawn.txt';
 
-    // Accès direct aux propriétés de settings
-    console.log("settings MAIN", settings[0], settings[1]); // settings[0] pour tankNumber et settings[1] pour isPlayerPlaying
-
-    // Fonction pour obtenir les positions de spawn
+    // getSpawnPositions from map file
     function getSpawnPositions() {
-        let filePath = 'maps/testSpawn.txt';
         let positions = [];
         fetch(filePath).then(response => response.text())
             .then(text => {
@@ -28,14 +31,15 @@ const MainPage = ({settings}) => {
                 let rows = map.length;
                 let cols = map[0].length;
 
+
                 for (let i = 0; i < rows; i++) {
                     for (let j = 0; j < cols; j++) {
-                        if (map[i][j].charCodeAt(0) >= 'A'.charCodeAt(0) && map[i][j].charCodeAt(0) <= 'Z'.charCodeAt(0)) {
+
+                        if (map[i][j] >= 'A' && map[i][j] <= 'Z') {
 
 
                             let tankNumber = map[i][j].charCodeAt(0) - 'A'.charCodeAt(0) + 1;
-                            positions[tankNumber] = {x: j * WindowWidth / cols, y: i * WindowHeight / rows};
-                            //   positions[tankNumber] = {x: j * WindowWidth / cols, y: i * WindowHeight / rows};
+                            positions[tankNumber] = {x: j * stadiumWidth / cols, y: i * stadiumHeight / rows};
                         }
                     }
                 }
@@ -48,19 +52,34 @@ const MainPage = ({settings}) => {
     }, []);
 
     useEffect(() => {
+        let firstActionDone = false;
         if (tankSpawnPositions.length === 0) return; // wait for tankSpawnPositions to be set
 
         const app = new PIXI.Application({width: WindowWidth, height: WindowHeight, backgroundColor: 0x463928});
+
         app.stage.interactive = true;
         app.stage.hitArea = new PIXI.Rectangle(0, 0, app.screen.width, app.screen.height);
         pixiContainerRef.current.appendChild(app.view);
 
-        const stadiumHeight = WindowHeight * 0.8;
-        const stadiumWidth = WindowWidth * 0.8;
         const stadium = new Stadium(stadiumWidth, stadiumHeight, app);
         app.stage.addChild(stadium._bodyStadium);
+        app.stage.sortableChildren = true; // to make z-index "work"
 
-        stadium.generateStadiumFromFile('maps/testSpawn.txt'); // Stadium Wall generation from file
+
+        //we need to put here the track marks container so that it is displayed behind the tanks (because z-index doesn't work on pixis objects if the container is not set up before the objects)
+        const trackMarksContainer = new PIXI.Container();
+        app.stage.addChild(trackMarksContainer);
+
+
+        //create a pixi graphic that show the centre of the stadium
+        /*const centre = new PIXI.Graphics();
+        centre.beginFill(0x00FF00);
+        centre.drawCircle(stadiumWidth/2, stadiumHeight/2, 5);
+        centre.endFill();
+        app.stage.addChild(centre);*/
+
+
+        stadium.generateStadiumFromFile(filePath); // Stadium Wall generation from file
 
         // Mouse positions
         let mouseX = 0;
@@ -68,72 +87,56 @@ const MainPage = ({settings}) => {
         app.stage.on('mousemove', (event) => {
             mouseX = event.data.global.x;
             mouseY = event.data.global.y;
-            // console.log(mouseX,mouseY);
         });
 
-        const tanksColor = [0x00FF00, 0xFF0000, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF]; // tank's color available
+        stadium.findValidPoint();
+        let debug = true;
+        //debug point
+        if(debug){
+            const point = new PIXI.Graphics();
+            point.beginFill(0x00FF00);
+            point.drawCircle(stadium.getZone().x, stadium.getZone().y, 5);
+            point.endFill();
+            console.log(stadium.getZone());
+            app.stage.addChild(point);
+        }
+
+
 
         //tanks generation
-        for (let i = 0; i < settings[0] + 1; i++) {
+        for (let i = 0; i < nbTank + 1; i++) {
             let tankSpawnPosition = tankSpawnPositions[i];
             // Tank object creation
             if (tankSpawnPosition) {
                 tankSpawnPosition.x += stadium._bodyStadium.x;
                 tankSpawnPosition.y += stadium._bodyStadium.y;
-                const tank = new Tank(tanksColor[i],
-                    {up: "z", left: "q", down: "s", right: "d", shoot: " "},
-                    stadiumWidth, stadiumHeight, stadium, app,
-                    tankSpawnPosition.x, tankSpawnPosition.y,
-                    5, settings[1]
-                );
-                stadium.addTank(tank);
-                app.stage.addChild(tank._tankBody); // tanks added to the stage
+                if (i == 1 && isPlayerPlaying) {
+
+                    const tank = new Tank(tanksColor[i],
+                        {up: "z", left: "q", down: "s", right: "d", shoot: " "},
+                        stadiumWidth, stadiumHeight, stadium, app,
+                        tankSpawnPosition.x, tankSpawnPosition.y,
+                        5, true
+                    );
+                    tank.setTrackMarksContainer(trackMarksContainer); // set the track marks container to the right one
+                    stadium.addTank(tank);
+                    app.stage.addChild(tank._body); // tanks added to the stage
+                    console.log("cac tank humain")
+                } else {
+                    const tank = new Tank(tanksColor[i],
+                        {up: "z", left: "q", down: "s", right: "d", shoot: " "},
+                        stadiumWidth, stadiumHeight, stadium, app,
+                        tankSpawnPosition.x, tankSpawnPosition.y,
+                        5, false
+                    );
+                    tank.setTrackMarksContainer(trackMarksContainer); // set the track marks container to the right one
+                    stadium.addTank(tank);
+                    app.stage.addChild(tank._body); // tanks added to the stage
+                    console.log("cac tank ia")
+                }
             }
         }
 
-        // Mise à jour des tanks
-        /*app.ticker.add(() => {
-            for (let tank of stadium._tanks) {
-                if (tank._destroyed) continue;
-                if(tank._player) {
-                    tank.updateRotations(mouseX, mouseY);
-                    tank.updatePosition(stadium);
-                } else {
-                    tank.performActionIA(Action.Shoot, 500, 500);
-                }
-
-                for (let otherTank of stadium._tanks) {
-                    if (tank !== otherTank && tank.checkCollision(otherTank)) {
-                        tank.resolveCollision(otherTank);
-                    }
-
-                }
-                for (let wall of stadium._walls) {
-                    if (wall.testForAABB(tank)) {
-                        wall.resolveCollision(tank);
-                    }
-                }
-                for (let bullet of stadium._bullets) {
-                    if(bullet._destroyed) continue;
-                    for (let otherBullet of stadium._bullets) {
-                        if(otherBullet._destroyed || bullet === otherBullet) continue;
-                        if (bullet.collidesWith(otherBullet)) {
-                            otherBullet.remove();
-                            bullet.remove();
-                        }
-                    }
-                    if (!bullet._destroyed && bullet._distance > tank._tankBody.width && tank.isInside(bullet._bodyBullet.x, bullet._bodyBullet.y)) {
-                        tank.remove();
-                        tank._destroyed = true;
-                        tank._tankBody.x = -1000000;
-                        tank._tankBody.y = -1000000;
-                        app.stage.removeChild(tank);
-                        bullet.remove();
-                        continue;
-                    }
-                }
-            }
-        });*/
         app.ticker.add(() => {
             for (let tank of stadium._tanks) {
                 if (tank._destroyed) continue;
@@ -142,11 +145,17 @@ const MainPage = ({settings}) => {
                     tank.updateRotations(mouseX, mouseY);
                     tank.updatePosition(stadium);
                 } else {
-                    tank.performActionIA(Action.Shoot, 500, 500);
+                    // tank.performActionIA(Action.UpRight, 500, 500); // IA action
+                    if(!firstActionDone){
+                        setTimeout(() => {
+                            tank.choseAgentAction(mouseX, mouseY);
+
+                        },1000);
+                    }
                 }
 
                 // Mettre à jour les particules
-                 tank.updateParticles();
+                tank.updateParticles();
 
                 for (let otherTank of stadium._tanks) {
                     if (tank !== otherTank && tank.checkCollision(otherTank)) {
@@ -155,21 +164,38 @@ const MainPage = ({settings}) => {
                 }
 
                 for (let wall of stadium._walls) {
-                    if (wall.testForAABB(tank)) {
-                        wall.resolveCollision(tank);
+                    let intersection;
+                    if (intersection = wall.testForAABB(tank)) {
+                        wall.resolveCollision(tank, intersection);
                     }
                 }
 
                 for (let bullet of stadium._bullets) {
-                    if (bullet._distance > tank._tankBody.width && tank.isInside(bullet._bodyBullet.x, bullet._bodyBullet.y)) {
+                    if (bullet._distance > tank._body.width && tank.isInside(bullet._bodyBullet.x, bullet._bodyBullet.y)) {
+                        if (tank._aabb) {
+                            tank._aabb.removeDisplay();
+                        }
                         tank.remove();
                         tank._destroyed = true;
-                        tank._tankBody.x = -1000000;
-                        tank._tankBody.y = -1000000;
+                        tank._body.x = -1000000;
+                        tank._body.y = -1000000;
                         app.stage.removeChild(tank);
                         continue;
                     }
+                    for (let otherBullet of stadium._bullets) {
+                        if (bullet !== otherBullet && bullet.collidesWith(otherBullet)) {
+                            bullet.remove();
+                            otherBullet.remove();
+                            app.stage.removeChild(bullet);
+                            app.stage.removeChild(otherBullet);
+                        }
+                    }
                 }
+            }
+            const remainingTanks = stadium._tanks.filter(tank => !tank._destroyed);
+            if (remainingTanks.length === 1) {
+                //setIsGameEnded(true);
+                app.ticker.stop();
             }
         });
 
@@ -185,10 +211,12 @@ const MainPage = ({settings}) => {
 
 
         };
-    }, [tankSpawnPositions, WindowHeight, WindowWidth]);
+    }, [tankSpawnPositions, WindowHeight, WindowWidth, settings]);
 
     return (
-        <div ref={pixiContainerRef}></div>
+        <div ref={pixiContainerRef}>
+
+        </div>
     );
 };
 

@@ -1,6 +1,7 @@
 import * as PIXI from 'pixi.js';
 import {useState} from "react";
 import { ScaleFactor } from './ScaleFactor';
+import { AABB, Intersection } from './AABB';
 
 const scaleFactor = ScaleFactor;
 
@@ -9,9 +10,11 @@ export class Stadium {
     _height;
     _bodyStadium;
     _walls = [];
+    _destructiveWalls = [];
     _bullets = [];
     _tanks = [];
     _tankSpawnPositions = [];
+    _zone;
 
     _app;
 
@@ -20,13 +23,18 @@ export class Stadium {
         this._height = height;
         this._app = app;
 
+
+
         this._bodyStadium = new PIXI.Graphics();
         this._bodyStadium.beginFill(0xc0a36a);
         this._bodyStadium.lineStyle(2, 0x30271a);
         this._bodyStadium.drawRect(0, 0, this._width, this._height);
         this._bodyStadium.endFill();
 
-        // Calculer la position centrale
+
+
+
+        // compute the center of the screen
         const centerX = (window.innerWidth - this._width) / 2;
         const centerY = (window.innerHeight - this._height) / 2;
         this._bodyStadium.position.set(centerX, centerY);
@@ -36,14 +44,21 @@ export class Stadium {
         this._bullets.push(bullet);
     }
 
+    getZone(){
+        return this._zone;
+    }
+
     addTank(tank) {
         this._tanks.push(tank);
     }
 
+
+
     addWall(x, y, width, height, canDestruct) {
-        const wall = new Wall(width, height, canDestruct);
-        wall._bodyWall.position.set(x, y);
+        const wall = new Wall(x,y,width, height, canDestruct, {x: this._bodyStadium.x, y: this._bodyStadium.y}, this._app);
+        //wall.initAABB({x: this._bodyStadium.x, y: this._bodyStadium.y}, this._app);
         this._bodyStadium.addChild(wall._bodyWall);
+        if(canDestruct) this._destructiveWalls.push(wall);
         this._walls.push(wall);
     }
 
@@ -54,8 +69,28 @@ export class Stadium {
     destructWall(wallg) {
         // Supprimer le mur de la liste des murs
         const wallIndex = this._walls.indexOf(wallg);
+        //si le mur est destructible, on le supprime de la liste des murs destructibles
+        // if(wallg._destruct){
+        //     //retirer le mur de la liste des murs destructibles ._destructiveWalls
+        //     // recuperation de l'index du mur dans la liste des murs destructibles
+        //     // destruction du mur avec l'index recuperé
+        //     const wallDestructIndex = this._destructiveWalls.indexOf(wallg);
+        //     if (wallDestructIndex > -1) {
+        //         this._destructiveWalls.splice(wallDestructIndex, 1);
+        //     }
+        // }
+
+        //destuction du mur dans la liste des murs
+
         if (wallIndex > -1) {
             this._walls.splice(wallIndex, 1);
+        }
+        if (wallg._bodyAABB) {
+            // Retirer l'affichage de sa AABB
+            this._app.stage.removeChild(wallg._bodyAABB);
+    
+            // Détruire l'objet graphique de l'AABB du mur pour libérer les ressources
+            wallg._bodyAABB.destroy({ children: true, texture: true, baseTexture: true });
         }
 
         // Retirer le mur de la scène PIXI
@@ -77,8 +112,11 @@ export class Stadium {
         );
     }
 
+
+
+    //function to check if a tank is inside the stadium
     isTankInside(tank) {
-        const bounds = tank._tankBody.getBounds();
+        const bounds = tank._body.getBounds();
         const stadiumBounds = this._bodyStadium.getBounds();
         return (
             bounds.x >= stadiumBounds.x && //si le x du tank est supérieur ou égal au x du stade
@@ -88,6 +126,9 @@ export class Stadium {
         ); //alors le tank est bien dans le stade
     }
 
+
+
+    //function to check if a point is inside the stadium
     isPointInside(x, y) {
         const bounds = this._bodyStadium.getBounds();
         return (
@@ -97,13 +138,35 @@ export class Stadium {
             y <= bounds.y + bounds.height
         );
     }
+
+
+
+
+
+    //this funciton find a point in the stadium that is not in a wall, and set it as the zone.
+    //it helps to set the zone where the tank (not the player) will go if they do not have a target so they will meet each other and fight again
+
+    findValidPoint() {
+        let centerxz = this._bodyStadium.x + this._bodyStadium.width / 2;
+        let centeryz = this._bodyStadium.y + this._bodyStadium.height / 2;
+
+        // Check if the initial point is valid
+        if (this.isPointInside(centerxz, centeryz) || this.isPointInsideAWall(centerxz, centeryz)) {
+            // Take a random point in the stadium and recheck if the point is in a wall
+            do {
+                centerxz = Math.random() * this._bodyStadium.width + this._bodyStadium.x;
+                centeryz = Math.random() * this._bodyStadium.height + this._bodyStadium.y;
+            } while (!this.isPointInside(centerxz, centeryz) || this.isPointInsideAWall(centerxz, centeryz));
+        }
+        this._zone = { x: centerxz, y: centeryz };
+    }
     
     display(app) {
         app.stage.addChild(this._bodyStadium);
     }
 
     generateStadiumFromFile(file) {
-        return fetch(file)
+        fetch(file)
             .then(response => response.text())
             .then(text => {
                 let map = text.split('\n').map(line => line.slice(0, -1).split(''));
@@ -114,9 +177,9 @@ export class Stadium {
                 for (let i = 0; i < rows; i++) {
                     for (let j = 0; j < cols; j++) {
                         if (map[i][j] === '1') {
-                            this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows, false);
+                            this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows, false, this._app);
                         }else if(map[i][j] === '2'){
-                            this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows, true);
+                            this.addWall(j * this._width / cols, i * this._height / rows, this._width / cols, this._height / rows, true, this._app);
                         }
                     }
                 }
@@ -130,6 +193,10 @@ export class Stadium {
         return this._bodyStadium.getBounds().y;
     }
 
+    get bullets(){
+        return this._bullets;
+    }
+
     isPointInsideAWall(x, y) {
         for (let wall of this._walls) {
             if (wall.isInside(x, y)) {
@@ -141,19 +208,26 @@ export class Stadium {
 }
 
 
-export class Wall {
+export class Wall extends AABB{
     _width;
     _height;
     _bodyWall;
     _destruct;
     _destructed;
 
-    constructor(width, height, canDestruct) {
+    constructor(x,y, width, height, canDestruct, aabboffset, app) {
+        super({x: x, y: y}, {x: x+width/2, y: y+height/2}, app);
+        super.move('x', aabboffset?.x || 0);
+        super.move('y', aabboffset?.y || 0);
         this._width = width;
         this._height = height;
         this._destruct = canDestruct;
         this._destructed = false;
         this._bodyWall = new PIXI.Graphics();
+
+
+
+
 
 
         if(canDestruct){
@@ -168,48 +242,15 @@ export class Wall {
         // Calculer la position centrale
         const centerX = (window.innerWidth - this._width) / 2;
         const centerY = (window.innerHeight - this._height) / 2;
-        this._bodyWall.position.set(centerX, centerY);
-    }
-
-    display(app) {
-        app.stage.addChild(this._bodyWall);
+        this._bodyWall.position.set(x, y);
     }
 
     testForAABB(tank) {
-        const bounds = tank._tankBody.getBounds();
-        const wallBounds = this._bodyWall.getBounds();
-        return (
-            bounds.x < wallBounds.x + wallBounds.width &&
-            bounds.x + bounds.width > wallBounds.x &&
-            bounds.y < wallBounds.y + wallBounds.height &&
-            bounds.y + bounds.height > wallBounds.y
-        );
+        return this.intersectsAABB(tank._aabb);
     }
 
-    resolveCollision(tank) {
-        const bounds = tank._tankBody.getBounds();
-        const wallBounds = this._bodyWall.getBounds();
-
-        let dx = 0;
-        let dy = 0;
-
-        if (bounds.x < wallBounds.x) {
-            dx = wallBounds.x - (bounds.x + bounds.width);
-        } else if (bounds.x + bounds.width > wallBounds.x + wallBounds.width) {
-            dx = wallBounds.x + wallBounds.width - bounds.x;
-        }
-
-        if (bounds.y < wallBounds.y) {
-            dy = wallBounds.y - (bounds.y + bounds.height);
-        } else if (bounds.y + bounds.height > wallBounds.y + wallBounds.height) {
-            dy = wallBounds.y + wallBounds.height - bounds.y;
-        }
-
-        if (Math.abs(dx) < Math.abs(dy)) {
-            tank._tankBody.x += dx;
-        } else {
-            tank._tankBody.y += dy;
-        }
+    resolveCollision(tank, intersection) {
+        tank.move(intersection._axis, intersection._delta[intersection._axis] * intersection._normal[intersection._axis]);
     }
 
     getBodyWall(){
@@ -220,6 +261,8 @@ export class Wall {
         return this._destruct;
     }
 
+
+
     isInside (x, y) {
         const bounds = this._bodyWall.getBounds();
         return (
@@ -229,4 +272,15 @@ export class Wall {
             y <= bounds.y + bounds.height
         );
     }
+
+
+
+    //return x1, y1, x2, y2
+    getEdges(){
+
+        return [this._bodyWall.getBounds().x, this._bodyWall.getBounds().y, this._bodyWall.getBounds().x + this._width, this._bodyWall.getBounds().y + this._height];
+
+    }
+
+
 }
