@@ -178,7 +178,7 @@ export class Tank extends Agent{
     //function that return if the tank can shoot a static object ( wall or tank) based on his actual position, we use the tankHead and tankBody rotation to calculate the possible shoot and we do a 360° rotation
     canShootStaticObject(staticObject) {
         this.changeCannonRotation(9); // 10 ° rotation
-        let path = this.getBulletPathCurve();
+        let path = this.getBulletPathCurveOP();
 
         for (let segment of path) {
 
@@ -239,6 +239,16 @@ export class Tank extends Agent{
     }
 
 
+
+
+
+
+
+
+
+
+
+
     canShootWall(wall) {
         // Calculate the angle to the walls
         const wallBounds = wall.getBodyWall().getBounds();
@@ -297,79 +307,74 @@ export class Tank extends Agent{
             if (this.canShootMovingObject(this._dangerousBullet)) { // if the tank can shoot the bullet incoming
                 this.shootIncommingBullet(this._dangerousBullet); // align the cannon to the bullet and shoot
             } else {
-              //  console.log("move");
+                //  console.log("move");
                 this.dodge(this._dangerousBullet); // dodge the incoming bullet
+            }
+            return null;
+        }
+
+        // the tank is not in danger , 1st priority is to shoot the tank (if possible) , 2nd priority is to shoot the destructible wall
+        for (let tank of this._gameManager._tanks) {
+            if (this !== tank && this.canShootStaticObject(tank)) {
+                this.shoot();
                 return null;
-
-
             }
         }
-        else { // the tank is not in danger , 1st priority is to shoot the tank (if possible) , 2nd priority is to shoot the destructible wall
-            for (let i = 0; i < this._gameManager._tanks.length; i++) {
-                if (this === this._gameManager._tanks[i]) continue;
-                if (this.canShootStaticObject(this._gameManager._tanks[i])) {
-                    this.shoot();
-                    return null;
-                }
+        //if the tank is not in danger and there is no tank to shoot , try to shoot the destructible wall
+        // for(let wall of this._stadiumObject._destructiveWalls) {
+        //     if (this.canShootWall(wall)) {
+        //       //  console.log("shoot wall");
+        //        this.shoot();
+        //        return null;
+        //     }
+        // }
+
+        //if the tank is not in danger and there is no tank to shoot , try to find another tank to shoot by going on zone coordinates, so tanks will meat each other on this point
+        // let centerx = this._gameManager._bodyStadium.x + this._gameManager._bodyStadium.width / 2;
+        //let centery = this._gameManager._bodyStadium.y + this._gameManager._bodyStadium.height / 2;
+        //we need to find a good point to meet the other tank, so we will try to go to the center of the stadium
+        //the point need to be free of wall, so we will try to go to the right or left depending on the signe of the difference, and do the same for y
+
+        //find a point withouth being in a wall and still in the stadium
+        let zone = this._gameManager.getZone();
+
+        //if x is the closet to the point "zone" of the stadium, try to go to the right or left depending on the signe of the difference, and do the same for y
+        //also we could save the last input of this part, cause if the tank is blocked by a wall, it will then go in the other part of the "if" cases
+        let x = this._body.x;
+        let y = this._body.y;
+
+        // Compute the direction to move towards the center
+        let moveX = zone.x > x ? Action.Right : Action.Left;
+        let moveY = zone.y > y ? Action.Down : Action.Up;
+
+        // Check if the tank is closer to the center horizontally or vertically
+
+        if (Math.abs(zone.x - x) > Math.abs(zone.y - y)) {
+            // Try to move horizontally first
+
+            if (!this._gameManager.isPointInsideAWall(x + (moveX === Action.Right ? this._speed : -this._speed), y)) {
+                this.performAgentAction(moveX);
+            } else if (!this._gameManager.isPointInsideAWall(x, y + (moveY === Action.Down ? this._speed : -this._speed))) {
+                // If horizontal move is blocked, try to move vertically
+
+                this.performAgentAction(moveY);
             }
-            //if the tank is not in danger and there is no tank to shoot , try to shoot the destructible wall
-            // for(let wall of this._stadiumObject._destructiveWalls) {
-            //     if (this.canShootWall(wall)) {
-            //       //  console.log("shoot wall");
-            //        this.shoot();
-            //        return null;
-            //     }
-            // }
+        } else {
+            // Try to move vertically first
 
-            //if the tank is not in danger and there is no tank to shoot , try to find another tank to shoot by going on zone coordinates, so tanks will meat each other on this point
-            // let centerx = this._gameManager._bodyStadium.x + this._gameManager._bodyStadium.width / 2;
-            //let centery = this._gameManager._bodyStadium.y + this._gameManager._bodyStadium.height / 2;
-            //we need to find a good point to meet the other tank, so we will try to go to the center of the stadium
-            //the point need to be free of wall, so we will try to go to the right or left depending on the signe of the difference, and do the same for y
+            if (!this._gameManager.isPointInsideAWall(x, y + (moveY === Action.Down ? this._speed : -this._speed))) {
+                this.performAgentAction(moveY);
+            } else if (!this._gameManager.isPointInsideAWall(x + (moveX === Action.Right ? this._speed : -this._speed), y)) {
+                // If vertical move is blocked, try to move horizontally
 
-            //find a point withouth being in a wall and still in the stadium
-            let zone = this._gameManager.getZone();
-            let centerx = zone.x;
-            let centery = zone.y;
-
-            //if x is the closet to the center of the stadium, try to go to the right or left depending on the signe of the difference, and do the same for y
-            //also need to save the last input of this part, cause if the tank is blocked by a wall, it will then go in the other part of the "if" cases
-            let x = this._body.x;
-            let y = this._body.y;
-
-            // Calculate the direction to move towards the center
-            let moveX = centerx > x ? Action.Right : Action.Left;
-            let moveY = centery > y ? Action.Down : Action.Up;
-
-            // Check if the tank is closer to the center horizontally or vertically
-            if (Math.abs(centerx - x) > Math.abs(centery - y)) {
-                // Try to move horizontally first
-                if (!this._gameManager.isPointInsideAWall(x + (moveX === Action.Right ? this._speed : -this._speed), y)) {
-                    this.performAgentAction(moveX);
-                    this._lastInput = moveX;
-                } else if (!this._gameManager.isPointInsideAWall(x, y + (moveY === Action.Down ? this._speed : -this._speed))) {
-                    // If horizontal move is blocked, try to move vertically
-                    this.performAgentAction(moveY);
-                    this._lastInput = moveY;
-                }
-            } else {
-                // Try to move vertically first
-                if (!this._gameManager.isPointInsideAWall(x, y + (moveY === Action.Down ? this._speed : -this._speed))) {
-                    this.performAgentAction(moveY);
-                    this._lastInput = moveY;
-                } else if (!this._gameManager.isPointInsideAWall(x + (moveX === Action.Right ? this._speed : -this._speed), y)) {
-                    // If vertical move is blocked, try to move horizontally
-                    this.performAgentAction(moveX);
-                    this._lastInput = moveX;
-                }
+                this.performAgentAction(moveX);
             }
         }
 
-        return null
+        return null;
 
 
     }
-    _lastInput;
 
 
     // do a specific action base on the tank's action
@@ -498,6 +503,88 @@ export class Tank extends Agent{
 
         return bulletPath;
     }
+
+
+
+
+
+
+    getBulletPathCurveOP() {
+        const bodyCenterX = this._body.x;
+        const bodyCenterY = this._body.y;
+        const cannonLength = 25 * fixSize * scaleFactor;
+        const pi = Math.PI;
+        let globalRotation = this._body.rotation + this._tankHead.rotation + pi / 2;
+
+        let cannonX = bodyCenterX + Math.cos(globalRotation) * cannonLength;
+        let cannonY = bodyCenterY + Math.sin(globalRotation) * cannonLength;
+
+        const path = [{ startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation }];
+        const stadiumBounds = this._gameManager._bodyStadium.getBounds();
+        const maxBounces = 3;
+        const step = 0.5;
+
+        for (let bounces = 0; bounces < maxBounces; bounces++) {
+            let collisionDetected = false;
+            let endX, endY;
+            let destructWallAtDistance = Infinity;
+            let destructWallFunction = () => false;
+
+            while (!collisionDetected) {
+                const cosRotation = Math.cos(globalRotation);
+                const sinRotation = Math.sin(globalRotation);
+                endX = cannonX + cosRotation * step;
+                endY = cannonY + sinRotation * step;
+
+                if (endX <= stadiumBounds.x || endX >= stadiumBounds.x + stadiumBounds.width) {
+                    globalRotation = pi - globalRotation;
+                    collisionDetected = true;
+                } else if (endY <= stadiumBounds.y || endY >= stadiumBounds.y + stadiumBounds.height) {
+                    globalRotation = -globalRotation;
+                    collisionDetected = true;
+                } else {
+                    for (let wall of this._gameManager._walls) {
+                        if (wall.isInside(endX, endY) && !wall._destructed) {
+                            if (wall.getDestruct()) {
+                                destructWallAtDistance = path.length;
+                                destructWallFunction = () => {
+                                    if (!wall._destructed) {
+                                        wall._destructed = true;
+                                        this._gameManager.destructWall(wall);
+                                        return true;
+                                    }
+                                    return false;
+                                };
+                            }
+                            const rotations = [pi - globalRotation, -globalRotation];
+                            const distances = rotations.map(rotation => this.rayCastNearestEmptySpace(endX, endY, rotation));
+                            globalRotation = rotations[distances.indexOf(Math.min(...distances))];
+                            collisionDetected = true;
+                            break;
+                        }
+                    }
+                }
+                cannonX = endX;
+                cannonY = endY;
+            }
+
+            const lastSegment = path[path.length - 1];
+            lastSegment.endX = cannonX;
+            lastSegment.endY = cannonY;
+            lastSegment.destructWallAtSegment = destructWallAtDistance;
+            lastSegment.destructWall = destructWallFunction;
+
+            if (bounces < maxBounces - 1) {
+                path.push({ startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation });
+            }
+        }
+        return path;
+    }
+
+
+
+
+
 
 
     // Pareil que getBulletPath mais retourne le début et la fin de chaque segment de la trajectoire au lieu d'afficher le chemin. Utilisé pour l'animation

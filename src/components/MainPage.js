@@ -110,15 +110,30 @@ const MainPage = ({settings}) => {
             if (tankSpawnPosition) {
                 tankSpawnPosition.x += stadium._bodyStadium.x;
                 tankSpawnPosition.y += stadium._bodyStadium.y;
-                const tank = new Tank(tanksColor[i],
-                    {up: "z", left: "q", down: "s", right: "d", shoot: " "},
-                    stadiumWidth, stadiumHeight, stadium, app,
-                    tankSpawnPosition.x, tankSpawnPosition.y,
-                    5, isPlayerPlaying
-                );
-                tank.setTrackMarksContainer(trackMarksContainer); // set the track marks container to the right one
-                stadium.addTank(tank);
-                app.stage.addChild(tank._body); // tanks added to the stage
+                if (i == 1 && isPlayerPlaying) {
+
+                    const tank = new Tank(tanksColor[i],
+                        {up: "z", left: "q", down: "s", right: "d", shoot: " "},
+                        stadiumWidth, stadiumHeight, stadium, app,
+                        tankSpawnPosition.x, tankSpawnPosition.y,
+                        5, true
+                    );
+                    tank.setTrackMarksContainer(trackMarksContainer); // set the track marks container to the right one
+                    stadium.addTank(tank);
+                    app.stage.addChild(tank._body); // tanks added to the stage
+                    console.log("cac tank humain")
+                } else {
+                    const tank = new Tank(tanksColor[i],
+                        {up: "z", left: "q", down: "s", right: "d", shoot: " "},
+                        stadiumWidth, stadiumHeight, stadium, app,
+                        tankSpawnPosition.x, tankSpawnPosition.y,
+                        5, false
+                    );
+                    tank.setTrackMarksContainer(trackMarksContainer); // set the track marks container to the right one
+                    stadium.addTank(tank);
+                    app.stage.addChild(tank._body); // tanks added to the stage
+                    console.log("cac tank ia")
+                }
             }
         }
 
