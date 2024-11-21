@@ -90,7 +90,7 @@ const MainPage = ({settings}) => {
         });
 
         stadium.findValidPoint();
-        let debug = true;
+        let debug = false;
         //debug point
         if(debug){
             const point = new PIXI.Graphics();
@@ -153,6 +153,8 @@ const MainPage = ({settings}) => {
                         },1000);
                     }
                 }
+
+
 
                 // Mettre à jour les particules
                 tank.updateParticles();

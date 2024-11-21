@@ -46,7 +46,7 @@ export class Tank extends Agent{
     _previousRotation;
     _shortCooldown = false; // Cooldown between each bullet
     _maxBullets;
-    _bulletsCooldown = 0; // number of bullet shoot simultaneously < maxBullets
+    _bulletsCooldown = 1; // number of bullet shoot simultaneously < maxBullets
     _player;
     _particles = [];
     _dangerousBullet;
@@ -54,6 +54,7 @@ export class Tank extends Agent{
     _trackMarks;
     _trackMarkCounter = 0;
     _trackMarkThreshold = 3 ;
+    _maxBounces = 2;
 
     createParticle(x, y, typeOfParticle) {
         this._particles.push(new Particle(this._app, x, y, typeOfParticle));
@@ -84,7 +85,7 @@ export class Tank extends Agent{
         return this._body.y;
     }
 
-    constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX, spawnY, maxBullets = 5, player) {
+    constructor(color, controls, stadiumWidth, stadiumHeight, stadiumObject, app, spawnX, spawnY, maxBullets = 4, player) {
         super((spawnX-(50 * fixSize * scaleFactor)/2), (spawnY-(50 * fixSize * scaleFactor)/2), 50 * fixSize * scaleFactor / 2, 50 * fixSize * scaleFactor / 2, app, stadiumObject);
         this._coordinateSpawnX = spawnX;
         this._coordinateSpawnY = spawnY;
@@ -349,9 +350,16 @@ export class Tank extends Agent{
 
         // Check if the tank is closer to the center horizontally or vertically
 
+
         if (Math.abs(zone.x - x) > Math.abs(zone.y - y)) {
             // Try to move horizontally first
 
+            if (!this._gameManager.isPointInsideAWall(x + (moveX === Action.Right ? this._speed : -this._speed), y)) {
+                this.performAgentAction(moveX);
+            } else if (!this._gameManager.isPointInsideAWall(x, y + (moveY === Action.Down ? this._speed : -this._speed))) {
+                // If horizontal move is blocked, try to move vertically
+                this.performAgentAction(moveY);
+            }
             if (!this._gameManager.isPointInsideAWall(x + (moveX === Action.Right ? this._speed : -this._speed), y)) {
                 this.performAgentAction(moveX);
             } else if (!this._gameManager.isPointInsideAWall(x, y + (moveY === Action.Down ? this._speed : -this._speed))) {
@@ -370,6 +378,8 @@ export class Tank extends Agent{
                 this.performAgentAction(moveX);
             }
         }
+
+
 
         return null;
 
@@ -447,7 +457,7 @@ export class Tank extends Agent{
 
         const stadiumBounds = this._gameManager._bodyStadium.getBounds();
         let lineLength = 0;
-        let maxBounces = 3; // maximum number of bounces
+        let maxBounces = 2; // maximum number of bounces
         let bounces = 0;
 
         while (bounces < maxBounces) {
@@ -521,7 +531,7 @@ export class Tank extends Agent{
 
         const path = [{ startX: cannonX, startY: cannonY, endX: cannonX, endY: cannonY, rotation: globalRotation }];
         const stadiumBounds = this._gameManager._bodyStadium.getBounds();
-        const maxBounces = 3;
+        const maxBounces = this._maxBounces;
         const step = 0.5;
 
         for (let bounces = 0; bounces < maxBounces; bounces++) {
@@ -606,7 +616,7 @@ export class Tank extends Agent{
         const stadiumBounds = this._gameManager._bodyStadium.getBounds();
         let lineLength = 0;
         let acumulatedLength = 0;
-        let maxBounces = 3; // Nombre maximum de rebonds
+        let maxBounces = this._maxBounces; // Nombre maximum de rebonds
         let bounces = 0;
 
         while (bounces < maxBounces) {
