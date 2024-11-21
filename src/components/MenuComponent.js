@@ -37,7 +37,7 @@ const MenuComponent = ({settings, setSettings}) => {
         const audio = new Audio(OST);
         audio.autoplay = true;
         audio.loop = true;
-        audio.volume = 0.8;
+        audio.volume = 0.6;
 
         audio.play();
         navigate(`/game?nbTank=${tankNumber}&isPlayerPlaying=${isPlayerPlaying}`);

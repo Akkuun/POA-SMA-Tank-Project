@@ -196,8 +196,31 @@ const MainPage = ({settings}) => {
             }
             const remainingTanks = stadium._tanks.filter(tank => !tank._destroyed);
             if (remainingTanks.length === 1) {
-                //setIsGameEnded(true);
                 app.ticker.stop();
+                
+                let winRect = new PIXI.Graphics();
+                app.stage.addChild(winRect);
+                winRect.beginFill(0x000000);
+                winRect.drawRect(0, WindowHeight/2 - WindowHeight/16, WindowWidth, WindowHeight/8);
+                winRect.zIndex = 1000;
+                let winText = new PIXI.Text('The winner is ', {fontFamily : 'Arial', fontSize: 32*ScaleFactor, fill : 0xffffff, align : 'center'});
+                winText.anchor.set(0.5);
+                winText.x = WindowWidth/2;
+                winText.y = WindowHeight/2 - WindowHeight/64;
+                winText.zIndex = 1001;
+                app.stage.addChild(winText);
+                let winningTank = remainingTanks[0];
+                let winTank = new Tank(winningTank._color, winningTank._controls, stadiumWidth, stadiumHeight, stadium, app, WindowWidth/2, WindowHeight/2, 5, false);
+                app.stage.addChild(winTank._body);
+                winTank._body.x = WindowWidth/2;
+                winTank._body.y = WindowHeight/2 + WindowHeight/64;
+                winTank._body.width = 50;
+                winTank._body.height = 50;
+                winTank._body.rotation = winningTank._body.rotation;
+                winTank._body.pivot.x = 25;
+                winTank._body.pivot.y = 25;
+                winTank._body.zIndex = 1001;
+                app.stage.addChild(winTank._body);
             }
         });
 
