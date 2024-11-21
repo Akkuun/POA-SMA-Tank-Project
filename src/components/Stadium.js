@@ -149,16 +149,23 @@ export class Stadium {
     findValidPoint() {
         let centerxz = this._bodyStadium.x + this._bodyStadium.width / 2;
         let centeryz = this._bodyStadium.y + this._bodyStadium.height / 2;
-
         // Check if the initial point is valid
         if (this.isPointInside(centerxz, centeryz) || this.isPointInsideAWall(centerxz, centeryz)) {
             // Take a random point in the stadium and recheck if the point is in a wall
             do {
-                centerxz = Math.random() * this._bodyStadium.width + this._bodyStadium.x;
-                centeryz = Math.random() * this._bodyStadium.height + this._bodyStadium.y;
-            } while (!this.isPointInside(centerxz, centeryz) || this.isPointInsideAWall(centerxz, centeryz));
+                centerxz = Math.random() * this._bodyStadium.width/2 +this._bodyStadium.width/4 + this._bodyStadium.x;
+                centeryz = Math.random() * this._bodyStadium.height/2+this._bodyStadium.height/4 + this._bodyStadium.y;
+            } while (!this.isPointInside(centerxz, centeryz) && !this.isPointInsideAWall(centerxz, centeryz));
         }
         this._zone = { x: centerxz, y: centeryz };
+
+
+
+        setTimeout(() => {
+            this.findValidPoint();
+
+
+        }, 3000);
     }
     
     display(app) {

@@ -276,7 +276,7 @@ export class Bullet {
         this.setPosition(cannonTipX, cannonTipY);
         this.setDirection(Tank._tankHead.rotation+Tank._body.rotation);
 
-        this._path = this.computeBulletPath(this.getPosition(), this._bodyBullet.rotation + Math.PI/2 , 3);
+        this._path = this.computeBulletPath(this.getPosition(), this._bodyBullet.rotation + Math.PI/2 , Tank._maxBounces);
         for (let i = 0; i < this._path.length; i++) {
             if (this._path[i].destructWallAtDistance != Infinity) {
                 this._wallDestructionPlan = {distance : this._path[i].destructWallAtDistance, function: this._path[i].destructWall};
